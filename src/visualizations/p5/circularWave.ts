@@ -1,5 +1,10 @@
 import p5 from 'p5';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  Visualization,
+  AudioData,
+  VisualizationConfig,
+  ConfigSchema,
+} from '../types';
 
 interface CircularWaveConfig extends VisualizationConfig {
   rings: number;
@@ -9,7 +14,10 @@ interface CircularWaveConfig extends VisualizationConfig {
   pulse: boolean;
 }
 
-const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; accent: string }> = {
+const COLOR_SCHEMES: Record<
+  string,
+  { primary: string; secondary: string; accent: string }
+> = {
   cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', accent: '#ffffff' },
   darkTechno: { primary: '#4a00e0', secondary: '#8000ff', accent: '#1a1a2e' },
   neon: { primary: '#39ff14', secondary: '#ff073a', accent: '#ffff00' },
@@ -48,7 +56,10 @@ export class CircularWaveVisualization implements Visualization {
     // Create p5 instance in instance mode
     this.p5Instance = new p5((p: p5) => {
       p.setup = () => {
-        const canvas = p.createCanvas(container.clientWidth, container.clientHeight);
+        const canvas = p.createCanvas(
+          container.clientWidth,
+          container.clientHeight,
+        );
         canvas.parent(container);
         p.colorMode(p.HSB, 360, 100, 100, 100);
         p.strokeCap(p.ROUND);
@@ -63,7 +74,8 @@ export class CircularWaveVisualization implements Visualization {
   }
 
   private drawVisualization(p: p5): void {
-    const { rings, colorScheme, rotationSpeed, lineWidth, pulse, sensitivity } = this.config;
+    const { rings, colorScheme, rotationSpeed, lineWidth, pulse, sensitivity } =
+      this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     // Clear with transparent background
@@ -73,7 +85,8 @@ export class CircularWaveVisualization implements Visualization {
       return;
     }
 
-    const { frequencyData, timeDomainData, bass, volume } = this.currentAudioData;
+    const { frequencyData, timeDomainData, bass, volume } =
+      this.currentAudioData;
     const centerX = this.width / 2;
     const centerY = this.height / 2;
     const maxRadius = Math.min(this.width, this.height) * 0.4;
@@ -99,9 +112,13 @@ export class CircularWaveVisualization implements Visualization {
       } else if (ring === rings - 1) {
         strokeColor = p.color(colors.secondary);
       } else {
-        strokeColor = p.lerpColor(p.color(colors.primary), p.color(colors.secondary), ringProgress);
+        strokeColor = p.lerpColor(
+          p.color(colors.primary),
+          p.color(colors.secondary),
+          ringProgress,
+        );
       }
-      
+
       // Add transparency (70% opacity)
       strokeColor.setAlpha(70);
       p.stroke(strokeColor);
@@ -116,14 +133,15 @@ export class CircularWaveVisualization implements Visualization {
 
       for (let i = 0; i < points; i++) {
         const angle = i * angleStep + ring * (p.PI / rings);
-        
+
         // Use frequency data instead of time domain for more visible reaction
         const freqValue = frequencyData[i * freqStep] / 255;
         // Also incorporate time domain for subtle wave motion
-        const timeValue = (timeDomainData[i * freqStep] / 128 - 1);
-        
+        const timeValue = timeDomainData[i * freqStep] / 128 - 1;
+
         // Much more aggressive scaling
-        const combinedValue = (freqValue * 0.8 + timeValue * 0.2) * sensitivity * 3;
+        const combinedValue =
+          (freqValue * 0.8 + timeValue * 0.2) * sensitivity * 2;
         const waveRadius = radius + combinedValue * 100 * (1 + ring * 0.3);
 
         const x = Math.cos(angle) * waveRadius;
@@ -140,9 +158,10 @@ export class CircularWaveVisualization implements Visualization {
 
     for (let i = 0; i < spikeCount; i++) {
       const angle = (i / spikeCount) * p.TWO_PI;
-      const freqValue = frequencyData[i * spikeStep] / 255 * sensitivity * 2; // Double the sensitivity
+      const freqValue = (frequencyData[i * spikeStep] / 255) * sensitivity * 2; // Double the sensitivity
 
-      if (freqValue > 0.02) { // Much lower threshold
+      if (freqValue > 0.02) {
+        // Much lower threshold
         const innerRadius = maxRadius * 0.25;
         const outerRadius = innerRadius + freqValue * maxRadius * 0.8; // Longer spikes
 

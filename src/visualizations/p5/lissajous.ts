@@ -60,6 +60,8 @@ export class LissajousVisualization implements Visualization {
   private curves: LissajousCurve[] = [];
   private time = 0;
 
+  private currentDeltaTime = 0.016;
+
   init(container: HTMLElement, config: VisualizationConfig): void {
     this.container = container;
     this.updateConfig(config);
@@ -154,7 +156,7 @@ export class LissajousVisualization implements Visualization {
     }
 
     // Update time
-    this.time += speed * 0.02 * (1 + volume * sensitivity);
+    this.time += speed * 1.2 * (1 + volume * sensitivity) * this.currentDeltaTime;
 
     p.push();
     p.translate(centerX, centerY);
@@ -170,7 +172,7 @@ export class LissajousVisualization implements Visualization {
       const audioB = curve.b + treble * sensitivity * 2;
 
       // Phase shift based on mid frequencies
-      curve.phase += speed * 0.01 * (1 + mid * sensitivity);
+      curve.phase += speed * 0.6 * (1 + mid * sensitivity) * this.currentDeltaTime;
 
       // Calculate current point
       const t = this.time + curve.delta;
@@ -182,7 +184,7 @@ export class LissajousVisualization implements Visualization {
 
       // Age and remove old trail points
       for (let i = curve.trail.length - 1; i >= 0; i--) {
-        curve.trail[i].age += 1;
+        curve.trail[i].age += this.currentDeltaTime * 60;
         if (curve.trail[i].age > trailLength) {
           curve.trail.splice(i, 1);
         }
@@ -250,7 +252,7 @@ export class LissajousVisualization implements Visualization {
 
   render(audioData: AudioData, deltaTime: number): void {
     this.currentAudioData = audioData;
-    // p5 handles its own draw loop, we just update the data
+    this.currentDeltaTime = deltaTime || 0.016;
   }
 
   resize(width: number, height: number): void {

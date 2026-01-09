@@ -59,6 +59,8 @@ export class NeonFlowFieldVisualization implements Visualization {
   private resolution = 20;
   private time = 0;
 
+  private currentDeltaTime = 0.016;
+
   init(container: HTMLElement, config: VisualizationConfig): void {
     this.container = container;
     this.updateConfig(config);
@@ -102,7 +104,7 @@ export class NeonFlowFieldVisualization implements Visualization {
     const { flowSpeed, trailLength, colorScheme, sensitivity } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
-    this.time += 0.01;
+    this.time += 0.6 * this.currentDeltaTime;
 
     // Clear with transparent background
     p.clear();
@@ -167,6 +169,7 @@ export class NeonFlowFieldVisualization implements Visualization {
 
   render(audioData: AudioData, deltaTime: number): void {
     this.currentAudioData = audioData;
+    this.currentDeltaTime = deltaTime || 0.016;
   }
 
   resize(width: number, height: number): void {

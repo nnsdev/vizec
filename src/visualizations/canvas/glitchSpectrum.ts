@@ -1,4 +1,9 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  Visualization,
+  AudioData,
+  VisualizationConfig,
+  ConfigSchema,
+} from '../types';
 
 interface GlitchSpectrumConfig extends VisualizationConfig {
   barCount: number;
@@ -7,7 +12,10 @@ interface GlitchSpectrumConfig extends VisualizationConfig {
   mirror: boolean;
 }
 
-const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; glitch: string }> = {
+const COLOR_SCHEMES: Record<
+  string,
+  { primary: string; secondary: string; glitch: string }
+> = {
   cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', glitch: '#ffffff' },
   darkTechno: { primary: '#1a1a2e', secondary: '#4a00e0', glitch: '#00ffff' },
   neon: { primary: '#39ff14', secondary: '#ff073a', glitch: '#ffff00' },
@@ -39,6 +47,8 @@ export class GlitchSpectrumVisualization implements Visualization {
   private colorOffset: number = 0;
   private lastBassPeak: boolean = false;
   private glitchFrames: number = 0;
+  private lastGlitchTime: number = 0;
+  private lastFlashTime: number = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
     this.canvas = document.createElement('canvas');
@@ -65,21 +75,25 @@ export class GlitchSpectrumVisualization implements Visualization {
     if (!this.ctx || !this.canvas) return;
 
     const { frequencyData, bass } = audioData;
-    const { barCount, glitchIntensity, mirror, sensitivity, colorScheme } = this.config;
+    const { barCount, glitchIntensity, mirror, sensitivity, colorScheme } =
+      this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+
+    const now = performance.now();
 
     // Clear canvas
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // Detect bass peaks for glitch triggers
-    const bassThreshold = 0.6;
-    const bassPeak = bass > bassThreshold;
-    const bassDrop = this.lastBassPeak && !bassPeak;
+    // Detect bass peaks for glitch triggers with safety cooldown
+    const bassThreshold = 0.7 / (sensitivity > 1 ? Math.sqrt(sensitivity) : 1);
+    const bassPeak = bass * sensitivity > bassThreshold;
+    const canGlitch = now - this.lastGlitchTime > 200; // Max 5 glitches per second
 
-    if (bassPeak) {
-      this.glitchFrames = Math.floor(3 + Math.random() * 5); // 3-8 frames of glitch
-      this.glitchOffset = (Math.random() - 0.5) * glitchIntensity * 30;
-      this.colorOffset = (Math.random() - 0.5) * glitchIntensity * 100;
+    if (bassPeak && !this.lastBassPeak && canGlitch) {
+      this.glitchFrames = Math.floor(2 + Math.random() * 4); // Reduced duration: 2-6 frames
+      this.glitchOffset = (Math.random() - 0.5) * glitchIntensity * 20;
+      this.colorOffset = (Math.random() - 0.5) * glitchIntensity * 50;
+      this.lastGlitchTime = now;
     }
 
     this.lastBassPeak = bassPeak;
@@ -122,7 +136,7 @@ export class GlitchSpectrumVisualization implements Visualization {
       const boostedValue = Math.pow(normalizedValue, 0.8) * sensitivity;
 
       // Smooth the value
-      this.smoothedData[i] = this.smoothedData[i] * 0.7 + boostedValue * 0.3;
+      this.smoothedData[i] = this.smoothedData[i] * 0.5 + boostedValue * 0.1;
       const smoothedValue = this.smoothedData[i];
 
       // Calculate bar height
@@ -153,24 +167,44 @@ export class GlitchSpectrumVisualization implements Visualization {
 
         // Top part
         this.ctx.fillStyle = barColor;
-        this.ctx.fillRect(x + offsetX, centerY - barHeight, barWidth, sliceY - (centerY - barHeight));
+        this.ctx.fillRect(
+          x + offsetX,
+          centerY - barHeight,
+          barWidth,
+          sliceY - (centerY - barHeight),
+        );
 
         // Bottom part (offset)
         const bottomOffset = (Math.random() - 0.5) * glitchIntensity * 15;
-        this.ctx.fillRect(x + offsetX + bottomOffset, sliceY, barWidth, (centerY + barHeight) - sliceY);
+        this.ctx.fillRect(
+          x + offsetX + bottomOffset,
+          sliceY,
+          barWidth,
+          centerY + barHeight - sliceY,
+        );
       } else {
         // Normal drawing
         this.ctx.fillStyle = barColor;
 
         if (mirror) {
-          this.ctx.fillRect(x + offsetX, centerY - barHeight, barWidth, barHeight);
+          this.ctx.fillRect(
+            x + offsetX,
+            centerY - barHeight,
+            barWidth,
+            barHeight,
+          );
           this.ctx.fillRect(x + offsetX, centerY, barWidth, barHeight);
 
           const mirrorX = this.width - x - barWidth - offsetX;
           this.ctx.fillRect(mirrorX, centerY - barHeight, barWidth, barHeight);
           this.ctx.fillRect(mirrorX, centerY, barWidth, barHeight);
         } else {
-          this.ctx.fillRect(x + offsetX, this.height - barHeight * 2, barWidth, barHeight * 2);
+          this.ctx.fillRect(
+            x + offsetX,
+            this.height - barHeight * 2,
+            barWidth,
+            barHeight * 2,
+          );
         }
       }
 
@@ -183,21 +217,24 @@ export class GlitchSpectrumVisualization implements Visualization {
       }
     }
 
-    // Scanline effect during glitch
-    if (isGlitching && Math.random() < 0.5 * glitchIntensity) {
+    // Scanline effect during glitch - throttled for safety
+    const canFlash = now - this.lastFlashTime > 150;
+    if (isGlitching && canFlash && Math.random() < 0.2 * glitchIntensity) {
       const scanlineY = Math.random() * this.height;
-      const scanlineHeight = Math.random() * 10 + 2;
-      this.ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * glitchIntensity})`;
+      const scanlineHeight = Math.random() * 6 + 1;
+      this.ctx.fillStyle = `rgba(255, 255, 255, ${0.15 * glitchIntensity})`;
       this.ctx.fillRect(0, scanlineY, this.width, scanlineHeight);
+      this.lastFlashTime = now;
     }
 
-    // RGB split effect on strong beats
-    if (isGlitching && Math.random() < 0.3 * glitchIntensity) {
-      const splitOffset = glitchIntensity * 5;
+    // RGB split effect on strong beats - throttled for safety
+    if (isGlitching && canFlash && Math.random() < 0.15 * glitchIntensity) {
+      const splitOffset = glitchIntensity * 3;
       this.ctx.globalCompositeOperation = 'screen';
-      this.ctx.fillStyle = `rgba(255, 0, 0, 0.3)`;
+      this.ctx.fillStyle = `rgba(255, 0, 0, 0.15)`;
       this.ctx.fillRect(0, 0, this.width, this.height);
       this.ctx.globalCompositeOperation = 'source-over';
+      this.lastFlashTime = now;
     }
 
     this.ctx.restore();

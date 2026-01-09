@@ -174,9 +174,9 @@ export class CubeFieldVisualization implements Visualization {
 
     // Rotate entire grid based on audio
     if (rotateWithAudio) {
-      this.cubeGroup.rotation.y += 0.003 * (1 + midBoost * sensitivity * 0.5);
+      this.cubeGroup.rotation.y += 0.18 * (1 + midBoost * sensitivity * 0.5) * deltaTime;
     } else {
-      this.cubeGroup.rotation.y += 0.002;
+      this.cubeGroup.rotation.y += 0.12 * deltaTime;
     }
 
     // Update each cube

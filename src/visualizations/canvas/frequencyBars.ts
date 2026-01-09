@@ -1,7 +1,15 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  Visualization,
+  AudioData,
+  VisualizationConfig,
+  ConfigSchema,
+} from '../types';
 
 // Color schemes
-const COLOR_SCHEMES: Record<string, { start: string; end: string; glow: string }> = {
+const COLOR_SCHEMES: Record<
+  string,
+  { start: string; end: string; glow: string }
+> = {
   cyanMagenta: { start: '#00ffff', end: '#ff00ff', glow: '#00ffff' },
   darkTechno: { start: '#1a1a2e', end: '#4a00e0', glow: '#8000ff' },
   neon: { start: '#39ff14', end: '#ff073a', glow: '#ffff00' },
@@ -66,18 +74,20 @@ export class FrequencyBarsVisualization implements Visualization {
 
     // Initialize smoothed data
     this.smoothedData = new Array(this.config.barCount).fill(0);
-    
-    console.log('FrequencyBars initialized:', { width: this.width, height: this.height });
+
+    console.log('FrequencyBars initialized:', {
+      width: this.width,
+      height: this.height,
+    });
   }
 
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
     const { frequencyData, bass } = audioData;
-    const { barCount, glow, mirror, gap, sensitivity, colorScheme } = this.config;
+    const { barCount, glow, mirror, gap, sensitivity, colorScheme } =
+      this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
-
-
 
     // Clear canvas
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -96,31 +106,37 @@ export class FrequencyBarsVisualization implements Visualization {
       for (let j = 0; j < step; j++) {
         sum += frequencyData[i * step + j];
       }
-      
+
       // Apply frequency-dependent scaling to balance bass vs treble
       // Higher frequencies naturally have less energy, so boost them more
       const freqPosition = i / totalBars; // 0 = bass, 1 = treble
       const freqCompensation = 1 + freqPosition * 2.5; // Boost highs by up to 3.5x
       const bassAttenuation = freqPosition < 0.2 ? 0.5 + freqPosition * 2.5 : 1; // Reduce bass by up to 50%
-      
+
       const rawValue = (sum / step) * freqCompensation * bassAttenuation;
       const normalizedValue = Math.min(1, rawValue / 180);
-      const boostedValue = Math.pow(normalizedValue, 0.8) * sensitivity;
+      const boostedValue = Math.pow(normalizedValue, 0.4) * sensitivity;
       const value = boostedValue;
 
       // Smooth the value
       const smoothing = 0.7;
-      this.smoothedData[i] = this.smoothedData[i] * smoothing + value * (1 - smoothing);
+      this.smoothedData[i] =
+        this.smoothedData[i] * smoothing + value * (1 - smoothing);
       const smoothedValue = this.smoothedData[i];
 
       // Calculate bar height - no additional bass boost since we balanced it above
-      const barHeight = smoothedValue * this.height * 0.6;
+      const barHeight = smoothedValue * this.height * 0.3;
 
       // Calculate x position
       const x = i * (barWidth + gap);
 
       // Create gradient
-      const gradient = this.ctx.createLinearGradient(x, centerY - barHeight, x, centerY + barHeight);
+      const gradient = this.ctx.createLinearGradient(
+        x,
+        centerY - barHeight,
+        x,
+        centerY + barHeight,
+      );
       gradient.addColorStop(0, colors.start);
       gradient.addColorStop(0.5, colors.end);
       gradient.addColorStop(1, colors.start);
@@ -134,7 +150,7 @@ export class FrequencyBarsVisualization implements Visualization {
       }
 
       // Set transparency for overlay mode (70% opacity)
-      this.ctx.globalAlpha = 0.7;
+      this.ctx.globalAlpha = 0.5;
       this.ctx.fillStyle = gradient;
 
       if (mirror) {
@@ -148,7 +164,12 @@ export class FrequencyBarsVisualization implements Visualization {
         this.ctx.fillRect(mirrorX, centerY, barWidth, barHeight);
       } else {
         // Draw from bottom
-        this.ctx.fillRect(x, this.height - barHeight * 2, barWidth, barHeight * 2);
+        this.ctx.fillRect(
+          x,
+          this.height - barHeight * 2,
+          barWidth,
+          barHeight * 2,
+        );
       }
     }
 
