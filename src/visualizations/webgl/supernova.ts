@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface SupernovaConfig extends VisualizationConfig {
   particleCount: number;
@@ -61,12 +67,20 @@ interface NebulaCloud {
 }
 
 export class SupernovaVisualization implements Visualization {
-  id = 'supernova';
-  name = 'Supernova';
-  author = 'Vizec';
-  description = 'Massive stellar explosion with shockwaves, particle trails, and nebula clouds';
-  renderer: 'threejs' = 'threejs';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "supernova",
+    name: "Supernova",
+    author: "Vizec",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -100,7 +114,7 @@ export class SupernovaVisualization implements Visualization {
 
   private config: SupernovaConfig = {
     sensitivity: 1.0,
-    colorScheme: 'classic',
+    colorScheme: "classic",
     particleCount: 15000,
     explosionIntensity: 1.5,
     coreSize: 3.0,
@@ -126,7 +140,7 @@ export class SupernovaVisualization implements Visualization {
       75,
       container.clientWidth / container.clientHeight,
       0.1,
-      2000
+      2000,
     );
     this.camera.position.z = 100;
 
@@ -134,7 +148,7 @@ export class SupernovaVisualization implements Visualization {
     this.rendererThree = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      powerPreference: 'high-performance',
+      powerPreference: "high-performance",
     });
     this.rendererThree.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.rendererThree.setClearColor(0x000000, 0);
@@ -236,9 +250,9 @@ export class SupernovaVisualization implements Visualization {
     }
 
     this.particleGeometry = new THREE.BufferGeometry();
-    this.particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    this.particleGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    this.particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    this.particleGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    this.particleGeometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 
     // Custom shader material for particles with trails
     this.particleMaterial = new THREE.PointsMaterial({
@@ -268,12 +282,12 @@ export class SupernovaVisualization implements Visualization {
         position: new THREE.Vector3(
           (Math.random() - 0.5) * 200,
           (Math.random() - 0.5) * 200,
-          (Math.random() - 0.5) * 200
+          (Math.random() - 0.5) * 200,
         ),
         velocity: new THREE.Vector3(
           (Math.random() - 0.5) * 0.1,
           (Math.random() - 0.5) * 0.1,
-          (Math.random() - 0.5) * 0.1
+          (Math.random() - 0.5) * 0.1,
         ),
         originalPosition: new THREE.Vector3(0, 0, 0),
         life: 1,
@@ -296,8 +310,8 @@ export class SupernovaVisualization implements Visualization {
     }
 
     this.debrisGeometry = new THREE.BufferGeometry();
-    this.debrisGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.debrisGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    this.debrisGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    this.debrisGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
     this.debrisMaterial = new THREE.PointsMaterial({
       size: 0.5,
@@ -319,7 +333,7 @@ export class SupernovaVisualization implements Visualization {
     const scheme = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.classic;
     const numWaves = 3 + Math.floor(intensity * 2); // Multiple shockwave layers
     const particlesPerWave = Math.floor(
-      (this.config.particleCount * 0.7) / numWaves * this.config.explosionIntensity
+      ((this.config.particleCount * 0.7) / numWaves) * this.config.explosionIntensity,
     );
 
     let particleIndex = 0;
@@ -327,7 +341,6 @@ export class SupernovaVisualization implements Visualization {
     // Create multiple shockwave layers with different speeds
     for (let wave = 0; wave < numWaves; wave++) {
       const waveSpeed = (0.5 + wave * 0.3) * intensity * this.config.explosionIntensity;
-      const waveDelay = wave * 0.1;
 
       for (let i = 0; i < particlesPerWave && particleIndex < this.particles.length; i++) {
         const particle = this.particles[particleIndex];
@@ -348,7 +361,7 @@ export class SupernovaVisualization implements Visualization {
         particle.velocity.set(
           Math.sin(phi) * Math.cos(theta) * speed,
           Math.sin(phi) * Math.sin(theta) * speed,
-          Math.cos(phi) * speed
+          Math.cos(phi) * speed,
         );
         particle.life = 2 + Math.random() * 2;
         particle.maxLife = particle.life;
@@ -373,11 +386,7 @@ export class SupernovaVisualization implements Visualization {
   private createShockwaveRing(intensity: number, color: number): void {
     if (!this.scene) return;
 
-    const ringGeometry = new THREE.RingGeometry(
-      this.config.coreSize,
-      this.config.coreSize + 1,
-      64
-    );
+    const ringGeometry = new THREE.RingGeometry(this.config.coreSize, this.config.coreSize + 1, 64);
     const ringMaterial = new THREE.MeshBasicMaterial({
       color: color,
       transparent: true,
@@ -412,7 +421,7 @@ export class SupernovaVisualization implements Visualization {
     const cloudCenter = new THREE.Vector3(
       (Math.random() - 0.5) * 20,
       (Math.random() - 0.5) * 20,
-      (Math.random() - 0.5) * 20
+      (Math.random() - 0.5) * 20,
     );
 
     for (let i = 0; i < cloudParticleCount; i++) {
@@ -435,8 +444,8 @@ export class SupernovaVisualization implements Visualization {
     }
 
     const cloudGeometry = new THREE.BufferGeometry();
-    cloudGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    cloudGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    cloudGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    cloudGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
     const cloudMaterial = new THREE.PointsMaterial({
       size: 1.0,
@@ -478,7 +487,7 @@ export class SupernovaVisualization implements Visualization {
       return;
 
     const { bass, mid, treble, volume } = audioData;
-    const { sensitivity, explosionIntensity, coreSize } = this.config;
+    const { sensitivity, explosionIntensity } = this.config;
 
     this.time += deltaTime;
     this.explosionCooldown = Math.max(0, this.explosionCooldown - deltaTime);
@@ -545,7 +554,7 @@ export class SupernovaVisualization implements Visualization {
     deltaTime: number,
     mid: number,
     treble: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.particleGeometry) return;
 
@@ -859,44 +868,44 @@ export class SupernovaVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       particleCount: {
-        type: 'number',
-        label: 'Particle Count',
+        type: "number",
+        label: "Particle Count",
         default: 15000,
         min: 5000,
         max: 50000,
         step: 1000,
       },
       explosionIntensity: {
-        type: 'number',
-        label: 'Explosion Intensity',
+        type: "number",
+        label: "Explosion Intensity",
         default: 1.5,
         min: 0.5,
         max: 3.0,
         step: 0.1,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'classic',
+        type: "select",
+        label: "Color Scheme",
+        default: "classic",
         options: [
-          { value: 'classic', label: 'Classic (White to Blue)' },
-          { value: 'solar', label: 'Solar Flare (Yellow to Red)' },
-          { value: 'cosmic', label: 'Cosmic (Cyan to Magenta)' },
-          { value: 'nuclear', label: 'Nuclear (Green Burst)' },
-          { value: 'ethereal', label: 'Ethereal (Pink to Purple)' },
+          { value: "classic", label: "Classic (White to Blue)" },
+          { value: "solar", label: "Solar Flare (Yellow to Red)" },
+          { value: "cosmic", label: "Cosmic (Cyan to Magenta)" },
+          { value: "nuclear", label: "Nuclear (Green Burst)" },
+          { value: "ethereal", label: "Ethereal (Pink to Purple)" },
         ],
       },
       coreSize: {
-        type: 'number',
-        label: 'Core Size',
+        type: "number",
+        label: "Core Size",
         default: 3.0,
         min: 1.0,
         max: 8.0,
         step: 0.5,
       },
       trailLength: {
-        type: 'number',
-        label: 'Trail Length',
+        type: "number",
+        label: "Trail Length",
         default: 5,
         min: 0,
         max: 15,

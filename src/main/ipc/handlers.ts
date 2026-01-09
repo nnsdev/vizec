@@ -1,44 +1,49 @@
-import { ipcMain, desktopCapturer } from 'electron';
-import { 
-  IPC_CHANNELS, 
-  AudioSource, 
+import { ipcMain, desktopCapturer } from "electron";
+import {
+  IPC_CHANNELS,
+  AudioSource,
   Preset,
   AudioConfig,
   DisplayConfig,
   RotationConfig,
-  VisualizationConfig
-} from '../../shared/types';
-import { 
-  getAppState, 
-  updateAppState, 
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../../shared/types";
+import {
+  getAppState,
+  updateAppState,
   getPresetManager,
   getVisualizerWindow,
-  getControlWindow
-} from '../index';
-import { visualizationRegistry } from '../../visualizations/registry';
+  getControlWindow,
+} from "../index";
+import { visualizationRegistry } from "../registry";
 
 export function setupIpcHandlers() {
+  console.log("Setting up IPC handlers...");
+
   // Get available audio sources
   ipcMain.handle(IPC_CHANNELS.GET_AUDIO_SOURCES, async (): Promise<AudioSource[]> => {
+    console.log("IPC: GET_AUDIO_SOURCES called");
     try {
-      const sources = await desktopCapturer.getSources({ 
-        types: ['screen', 'window'],
-        fetchWindowIcons: true 
+      const sources = await desktopCapturer.getSources({
+        types: ["screen", "window"],
+        fetchWindowIcons: true,
       });
-      
-      return sources.map(source => ({
+
+      return sources.map((source) => ({
         id: source.id,
         name: source.name,
-        type: source.id.startsWith('screen') ? 'screen' : 'window',
+        type: source.id.startsWith("screen") ? "screen" : "window",
       }));
     } catch (error) {
-      console.error('Error getting audio sources:', error);
+      console.error("Error getting audio sources:", error);
       return [];
     }
   });
 
   // Audio source selected - notify visualizer window
   ipcMain.on(IPC_CHANNELS.AUDIO_SOURCE_SELECTED, (event, source: AudioSource) => {
+    console.log("IPC: AUDIO_SOURCE_SELECTED", source);
     updateAppState({ audioSource: source });
     const visualizer = getVisualizerWindow();
     if (visualizer && !visualizer.isDestroyed()) {
@@ -48,37 +53,63 @@ export function setupIpcHandlers() {
 
   // Start/stop audio capture
   ipcMain.on(IPC_CHANNELS.START_AUDIO_CAPTURE, () => {
+    console.log("IPC: START_AUDIO_CAPTURE");
     updateAppState({ isCapturing: true });
   });
 
   ipcMain.on(IPC_CHANNELS.STOP_AUDIO_CAPTURE, () => {
+    console.log("IPC: STOP_AUDIO_CAPTURE");
     updateAppState({ isCapturing: false });
+  });
+
+  // Register visualizations (from Renderer)
+  ipcMain.on(IPC_CHANNELS.REGISTER_VISUALIZATIONS, (event, metas: VisualizationMeta[]) => {
+    console.log(`IPC: REGISTER_VISUALIZATIONS received ${metas.length} items`);
+    visualizationRegistry.registerMany(metas);
+
+    // Broadcast update to all windows (specifically Control window)
+    const control = getControlWindow();
+    if (control && !control.isDestroyed()) {
+      console.log("Broadcasting VISUALIZATIONS_UPDATED to control window");
+      control.webContents.send(IPC_CHANNELS.VISUALIZATIONS_UPDATED, metas);
+    }
   });
 
   // Get available visualizations
   ipcMain.handle(IPC_CHANNELS.GET_VISUALIZATIONS, () => {
-    return visualizationRegistry.getAllMeta();
+    console.log("IPC: GET_VISUALIZATIONS called");
+    const metas = visualizationRegistry.getAllMeta();
+    console.log(`Returning ${metas.length} visualizations`);
+    return metas;
   });
 
   // Set current visualization
   ipcMain.on(IPC_CHANNELS.SET_VISUALIZATION, (event, vizId: string) => {
+    console.log("IPC: SET_VISUALIZATION", vizId);
     updateAppState({ currentVisualization: vizId });
   });
 
   // Update visualization config
-  ipcMain.on(IPC_CHANNELS.UPDATE_VISUALIZATION_CONFIG, (event, config: Partial<VisualizationConfig>) => {
-    const state = getAppState();
-    updateAppState({ 
-      visualizationConfig: { ...state.visualizationConfig, ...config } 
-    });
-  });
+  ipcMain.on(
+    IPC_CHANNELS.UPDATE_VISUALIZATION_CONFIG,
+    (event, config: Partial<VisualizationConfig>) => {
+      const state = getAppState();
+      updateAppState({
+        visualizationConfig: { ...state.visualizationConfig, ...config },
+      });
+    },
+  );
 
   // Preset management
   ipcMain.handle(IPC_CHANNELS.GET_PRESETS, (): Preset[] => {
-    return getPresetManager().getAllPresets();
+    console.log("IPC: GET_PRESETS called");
+    const presets = getPresetManager().getAllPresets();
+    console.log(`Returning ${presets.length} presets`);
+    return presets;
   });
 
   ipcMain.handle(IPC_CHANNELS.LOAD_PRESET, (event, presetId: string): Preset | null => {
+    console.log("IPC: LOAD_PRESET", presetId);
     const preset = getPresetManager().getPreset(presetId);
     if (preset) {
       updateAppState({
@@ -116,6 +147,7 @@ export function setupIpcHandlers() {
 
   // Get current state
   ipcMain.handle(IPC_CHANNELS.GET_STATE, () => {
+    console.log("IPC: GET_STATE called");
     return getAppState();
   });
 
@@ -128,24 +160,28 @@ export function setupIpcHandlers() {
   ipcMain.on(IPC_CHANNELS.NEXT_VISUALIZATION, () => {
     const state = getAppState();
     const allViz = visualizationRegistry.getAllMeta();
-    const currentIndex = allViz.findIndex(v => v.id === state.currentVisualization);
+    const currentIndex = allViz.findIndex(
+      (v: VisualizationMeta) => v.id === state.currentVisualization,
+    );
     let nextIndex: number;
-    
-    if (state.rotation.order === 'random') {
+
+    if (state.rotation.order === "random") {
       nextIndex = Math.floor(Math.random() * allViz.length);
     } else {
       nextIndex = (currentIndex + 1) % allViz.length;
     }
-    
+
     updateAppState({ currentVisualization: allViz[nextIndex].id });
   });
 
   ipcMain.on(IPC_CHANNELS.PREV_VISUALIZATION, () => {
     const state = getAppState();
     const allViz = visualizationRegistry.getAllMeta();
-    const currentIndex = allViz.findIndex(v => v.id === state.currentVisualization);
+    const currentIndex = allViz.findIndex(
+      (v: VisualizationMeta) => v.id === state.currentVisualization,
+    );
     const prevIndex = (currentIndex - 1 + allViz.length) % allViz.length;
-    
+
     updateAppState({ currentVisualization: allViz[prevIndex].id });
   });
 

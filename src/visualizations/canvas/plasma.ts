@@ -1,117 +1,123 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 // Color schemes for plasma effect
 const COLOR_SCHEMES: Record<string, { colors: [number, number, number][] }> = {
   cyanMagenta: {
     colors: [
-      [0, 255, 255],    // cyan
-      [255, 0, 255],    // magenta
-      [0, 128, 255],    // blue
-      [255, 0, 128],    // pink
+      [0, 255, 255], // cyan
+      [255, 0, 255], // magenta
+      [0, 128, 255], // blue
+      [255, 0, 128], // pink
     ],
   },
   darkTechno: {
     colors: [
-      [26, 26, 46],     // dark blue
-      [74, 0, 224],     // purple
-      [128, 0, 255],    // violet
-      [0, 0, 128],      // navy
+      [26, 26, 46], // dark blue
+      [74, 0, 224], // purple
+      [128, 0, 255], // violet
+      [0, 0, 128], // navy
     ],
   },
   neon: {
     colors: [
-      [57, 255, 20],    // neon green
-      [255, 7, 58],     // neon red
-      [255, 255, 0],    // yellow
-      [0, 255, 128],    // mint
+      [57, 255, 20], // neon green
+      [255, 7, 58], // neon red
+      [255, 255, 0], // yellow
+      [0, 255, 128], // mint
     ],
   },
   fire: {
     colors: [
-      [255, 69, 0],     // red-orange
-      [255, 215, 0],    // gold
-      [255, 140, 0],    // dark orange
-      [255, 0, 0],      // red
+      [255, 69, 0], // red-orange
+      [255, 215, 0], // gold
+      [255, 140, 0], // dark orange
+      [255, 0, 0], // red
     ],
   },
   ice: {
     colors: [
-      [0, 191, 255],    // deep sky blue
-      [224, 255, 255],  // light cyan
-      [135, 206, 235],  // sky blue
-      [176, 224, 230],  // powder blue
+      [0, 191, 255], // deep sky blue
+      [224, 255, 255], // light cyan
+      [135, 206, 235], // sky blue
+      [176, 224, 230], // powder blue
     ],
   },
   acid: {
     colors: [
-      [0, 255, 0],      // green
-      [255, 255, 0],    // yellow
-      [0, 255, 65],     // bright green
-      [128, 255, 0],    // lime
+      [0, 255, 0], // green
+      [255, 255, 0], // yellow
+      [0, 255, 65], // bright green
+      [128, 255, 0], // lime
     ],
   },
   monochrome: {
     colors: [
-      [255, 255, 255],  // white
-      [128, 128, 128],  // gray
-      [200, 200, 200],  // light gray
-      [64, 64, 64],     // dark gray
+      [255, 255, 255], // white
+      [128, 128, 128], // gray
+      [200, 200, 200], // light gray
+      [64, 64, 64], // dark gray
     ],
   },
   purpleHaze: {
     colors: [
-      [139, 0, 255],    // violet
-      [255, 20, 147],   // deep pink
-      [148, 0, 211],    // dark violet
-      [186, 85, 211],   // medium orchid
+      [139, 0, 255], // violet
+      [255, 20, 147], // deep pink
+      [148, 0, 211], // dark violet
+      [186, 85, 211], // medium orchid
     ],
   },
   sunset: {
     colors: [
-      [255, 107, 107],  // coral
-      [254, 202, 87],   // yellow
-      [255, 159, 67],   // orange
-      [255, 71, 87],    // red
+      [255, 107, 107], // coral
+      [254, 202, 87], // yellow
+      [255, 159, 67], // orange
+      [255, 71, 87], // red
     ],
   },
   ocean: {
     colors: [
-      [0, 119, 190],    // blue
-      [0, 212, 170],    // teal
-      [0, 180, 216],    // cyan
-      [0, 150, 199],    // ocean
+      [0, 119, 190], // blue
+      [0, 212, 170], // teal
+      [0, 180, 216], // cyan
+      [0, 150, 199], // ocean
     ],
   },
   toxic: {
     colors: [
-      [0, 255, 65],     // toxic green
-      [10, 255, 10],    // bright green
-      [57, 255, 20],    // neon
-      [0, 200, 50],     // dark green
+      [0, 255, 65], // toxic green
+      [10, 255, 10], // bright green
+      [57, 255, 20], // neon
+      [0, 200, 50], // dark green
     ],
   },
   bloodMoon: {
     colors: [
-      [139, 0, 0],      // dark red
-      [255, 69, 0],     // orange red
-      [220, 20, 60],    // crimson
-      [178, 34, 34],    // firebrick
+      [139, 0, 0], // dark red
+      [255, 69, 0], // orange red
+      [220, 20, 60], // crimson
+      [178, 34, 34], // firebrick
     ],
   },
   synthwave: {
     colors: [
-      [255, 0, 255],    // magenta
-      [0, 255, 255],    // cyan
-      [255, 0, 170],    // hot pink
-      [0, 170, 255],    // light blue
+      [255, 0, 255], // magenta
+      [0, 255, 255], // cyan
+      [255, 0, 170], // hot pink
+      [0, 170, 255], // light blue
     ],
   },
   golden: {
     colors: [
-      [255, 215, 0],    // gold
-      [255, 140, 0],    // dark orange
-      [255, 179, 71],   // light orange
-      [218, 165, 32],   // goldenrod
+      [255, 215, 0], // gold
+      [255, 140, 0], // dark orange
+      [255, 179, 71], // light orange
+      [218, 165, 32], // goldenrod
     ],
   },
 };
@@ -123,18 +129,27 @@ interface PlasmaConfig extends VisualizationConfig {
 }
 
 export class PlasmaVisualization implements Visualization {
-  id = 'plasma';
-  name = 'Plasma';
-  author = 'Vizec';
-  description = 'Classic demoscene plasma effect with sine wave interference patterns';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "plasma",
+    name: "Plasma",
+    author: "Vizec",
+    description: "Classic demoscene plasma effect with sine wave interference patterns",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private config: PlasmaConfig = {
     sensitivity: 1.0,
-    colorScheme: 'synthwave',
+    colorScheme: "synthwave",
     speed: 1.0,
     scale: 1.0,
     intensity: 1.0,
@@ -145,15 +160,15 @@ export class PlasmaVisualization implements Visualization {
   private imageData: ImageData | null = null;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -164,7 +179,7 @@ export class PlasmaVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas || !this.imageData) return;
 
-    const { frequencyData, bass, mid, treble } = audioData;
+    const { bass, mid, treble } = audioData;
     const { speed, scale, intensity, sensitivity, colorScheme } = this.config;
     const schemeData = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.synthwave;
     const colors = schemeData.colors;
@@ -288,48 +303,48 @@ export class PlasmaVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       speed: {
-        type: 'number',
-        label: 'Speed',
+        type: "number",
+        label: "Speed",
         default: 1.0,
         min: 0.1,
         max: 3.0,
         step: 0.1,
       },
       scale: {
-        type: 'number',
-        label: 'Scale',
+        type: "number",
+        label: "Scale",
         default: 1.0,
         min: 0.5,
         max: 3.0,
         step: 0.1,
       },
       intensity: {
-        type: 'number',
-        label: 'Intensity',
+        type: "number",
+        label: "Intensity",
         default: 1.0,
         min: 0.5,
         max: 2.0,
         step: 0.1,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'synthwave',
+        type: "select",
+        label: "Color Scheme",
+        default: "synthwave",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
         ],
       },
     };

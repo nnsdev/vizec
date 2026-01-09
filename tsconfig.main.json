@@ -1,19 +1,24 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "commonjs",
-    "lib": ["ES2022"],
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "target": "ESNext",
+    "module": "CommonJS",
+    "lib": ["ESNext"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declaration": false,
-    "sourceMap": true,
-    "moduleResolution": "node"
+    "outDir": "dist/main",
+    "rootDir": "src",
+    "moduleResolution": "node",
+    "resolveJsonModule": true
   },
-  "include": ["src/main/**/*", "src/shared/**/*", "src/visualizations/registry.ts", "src/visualizations/types.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/main/**/*", "src/shared/**/*"],
+  "exclude": [
+    "src/renderer/**/*",
+    "src/visualizations/canvas/**/*",
+    "src/visualizations/webgl/**/*",
+    "src/visualizations/p5/**/*",
+    "src/visualizations/factory.generated.ts",
+    "src/visualizations/index.ts"
+  ]
 }

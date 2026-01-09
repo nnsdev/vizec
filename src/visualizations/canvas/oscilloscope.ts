@@ -1,29 +1,44 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; glow: string }> = {
-  cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { primary: '#4a00e0', secondary: '#8e2de2', glow: '#4a00e0' },
-  neon: { primary: '#39ff14', secondary: '#ff073a', glow: '#39ff14' },
-  fire: { primary: '#ff4500', secondary: '#ffd700', glow: '#ff4500' },
-  ice: { primary: '#00bfff', secondary: '#e0ffff', glow: '#00bfff' },
-  acid: { primary: '#adff2f', secondary: '#00ff00', glow: '#adff2f' },
-  monochrome: { primary: '#00ff00', secondary: '#00aa00', glow: '#00ff00' },
-  purpleHaze: { primary: '#8b00ff', secondary: '#ff1493', glow: '#9400d3' },
-  sunset: { primary: '#ff6b6b', secondary: '#feca57', glow: '#ff9f43' },
-  ocean: { primary: '#0077be', secondary: '#00d4aa', glow: '#00b4d8' },
-  toxic: { primary: '#00ff41', secondary: '#0aff0a', glow: '#39ff14' },
-  bloodMoon: { primary: '#8b0000', secondary: '#ff4500', glow: '#dc143c' },
-  synthwave: { primary: '#ff00ff', secondary: '#00ffff', glow: '#ff00aa' },
-  golden: { primary: '#ffd700', secondary: '#ff8c00', glow: '#ffb347' },
+  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", glow: "#00ffff" },
+  darkTechno: { primary: "#4a00e0", secondary: "#8e2de2", glow: "#4a00e0" },
+  neon: { primary: "#39ff14", secondary: "#ff073a", glow: "#39ff14" },
+  fire: { primary: "#ff4500", secondary: "#ffd700", glow: "#ff4500" },
+  ice: { primary: "#00bfff", secondary: "#e0ffff", glow: "#00bfff" },
+  acid: { primary: "#adff2f", secondary: "#00ff00", glow: "#adff2f" },
+  monochrome: { primary: "#00ff00", secondary: "#00aa00", glow: "#00ff00" },
+  purpleHaze: { primary: "#8b00ff", secondary: "#ff1493", glow: "#9400d3" },
+  sunset: { primary: "#ff6b6b", secondary: "#feca57", glow: "#ff9f43" },
+  ocean: { primary: "#0077be", secondary: "#00d4aa", glow: "#00b4d8" },
+  toxic: { primary: "#00ff41", secondary: "#0aff0a", glow: "#39ff14" },
+  bloodMoon: { primary: "#8b0000", secondary: "#ff4500", glow: "#dc143c" },
+  synthwave: { primary: "#ff00ff", secondary: "#00ffff", glow: "#ff00aa" },
+  golden: { primary: "#ffd700", secondary: "#ff8c00", glow: "#ffb347" },
 };
 
 export class OscilloscopeVisualization implements Visualization {
-  id = 'oscilloscope';
-  name = 'Oscilloscope';
-  author = 'Vizec';
-  description = 'Classic oscilloscope waveform display';
-  renderer = 'canvas2d' as const;
-  transitionType = 'cut' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "oscilloscope",
+    name: "Oscilloscope",
+    author: "Vizec",
+    description: "Classic oscilloscope waveform display",
+    renderer: "canvas2d",
+    transitionType: "cut",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -31,7 +46,7 @@ export class OscilloscopeVisualization implements Visualization {
   private height = 0;
   private config: VisualizationConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     lineWidth: 2,
     glow: true,
     stereo: false,
@@ -43,15 +58,15 @@ export class OscilloscopeVisualization implements Visualization {
   private maxTrailFrames = 5;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -59,7 +74,7 @@ export class OscilloscopeVisualization implements Visualization {
     this.resize(width, height);
   }
 
-  render(audioData: AudioData, deltaTime: number): void {
+  render(audioData: AudioData, _deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
     const { timeDomainData, bass, volume } = audioData;
@@ -79,8 +94,8 @@ export class OscilloscopeVisualization implements Visualization {
     this.ctx.beginPath();
     this.ctx.lineWidth = lineWidth + bass * 2;
     this.ctx.strokeStyle = colors.primary;
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
+    this.ctx.lineCap = "round";
+    this.ctx.lineJoin = "round";
 
     // Glow effect
     if (glow) {
@@ -93,7 +108,7 @@ export class OscilloscopeVisualization implements Visualization {
 
     for (let i = 0; i < timeDomainData.length; i++) {
       // Normalize to -1 to 1 range
-      const v = (timeDomainData[i] / 128.0) - 1;
+      const v = timeDomainData[i] / 128.0 - 1;
       const y = centerY + v * amplitudeScale;
 
       if (i === 0) {
@@ -112,12 +127,17 @@ export class OscilloscopeVisualization implements Visualization {
       this.ctx.lineTo(this.width, centerY);
       this.ctx.lineTo(0, centerY);
       this.ctx.closePath();
-      
-      const gradient = this.ctx.createLinearGradient(0, centerY - amplitudeScale, 0, centerY + amplitudeScale);
-      gradient.addColorStop(0, colors.primary + '40');
-      gradient.addColorStop(0.5, colors.secondary + '20');
-      gradient.addColorStop(1, colors.primary + '40');
-      
+
+      const gradient = this.ctx.createLinearGradient(
+        0,
+        centerY - amplitudeScale,
+        0,
+        centerY + amplitudeScale,
+      );
+      gradient.addColorStop(0, colors.primary + "40");
+      gradient.addColorStop(0.5, colors.secondary + "20");
+      gradient.addColorStop(1, colors.primary + "40");
+
       this.ctx.fillStyle = gradient;
       this.ctx.globalAlpha = 0.3;
       this.ctx.fill();
@@ -128,10 +148,10 @@ export class OscilloscopeVisualization implements Visualization {
       this.ctx.beginPath();
       this.ctx.strokeStyle = colors.secondary;
       this.ctx.globalAlpha = 0.5;
-      
+
       x = 0;
       for (let i = 0; i < timeDomainData.length; i++) {
-        const v = (timeDomainData[i] / 128.0) - 1;
+        const v = timeDomainData[i] / 128.0 - 1;
         // Invert and offset slightly
         const y = centerY - v * amplitudeScale * 0.8;
 
@@ -148,7 +168,7 @@ export class OscilloscopeVisualization implements Visualization {
 
     // Draw center line
     this.ctx.beginPath();
-    this.ctx.strokeStyle = colors.primary + '30';
+    this.ctx.strokeStyle = colors.primary + "30";
     this.ctx.lineWidth = 1;
     this.ctx.shadowBlur = 0;
     this.ctx.globalAlpha = 0.3;
@@ -160,8 +180,8 @@ export class OscilloscopeVisualization implements Visualization {
     const dotSize = 5 + bass * sensitivity * 15;
     const dotGradient = this.ctx.createRadialGradient(30, centerY, 0, 30, centerY, dotSize);
     dotGradient.addColorStop(0, colors.primary);
-    dotGradient.addColorStop(1, 'transparent');
-    
+    dotGradient.addColorStop(1, "transparent");
+
     this.ctx.globalAlpha = 0.6;
     this.ctx.fillStyle = dotGradient;
     this.ctx.beginPath();
@@ -202,32 +222,39 @@ export class OscilloscopeVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      lineWidth: { type: 'number', min: 1, max: 8, step: 0.5, default: 2, label: 'Line Width' },
-      glow: { type: 'boolean', default: true, label: 'Glow Effect' },
-      stereo: { type: 'boolean', default: false, label: 'Stereo Mode' },
-      filled: { type: 'boolean', default: false, label: 'Filled Waveform' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      lineWidth: { type: "number", min: 1, max: 8, step: 0.5, default: 2, label: "Line Width" },
+      glow: { type: "boolean", default: true, label: "Glow Effect" },
+      stereo: { type: "boolean", default: false, label: "Stereo Mode" },
+      filled: { type: "boolean", default: false, label: "Filled Waveform" },
     };
   }
 }

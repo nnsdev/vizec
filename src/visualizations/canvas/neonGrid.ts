@@ -1,29 +1,45 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
-const COLOR_SCHEMES: Record<string, { grid: string; horizon: string; sun: string; glow: string }> = {
-  cyanMagenta: { grid: '#00ffff', horizon: '#ff00ff', sun: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { grid: '#4a00e0', horizon: '#8e2de2', sun: '#8e2de2', glow: '#4a00e0' },
-  neon: { grid: '#39ff14', horizon: '#ff073a', sun: '#ffff00', glow: '#39ff14' },
-  fire: { grid: '#ff4500', horizon: '#ffd700', sun: '#ff8c00', glow: '#ff4500' },
-  ice: { grid: '#00bfff', horizon: '#e0ffff', sun: '#ffffff', glow: '#00bfff' },
-  acid: { grid: '#adff2f', horizon: '#00ff00', sun: '#ffff00', glow: '#adff2f' },
-  monochrome: { grid: '#ffffff', horizon: '#888888', sun: '#ffffff', glow: '#ffffff' },
-  purpleHaze: { grid: '#8b00ff', horizon: '#ff1493', sun: '#9400d3', glow: '#8b00ff' },
-  sunset: { grid: '#ff6b6b', horizon: '#feca57', sun: '#ff9f43', glow: '#ff6b6b' },
-  ocean: { grid: '#0077be', horizon: '#00d4aa', sun: '#00b4d8', glow: '#0077be' },
-  toxic: { grid: '#00ff41', horizon: '#0aff0a', sun: '#39ff14', glow: '#00ff41' },
-  bloodMoon: { grid: '#8b0000', horizon: '#ff4500', sun: '#dc143c', glow: '#8b0000' },
-  synthwave: { grid: '#ff00ff', horizon: '#00ffff', sun: '#ff00aa', glow: '#ff00ff' },
-  golden: { grid: '#ffd700', horizon: '#ff8c00', sun: '#ffb347', glow: '#ffd700' },
-};
+const COLOR_SCHEMES: Record<string, { grid: string; horizon: string; sun: string; glow: string }> =
+  {
+    cyanMagenta: { grid: "#00ffff", horizon: "#ff00ff", sun: "#ff00ff", glow: "#00ffff" },
+    darkTechno: { grid: "#4a00e0", horizon: "#8e2de2", sun: "#8e2de2", glow: "#4a00e0" },
+    neon: { grid: "#39ff14", horizon: "#ff073a", sun: "#ffff00", glow: "#39ff14" },
+    fire: { grid: "#ff4500", horizon: "#ffd700", sun: "#ff8c00", glow: "#ff4500" },
+    ice: { grid: "#00bfff", horizon: "#e0ffff", sun: "#ffffff", glow: "#00bfff" },
+    acid: { grid: "#adff2f", horizon: "#00ff00", sun: "#ffff00", glow: "#adff2f" },
+    monochrome: { grid: "#ffffff", horizon: "#888888", sun: "#ffffff", glow: "#ffffff" },
+    purpleHaze: { grid: "#8b00ff", horizon: "#ff1493", sun: "#9400d3", glow: "#8b00ff" },
+    sunset: { grid: "#ff6b6b", horizon: "#feca57", sun: "#ff9f43", glow: "#ff6b6b" },
+    ocean: { grid: "#0077be", horizon: "#00d4aa", sun: "#00b4d8", glow: "#0077be" },
+    toxic: { grid: "#00ff41", horizon: "#0aff0a", sun: "#39ff14", glow: "#00ff41" },
+    bloodMoon: { grid: "#8b0000", horizon: "#ff4500", sun: "#dc143c", glow: "#8b0000" },
+    synthwave: { grid: "#ff00ff", horizon: "#00ffff", sun: "#ff00aa", glow: "#ff00ff" },
+    golden: { grid: "#ffd700", horizon: "#ff8c00", sun: "#ffb347", glow: "#ffd700" },
+  };
 
 export class NeonGridVisualization implements Visualization {
-  id = 'neonGrid';
-  name = 'Neon Grid';
-  author = 'Vizec';
-  description = '80s retro synthwave grid with audio-reactive mountains';
-  renderer = 'canvas2d' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "neonGrid",
+    name: "Neon Grid",
+    author: "Vizec",
+    description: "80s retro synthwave grid with audio-reactive mountains",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -31,7 +47,7 @@ export class NeonGridVisualization implements Visualization {
   private height = 0;
   private config: VisualizationConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     gridSpeed: 2,
     gridLines: 20,
     showSun: true,
@@ -42,15 +58,15 @@ export class NeonGridVisualization implements Visualization {
   private mountainPoints: number[] = [];
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -71,7 +87,7 @@ export class NeonGridVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { bass, mid, treble, volume, frequencyData } = audioData;
+    const { bass, volume, frequencyData } = audioData;
     const { sensitivity, colorScheme, gridSpeed, gridLines, showSun, showMountains } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
@@ -86,16 +102,20 @@ export class NeonGridVisualization implements Visualization {
     if (showSun) {
       const sunY = horizonY * 0.7;
       const sunRadius = 80 + bass * sensitivity * 30;
-      
+
       // Sun glow
       const sunGlow = this.ctx.createRadialGradient(
-        this.width / 2, sunY, sunRadius * 0.5,
-        this.width / 2, sunY, sunRadius * 2
+        this.width / 2,
+        sunY,
+        sunRadius * 0.5,
+        this.width / 2,
+        sunY,
+        sunRadius * 2,
       );
-      sunGlow.addColorStop(0, colors.sun + '80');
-      sunGlow.addColorStop(0.5, colors.sun + '20');
-      sunGlow.addColorStop(1, 'transparent');
-      
+      sunGlow.addColorStop(0, colors.sun + "80");
+      sunGlow.addColorStop(0.5, colors.sun + "20");
+      sunGlow.addColorStop(1, "transparent");
+
       this.ctx.fillStyle = sunGlow;
       this.ctx.beginPath();
       this.ctx.arc(this.width / 2, sunY, sunRadius * 2, 0, Math.PI * 2);
@@ -107,32 +127,37 @@ export class NeonGridVisualization implements Visualization {
       this.ctx.arc(this.width / 2, sunY, sunRadius, 0, Math.PI * 2);
       this.ctx.clip();
 
-      const sunBodyGradient = this.ctx.createLinearGradient(0, sunY - sunRadius, 0, sunY + sunRadius);
+      const sunBodyGradient = this.ctx.createLinearGradient(
+        0,
+        sunY - sunRadius,
+        0,
+        sunY + sunRadius,
+      );
       sunBodyGradient.addColorStop(0, colors.sun);
       sunBodyGradient.addColorStop(1, colors.horizon);
       this.ctx.fillStyle = sunBodyGradient;
       this.ctx.fillRect(this.width / 2 - sunRadius, sunY - sunRadius, sunRadius * 2, sunRadius * 2);
 
       // Horizontal stripes on sun
-      this.ctx.fillStyle = '#000000';
+      this.ctx.fillStyle = "#000000";
       for (let i = 0; i < 8; i++) {
-        const stripeY = sunY - sunRadius + (sunRadius * 2 / 8) * i + sunRadius / 8;
+        const stripeY = sunY - sunRadius + ((sunRadius * 2) / 8) * i + sunRadius / 8;
         const stripeHeight = 3 + i * 1.5;
         this.ctx.fillRect(this.width / 2 - sunRadius, stripeY, sunRadius * 2, stripeHeight);
       }
-      
+
       this.ctx.restore();
     }
 
     // Draw mountains
     if (showMountains) {
       this.ctx.globalAlpha = 0.7;
-      
+
       // Back mountains
-      this.ctx.fillStyle = colors.horizon + '60';
+      this.ctx.fillStyle = colors.horizon + "60";
       this.ctx.beginPath();
       this.ctx.moveTo(0, horizonY);
-      
+
       for (let i = 0; i <= this.mountainPoints.length - 1; i++) {
         const x = (i / (this.mountainPoints.length - 1)) * this.width;
         const freqIndex = Math.floor((i / this.mountainPoints.length) * frequencyData.length * 0.3);
@@ -140,14 +165,14 @@ export class NeonGridVisualization implements Visualization {
         const baseHeight = this.mountainPoints[i] * horizonY * 0.4;
         const audioHeight = freqValue * sensitivity * horizonY * 0.3;
         const y = horizonY - baseHeight - audioHeight;
-        
+
         if (i === 0) {
           this.ctx.lineTo(x, y);
         } else {
           this.ctx.lineTo(x, y);
         }
       }
-      
+
       this.ctx.lineTo(this.width, horizonY);
       this.ctx.closePath();
       this.ctx.fill();
@@ -159,7 +184,7 @@ export class NeonGridVisualization implements Visualization {
       this.ctx.shadowColor = colors.horizon;
       this.ctx.beginPath();
       this.ctx.moveTo(0, horizonY);
-      
+
       for (let i = 0; i <= this.mountainPoints.length - 1; i++) {
         const x = (i / (this.mountainPoints.length - 1)) * this.width;
         const freqIndex = Math.floor((i / this.mountainPoints.length) * frequencyData.length * 0.3);
@@ -169,7 +194,7 @@ export class NeonGridVisualization implements Visualization {
         const y = horizonY - baseHeight - audioHeight;
         this.ctx.lineTo(x, y);
       }
-      
+
       this.ctx.stroke();
       this.ctx.shadowBlur = 0;
       this.ctx.globalAlpha = 1.0;
@@ -194,7 +219,7 @@ export class NeonGridVisualization implements Visualization {
       // Calculate perspective position
       const t = (i + (this.gridOffset % gridSpacing) / gridSpacing) / totalLines;
       const perspectiveY = horizonY + Math.pow(t, 1.5) * (this.height - horizonY);
-      
+
       if (perspectiveY > horizonY && perspectiveY < this.height) {
         const alpha = Math.pow(t, 0.5) * 0.7;
         this.ctx.globalAlpha = alpha;
@@ -212,7 +237,7 @@ export class NeonGridVisualization implements Visualization {
 
     for (let i = -verticalLines / 2; i <= verticalLines / 2; i++) {
       const bottomX = centerX + i * (this.width / verticalLines) * 2;
-      
+
       this.ctx.beginPath();
       this.ctx.moveTo(centerX, horizonY);
       this.ctx.lineTo(bottomX, this.height);
@@ -259,32 +284,39 @@ export class NeonGridVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      gridSpeed: { type: 'number', min: 0.5, max: 5, step: 0.5, default: 2, label: 'Grid Speed' },
-      gridLines: { type: 'number', min: 10, max: 40, step: 5, default: 20, label: 'Grid Lines' },
-      showSun: { type: 'boolean', default: true, label: 'Show Sun' },
-      showMountains: { type: 'boolean', default: true, label: 'Show Mountains' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      gridSpeed: { type: "number", min: 0.5, max: 5, step: 0.5, default: 2, label: "Grid Speed" },
+      gridLines: { type: "number", min: 10, max: 40, step: 5, default: 20, label: "Grid Lines" },
+      showSun: { type: "boolean", default: true, label: "Show Sun" },
+      showMountains: { type: "boolean", default: true, label: "Show Mountains" },
     };
   }
 }

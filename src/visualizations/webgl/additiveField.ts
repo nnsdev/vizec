@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: number; accent: number; glow: number }> = {
   aurora: { primary: 0x9df1ff, accent: 0xff6be3, glow: 0x00ffea },
@@ -18,12 +24,22 @@ interface AdditiveFieldConfig extends VisualizationConfig {
 }
 
 export class AdditiveFieldVisualization implements Visualization {
-  id = 'additiveField';
-  name = 'Additive Field';
-  author = 'Vizec';
-  description = 'Floating additive particles that brighten on audio peaks without obscuring the desktop.';
-  renderer: 'threejs' = 'threejs';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "additiveField",
+    name: "Additive Field",
+    author: "Vizec",
+    description:
+      "Floating additive particles that brighten on audio peaks without obscuring the desktop.",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -34,7 +50,7 @@ export class AdditiveFieldVisualization implements Visualization {
   private velocities: Float32Array | null = null;
   private config: AdditiveFieldConfig = {
     sensitivity: 1,
-    colorScheme: 'aurora',
+    colorScheme: "aurora",
     particleCount: 3600,
     spread: 140,
     lift: 0.6,
@@ -55,7 +71,11 @@ export class AdditiveFieldVisualization implements Visualization {
     this.camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
     this.camera.position.set(0, 0, 150);
 
-    this.rendererThree = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    this.rendererThree = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance",
+    });
     this.rendererThree.setSize(width, height);
     this.rendererThree.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.rendererThree.setClearColor(0x000000, 0);
@@ -101,8 +121,8 @@ export class AdditiveFieldVisualization implements Visualization {
       colorsArray[i3 + 2] = color.b;
     }
 
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.geometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
+    this.geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    this.geometry.setAttribute("color", new THREE.BufferAttribute(colorsArray, 3));
 
     const material = new THREE.PointsMaterial({
       vertexColors: true,
@@ -119,7 +139,15 @@ export class AdditiveFieldVisualization implements Visualization {
   }
 
   render(audioData: AudioData, deltaTime: number): void {
-    if (!this.scene || !this.camera || !this.rendererThree || !this.points || !this.geometry || !this.velocities) return;
+    if (
+      !this.scene ||
+      !this.camera ||
+      !this.rendererThree ||
+      !this.points ||
+      !this.geometry ||
+      !this.velocities
+    )
+      return;
 
     const { frequencyData, bass, mid, treble, volume } = audioData;
     const { speed, spread, lift, noiseScale, sensitivity } = this.config;
@@ -139,8 +167,10 @@ export class AdditiveFieldVisualization implements Visualization {
       const vibe = 1 + bin * 2;
 
       positions[i3] += (this.velocities[i3] * vibe + noiseBase * 0.05) * speed * deltaTime * 60;
-      positions[i3 + 1] += (this.velocities[i3 + 1] * vibe + lift * bass * 0.5) * speed * deltaTime * 60;
-      positions[i3 + 2] += (this.velocities[i3 + 2] * vibe + noiseBase * 0.05) * speed * deltaTime * 60;
+      positions[i3 + 1] +=
+        (this.velocities[i3 + 1] * vibe + lift * bass * 0.5) * speed * deltaTime * 60;
+      positions[i3 + 2] +=
+        (this.velocities[i3 + 2] * vibe + noiseBase * 0.05) * speed * deltaTime * 60;
 
       const halfSpread = spread * 0.52;
       if (positions[i3] > halfSpread) positions[i3] = -halfSpread;
@@ -175,7 +205,11 @@ export class AdditiveFieldVisualization implements Visualization {
     const oldScheme = this.config.colorScheme;
     this.config = { ...this.config, ...config } as AdditiveFieldConfig;
 
-    if ((this.scene && this.points) && (this.config.particleCount !== oldCount || this.config.colorScheme !== oldScheme)) {
+    if (
+      this.scene &&
+      this.points &&
+      (this.config.particleCount !== oldCount || this.config.colorScheme !== oldScheme)
+    ) {
       this.createField();
     }
   }
@@ -203,46 +237,49 @@ export class AdditiveFieldVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'aurora',
-        options: Object.keys(COLOR_SCHEMES).map((key) => ({ value: key, label: key.charAt(0).toUpperCase() + key.slice(1) })),
+        type: "select",
+        label: "Color Scheme",
+        default: "aurora",
+        options: Object.keys(COLOR_SCHEMES).map((key) => ({
+          value: key,
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+        })),
       },
       particleCount: {
-        type: 'number',
-        label: 'Particle Density',
+        type: "number",
+        label: "Particle Density",
         default: 3600,
         min: 800,
         max: 8000,
         step: 200,
       },
       spread: {
-        type: 'number',
-        label: 'Spread Radius',
+        type: "number",
+        label: "Spread Radius",
         default: 140,
         min: 80,
         max: 260,
         step: 10,
       },
       lift: {
-        type: 'number',
-        label: 'Lift Strength',
+        type: "number",
+        label: "Lift Strength",
         default: 0.6,
         min: 0,
         max: 2,
         step: 0.1,
       },
       speed: {
-        type: 'number',
-        label: 'Motion Speed',
+        type: "number",
+        label: "Motion Speed",
         default: 0.14,
         min: 0.05,
         max: 0.4,
         step: 0.02,
       },
       noiseScale: {
-        type: 'number',
-        label: 'Noise Blend',
+        type: "number",
+        label: "Noise Blend",
         default: 0.6,
         min: 0,
         max: 1,

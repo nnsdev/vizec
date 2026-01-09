@@ -1,21 +1,27 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 // Color schemes
 const COLOR_SCHEMES: Record<string, { start: string; end: string; glow: string }> = {
-  cyanMagenta: { start: '#00ffff', end: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { start: '#1a1a2e', end: '#4a00e0', glow: '#8000ff' },
-  neon: { start: '#39ff14', end: '#ff073a', glow: '#ffff00' },
-  fire: { start: '#ff4500', end: '#ffd700', glow: '#ff6600' },
-  ice: { start: '#00bfff', end: '#e0ffff', glow: '#87ceeb' },
-  acid: { start: '#00ff00', end: '#ffff00', glow: '#00ff00' },
-  monochrome: { start: '#ffffff', end: '#808080', glow: '#ffffff' },
-  purpleHaze: { start: '#8b00ff', end: '#ff1493', glow: '#9400d3' },
-  sunset: { start: '#ff6b6b', end: '#feca57', glow: '#ff9f43' },
-  ocean: { start: '#0077be', end: '#00d4aa', glow: '#00b4d8' },
-  toxic: { start: '#00ff41', end: '#0aff0a', glow: '#39ff14' },
-  bloodMoon: { start: '#8b0000', end: '#ff4500', glow: '#dc143c' },
-  synthwave: { start: '#ff00ff', end: '#00ffff', glow: '#ff00aa' },
-  golden: { start: '#ffd700', end: '#ff8c00', glow: '#ffb347' },
+  cyanMagenta: { start: "#00ffff", end: "#ff00ff", glow: "#00ffff" },
+  darkTechno: { start: "#1a1a2e", end: "#4a00e0", glow: "#8000ff" },
+  neon: { start: "#39ff14", end: "#ff073a", glow: "#ffff00" },
+  fire: { start: "#ff4500", end: "#ffd700", glow: "#ff6600" },
+  ice: { start: "#00bfff", end: "#e0ffff", glow: "#87ceeb" },
+  acid: { start: "#00ff00", end: "#ffff00", glow: "#00ff00" },
+  monochrome: { start: "#ffffff", end: "#808080", glow: "#ffffff" },
+  purpleHaze: { start: "#8b00ff", end: "#ff1493", glow: "#9400d3" },
+  sunset: { start: "#ff6b6b", end: "#feca57", glow: "#ff9f43" },
+  ocean: { start: "#0077be", end: "#00d4aa", glow: "#00b4d8" },
+  toxic: { start: "#00ff41", end: "#0aff0a", glow: "#39ff14" },
+  bloodMoon: { start: "#8b0000", end: "#ff4500", glow: "#dc143c" },
+  synthwave: { start: "#ff00ff", end: "#00ffff", glow: "#ff00aa" },
+  golden: { start: "#ffd700", end: "#ff8c00", glow: "#ffb347" },
 };
 
 interface WaveformTerrainConfig extends VisualizationConfig {
@@ -25,18 +31,27 @@ interface WaveformTerrainConfig extends VisualizationConfig {
 }
 
 export class WaveformTerrainVisualization implements Visualization {
-  id = 'waveformTerrain';
-  name = 'Waveform Terrain';
-  author = 'Vizec';
-  description = 'Scrolling pseudo-3D terrain where audio waveform shapes mountain ridges';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "waveformTerrain",
+    name: "Waveform Terrain",
+    author: "Vizec",
+    description: "Scrolling pseudo-3D terrain where audio waveform shapes mountain ridges",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private config: WaveformTerrainConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     speed: 1.0,
     lineCount: 40,
     perspectiveIntensity: 0.8,
@@ -47,15 +62,15 @@ export class WaveformTerrainVisualization implements Visualization {
   private scrollOffset = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     // Initial resize
@@ -71,7 +86,7 @@ export class WaveformTerrainVisualization implements Visualization {
     const pointsPerLine = 128;
     this.terrainHistory = [];
     for (let i = 0; i < this.config.lineCount; i++) {
-      this.terrainHistory.push(new Array(pointsPerLine).fill(0));
+      this.terrainHistory.push(Array.from({ length: pointsPerLine }, () => 0));
     }
   }
 
@@ -204,45 +219,45 @@ export class WaveformTerrainVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       speed: {
-        type: 'number',
-        label: 'Scroll Speed',
+        type: "number",
+        label: "Scroll Speed",
         default: 1.0,
         min: 0.1,
         max: 3.0,
         step: 0.1,
       },
       lineCount: {
-        type: 'number',
-        label: 'Line Count',
+        type: "number",
+        label: "Line Count",
         default: 40,
         min: 20,
         max: 80,
         step: 5,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
         ],
       },
       perspectiveIntensity: {
-        type: 'number',
-        label: 'Perspective Intensity',
+        type: "number",
+        label: "Perspective Intensity",
         default: 0.8,
         min: 0.3,
         max: 1.0,

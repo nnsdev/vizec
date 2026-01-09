@@ -1,20 +1,71 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
-const COLOR_SCHEMES: Record<string, {
-  core: number;
-  outer: number;
-  dust: number;
-  stars: number;
-  glow: number;
-  accent: number;
-}> = {
-  orion: { core: 0xff6b9d, outer: 0x4a0080, dust: 0xff9ecf, stars: 0xffffff, glow: 0xff00ff, accent: 0x00ffff },
-  carina: { core: 0xffa500, outer: 0x8b0000, dust: 0xffd700, stars: 0xffffcc, glow: 0xff4500, accent: 0x00ff00 },
-  eagle: { core: 0x00ff88, outer: 0x004466, dust: 0x66ffcc, stars: 0xe0ffff, glow: 0x00ffaa, accent: 0xff00ff },
-  crab: { core: 0x00ccff, outer: 0x000066, dust: 0x88ddff, stars: 0xffffff, glow: 0x0088ff, accent: 0xff6600 },
-  helix: { core: 0xff0066, outer: 0x330066, dust: 0xff66aa, stars: 0xffccff, glow: 0xff00aa, accent: 0x00ffff },
-  rosette: { core: 0xff3366, outer: 0x660033, dust: 0xff99aa, stars: 0xffeeff, glow: 0xff0066, accent: 0xffff00 },
+const COLOR_SCHEMES: Record<
+  string,
+  {
+    core: number;
+    outer: number;
+    dust: number;
+    stars: number;
+    glow: number;
+    accent: number;
+  }
+> = {
+  orion: {
+    core: 0xff6b9d,
+    outer: 0x4a0080,
+    dust: 0xff9ecf,
+    stars: 0xffffff,
+    glow: 0xff00ff,
+    accent: 0x00ffff,
+  },
+  carina: {
+    core: 0xffa500,
+    outer: 0x8b0000,
+    dust: 0xffd700,
+    stars: 0xffffcc,
+    glow: 0xff4500,
+    accent: 0x00ff00,
+  },
+  eagle: {
+    core: 0x00ff88,
+    outer: 0x004466,
+    dust: 0x66ffcc,
+    stars: 0xe0ffff,
+    glow: 0x00ffaa,
+    accent: 0xff00ff,
+  },
+  crab: {
+    core: 0x00ccff,
+    outer: 0x000066,
+    dust: 0x88ddff,
+    stars: 0xffffff,
+    glow: 0x0088ff,
+    accent: 0xff6600,
+  },
+  helix: {
+    core: 0xff0066,
+    outer: 0x330066,
+    dust: 0xff66aa,
+    stars: 0xffccff,
+    glow: 0xff00aa,
+    accent: 0x00ffff,
+  },
+  rosette: {
+    core: 0xff3366,
+    outer: 0x660033,
+    dust: 0xff99aa,
+    stars: 0xffeeff,
+    glow: 0xff0066,
+    accent: 0xffff00,
+  },
 };
 
 interface NebulaParticle {
@@ -49,12 +100,21 @@ interface NebulaConfig extends VisualizationConfig {
 }
 
 export class NebulaVisualization implements Visualization {
-  id = 'nebula';
-  name = 'Nebula';
-  author = 'Vizec';
-  description = 'Swirling cosmic gas clouds with particle dust that reacts to audio';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "nebula",
+    name: "Nebula",
+    author: "Vizec",
+    description: "Swirling cosmic gas clouds with particle dust that reacts to audio",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -83,7 +143,7 @@ export class NebulaVisualization implements Visualization {
 
   private config: NebulaConfig = {
     sensitivity: 1.0,
-    colorScheme: 'orion',
+    colorScheme: "orion",
     particleCount: 5000,
     dustCount: 2000,
     swirl: 1.0,
@@ -176,7 +236,7 @@ export class NebulaVisualization implements Visualization {
     this.dustParticles = [];
   }
 
-  private createStarfield(colors: typeof COLOR_SCHEMES['orion']): void {
+  private createStarfield(colors: (typeof COLOR_SCHEMES)["orion"]): void {
     if (!this.scene) return;
 
     const starCount = 1000;
@@ -191,14 +251,14 @@ export class NebulaVisualization implements Visualization {
       positions.push(
         radius * Math.sin(phi) * Math.cos(theta),
         radius * Math.sin(phi) * Math.sin(theta),
-        radius * Math.cos(phi)
+        radius * Math.cos(phi),
       );
       sizes.push(0.5 + Math.random() * 1.5);
     }
 
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -234,7 +294,7 @@ export class NebulaVisualization implements Visualization {
     this.scene.add(this.starField);
   }
 
-  private createVolumePlanes(colors: typeof COLOR_SCHEMES['orion']): void {
+  private createVolumePlanes(colors: (typeof COLOR_SCHEMES)["orion"]): void {
     if (!this.scene) return;
 
     const { layerCount } = this.config;
@@ -338,7 +398,7 @@ export class NebulaVisualization implements Visualization {
     }
   }
 
-  private createNebulaCloud(colors: typeof COLOR_SCHEMES['orion']): void {
+  private createNebulaCloud(colors: (typeof COLOR_SCHEMES)["orion"]): void {
     if (!this.scene) return;
 
     const { particleCount } = this.config;
@@ -357,7 +417,7 @@ export class NebulaVisualization implements Visualization {
       const color = new THREE.Color().lerpColors(
         coreColor,
         Math.random() > 0.7 ? glowColor : outerColor,
-        t + (Math.random() - 0.5) * 0.3
+        t + (Math.random() - 0.5) * 0.3,
       );
 
       const x = Math.cos(angle) * baseRadius;
@@ -369,7 +429,8 @@ export class NebulaVisualization implements Visualization {
         velocity: new THREE.Vector3(),
         baseRadius,
         angle,
-        angleVelocity: (0.1 + Math.random() * 0.2) * (Math.random() > 0.5 ? 1 : -1) / Math.sqrt(baseRadius),
+        angleVelocity:
+          ((0.1 + Math.random() * 0.2) * (Math.random() > 0.5 ? 1 : -1)) / Math.sqrt(baseRadius),
         layer,
         size: 1 + Math.random() * 3 * (1 - t),
         color,
@@ -443,13 +504,13 @@ export class NebulaVisualization implements Visualization {
       alphas.push(p.life);
     }
 
-    this.nebulaGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.nebulaGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-    this.nebulaGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    this.nebulaGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(alphas, 1));
+    this.nebulaGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.nebulaGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    this.nebulaGeometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    this.nebulaGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
   }
 
-  private createDustParticles(colors: typeof COLOR_SCHEMES['orion']): void {
+  private createDustParticles(colors: (typeof COLOR_SCHEMES)["orion"]): void {
     if (!this.scene) return;
 
     const { dustCount } = this.config;
@@ -464,12 +525,12 @@ export class NebulaVisualization implements Visualization {
         position: new THREE.Vector3(
           Math.cos(theta) * Math.cos(phi) * radius,
           Math.sin(phi) * radius * 0.5,
-          Math.sin(theta) * Math.cos(phi) * radius
+          Math.sin(theta) * Math.cos(phi) * radius,
         ),
         velocity: new THREE.Vector3(
           (Math.random() - 0.5) * 0.1,
           (Math.random() - 0.5) * 0.1,
-          (Math.random() - 0.5) * 0.1
+          (Math.random() - 0.5) * 0.1,
         ),
         size: 0.3 + Math.random() * 1.5,
         alpha: 0.3 + Math.random() * 0.7,
@@ -534,12 +595,12 @@ export class NebulaVisualization implements Visualization {
       alphas.push(p.alpha);
     }
 
-    this.dustGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.dustGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-    this.dustGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(alphas, 1));
+    this.dustGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.dustGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    this.dustGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
   }
 
-  private createCoreGlow(colors: typeof COLOR_SCHEMES['orion']): void {
+  private createCoreGlow(colors: (typeof COLOR_SCHEMES)["orion"]): void {
     if (!this.scene) return;
 
     // Central bright glow
@@ -600,7 +661,7 @@ export class NebulaVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.scene || !this.camera || !this.rendererThree) return;
 
-    const { bass, mid, treble, volume, frequencyData } = audioData;
+    const { bass, mid, treble, volume } = audioData;
     const { sensitivity, swirl, turbulence, coreIntensity } = this.config;
 
     this.time += deltaTime;
@@ -673,7 +734,7 @@ export class NebulaVisualization implements Visualization {
     bassBoost: number,
     midBoost: number,
     trebleBoost: number,
-    volumeBoost: number
+    volumeBoost: number,
   ): void {
     if (!this.nebulaGeometry) return;
 
@@ -706,7 +767,7 @@ export class NebulaVisualization implements Visualization {
     deltaTime: number,
     bassBoost: number,
     trebleBoost: number,
-    turbulence: number
+    turbulence: number,
   ): void {
     if (!this.dustGeometry) return;
 
@@ -752,14 +813,14 @@ export class NebulaVisualization implements Visualization {
 
   updateConfig(config: Partial<VisualizationConfig>): void {
     const needsRecreate =
-      (config as NebulaConfig).colorScheme !== undefined &&
-      (config as NebulaConfig).colorScheme !== this.config.colorScheme ||
-      (config as NebulaConfig).particleCount !== undefined &&
-      (config as NebulaConfig).particleCount !== this.config.particleCount ||
-      (config as NebulaConfig).dustCount !== undefined &&
-      (config as NebulaConfig).dustCount !== this.config.dustCount ||
-      (config as NebulaConfig).layerCount !== undefined &&
-      (config as NebulaConfig).layerCount !== this.config.layerCount;
+      ((config as NebulaConfig).colorScheme !== undefined &&
+        (config as NebulaConfig).colorScheme !== this.config.colorScheme) ||
+      ((config as NebulaConfig).particleCount !== undefined &&
+        (config as NebulaConfig).particleCount !== this.config.particleCount) ||
+      ((config as NebulaConfig).dustCount !== undefined &&
+        (config as NebulaConfig).dustCount !== this.config.dustCount) ||
+      ((config as NebulaConfig).layerCount !== undefined &&
+        (config as NebulaConfig).layerCount !== this.config.layerCount);
 
     this.config = { ...this.config, ...config } as NebulaConfig;
 
@@ -795,26 +856,54 @@ export class NebulaVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Audio Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'orion', label: 'Orion' },
-          { value: 'carina', label: 'Carina' },
-          { value: 'eagle', label: 'Eagle' },
-          { value: 'crab', label: 'Crab' },
-          { value: 'helix', label: 'Helix' },
-          { value: 'rosette', label: 'Rosette' },
-        ],
-        default: 'orion',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Audio Sensitivity",
       },
-      particleCount: { type: 'number', min: 1000, max: 10000, step: 500, default: 5000, label: 'Cloud Particles' },
-      dustCount: { type: 'number', min: 500, max: 5000, step: 250, default: 2000, label: 'Dust Particles' },
-      swirl: { type: 'number', min: 0.2, max: 3, step: 0.1, default: 1.0, label: 'Swirl Speed' },
-      turbulence: { type: 'number', min: 0, max: 3, step: 0.1, default: 1.0, label: 'Turbulence' },
-      coreIntensity: { type: 'number', min: 0.2, max: 2, step: 0.1, default: 1.0, label: 'Core Intensity' },
-      layerCount: { type: 'number', min: 3, max: 8, step: 1, default: 5, label: 'Volume Layers' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "orion", label: "Orion" },
+          { value: "carina", label: "Carina" },
+          { value: "eagle", label: "Eagle" },
+          { value: "crab", label: "Crab" },
+          { value: "helix", label: "Helix" },
+          { value: "rosette", label: "Rosette" },
+        ],
+        default: "orion",
+        label: "Color Scheme",
+      },
+      particleCount: {
+        type: "number",
+        min: 1000,
+        max: 10000,
+        step: 500,
+        default: 5000,
+        label: "Cloud Particles",
+      },
+      dustCount: {
+        type: "number",
+        min: 500,
+        max: 5000,
+        step: 250,
+        default: 2000,
+        label: "Dust Particles",
+      },
+      swirl: { type: "number", min: 0.2, max: 3, step: 0.1, default: 1.0, label: "Swirl Speed" },
+      turbulence: { type: "number", min: 0, max: 3, step: 0.1, default: 1.0, label: "Turbulence" },
+      coreIntensity: {
+        type: "number",
+        min: 0.2,
+        max: 2,
+        step: 0.1,
+        default: 1.0,
+        label: "Core Intensity",
+      },
+      layerCount: { type: "number", min: 3, max: 8, step: 1, default: 5, label: "Volume Layers" },
     };
   }
 }

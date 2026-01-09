@@ -1,21 +1,27 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 // Color schemes
 const COLOR_SCHEMES: Record<string, { start: string; end: string; glow: string }> = {
-  cyanMagenta: { start: '#00ffff', end: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { start: '#1a1a2e', end: '#4a00e0', glow: '#8000ff' },
-  neon: { start: '#39ff14', end: '#ff073a', glow: '#ffff00' },
-  fire: { start: '#ff4500', end: '#ffd700', glow: '#ff6600' },
-  ice: { start: '#00bfff', end: '#e0ffff', glow: '#87ceeb' },
-  acid: { start: '#00ff00', end: '#ffff00', glow: '#00ff00' },
-  monochrome: { start: '#ffffff', end: '#808080', glow: '#ffffff' },
-  purpleHaze: { start: '#8b00ff', end: '#ff1493', glow: '#9400d3' },
-  sunset: { start: '#ff6b6b', end: '#feca57', glow: '#ff9f43' },
-  ocean: { start: '#0077be', end: '#00d4aa', glow: '#00b4d8' },
-  toxic: { start: '#00ff41', end: '#0aff0a', glow: '#39ff14' },
-  bloodMoon: { start: '#8b0000', end: '#ff4500', glow: '#dc143c' },
-  synthwave: { start: '#ff00ff', end: '#00ffff', glow: '#ff00aa' },
-  golden: { start: '#ffd700', end: '#ff8c00', glow: '#ffb347' },
+  cyanMagenta: { start: "#00ffff", end: "#ff00ff", glow: "#00ffff" },
+  darkTechno: { start: "#1a1a2e", end: "#4a00e0", glow: "#8000ff" },
+  neon: { start: "#39ff14", end: "#ff073a", glow: "#ffff00" },
+  fire: { start: "#ff4500", end: "#ffd700", glow: "#ff6600" },
+  ice: { start: "#00bfff", end: "#e0ffff", glow: "#87ceeb" },
+  acid: { start: "#00ff00", end: "#ffff00", glow: "#00ff00" },
+  monochrome: { start: "#ffffff", end: "#808080", glow: "#ffffff" },
+  purpleHaze: { start: "#8b00ff", end: "#ff1493", glow: "#9400d3" },
+  sunset: { start: "#ff6b6b", end: "#feca57", glow: "#ff9f43" },
+  ocean: { start: "#0077be", end: "#00d4aa", glow: "#00b4d8" },
+  toxic: { start: "#00ff41", end: "#0aff0a", glow: "#39ff14" },
+  bloodMoon: { start: "#8b0000", end: "#ff4500", glow: "#dc143c" },
+  synthwave: { start: "#ff00ff", end: "#00ffff", glow: "#ff00aa" },
+  golden: { start: "#ffd700", end: "#ff8c00", glow: "#ffb347" },
 };
 
 interface LightningBolt {
@@ -43,18 +49,27 @@ interface LightningConfig extends VisualizationConfig {
 }
 
 export class LightningVisualization implements Visualization {
-  id = 'lightning';
-  name = 'Lightning';
-  author = 'Vizec';
-  description = 'Lightning bolts that strike from top on bass hits';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "lightning",
+    name: "Lightning",
+    author: "Vizec",
+    description: "Lightning bolts that strike from top on bass hits",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private config: LightningConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     boltCount: 3,
     branchChance: 0.3,
     fadeSpeed: 0.05,
@@ -70,15 +85,15 @@ export class LightningVisualization implements Visualization {
   private ambientTimer = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -95,22 +110,26 @@ export class LightningVisualization implements Visualization {
       const edge = Math.floor(Math.random() * 4);
       let x1: number, y1: number, x2: number, y2: number;
 
-      if (edge === 0) { // top
+      if (edge === 0) {
+        // top
         x1 = Math.random() * this.width;
         y1 = 0;
         x2 = x1 + (Math.random() - 0.5) * 200;
         y2 = Math.random() * 100 + 50;
-      } else if (edge === 1) { // bottom
+      } else if (edge === 1) {
+        // bottom
         x1 = Math.random() * this.width;
         y1 = this.height;
         x2 = x1 + (Math.random() - 0.5) * 200;
         y2 = this.height - Math.random() * 100 - 50;
-      } else if (edge === 2) { // left
+      } else if (edge === 2) {
+        // left
         x1 = 0;
         y1 = Math.random() * this.height;
         x2 = Math.random() * 100 + 50;
         y2 = y1 + (Math.random() - 0.5) * 200;
-      } else { // right
+      } else {
+        // right
         x1 = this.width;
         y1 = Math.random() * this.height;
         x2 = this.width - Math.random() * 100 - 50;
@@ -118,7 +137,10 @@ export class LightningVisualization implements Visualization {
       }
 
       this.arcs.push({
-        x1, y1, x2, y2,
+        x1,
+        y1,
+        x2,
+        y2,
         offset: Math.random() * Math.PI * 2,
         speed: Math.random() * 2 + 1,
       });
@@ -163,7 +185,11 @@ export class LightningVisualization implements Visualization {
     };
   }
 
-  private generateBranch(startX: number, startY: number, direction: number): { x: number; y: number }[] {
+  private generateBranch(
+    startX: number,
+    startY: number,
+    direction: number,
+  ): { x: number; y: number }[] {
     const branch: { x: number; y: number }[] = [];
     let x = startX;
     let y = startY;
@@ -180,7 +206,11 @@ export class LightningVisualization implements Visualization {
     return branch;
   }
 
-  private drawBolt(bolt: LightningBolt, colors: { start: string; end: string; glow: string }, scale = 1): void {
+  private drawBolt(
+    bolt: LightningBolt,
+    colors: { start: string; end: string; glow: string },
+    scale = 1,
+  ): void {
     if (!this.ctx) return;
 
     const alpha = bolt.alpha * 0.7 * scale; // Base transparency
@@ -202,7 +232,7 @@ export class LightningVisualization implements Visualization {
 
     // Draw core (white)
     this.ctx.shadowBlur = 0;
-    this.ctx.strokeStyle = '#ffffff';
+    this.ctx.strokeStyle = "#ffffff";
     this.ctx.lineWidth = 1;
     this.ctx.globalAlpha = alpha;
     this.drawPath(bolt.points);
@@ -235,6 +265,7 @@ export class LightningVisualization implements Visualization {
     if (!this.ctx || !this.canvas) return;
 
     const { bass, mid, treble, volume } = audioData;
+    void treble; // Used in drawCenterEnergy
     const { boltCount, fadeSpeed, sensitivity, colorScheme } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
@@ -315,7 +346,11 @@ export class LightningVisualization implements Visualization {
     }
   }
 
-  private drawAmbientArcs(colors: { start: string; end: string; glow: string }, mid: number, treble: number): void {
+  private drawAmbientArcs(
+    colors: { start: string; end: string; glow: string },
+    mid: number,
+    treble: number,
+  ): void {
     if (!this.ctx) return;
 
     for (const arc of this.arcs) {
@@ -358,7 +393,12 @@ export class LightningVisualization implements Visualization {
     }
   }
 
-  private drawCenterEnergy(colors: { start: string; end: string; glow: string }, volume: number, mid: number, treble: number): void {
+  private drawCenterEnergy(
+    colors: { start: string; end: string; glow: string },
+    volume: number,
+    mid: number,
+    treble: number,
+  ): void {
     if (!this.ctx) return;
 
     const centerX = this.width / 2;
@@ -424,48 +464,48 @@ export class LightningVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       boltCount: {
-        type: 'number',
-        label: 'Max Bolts Per Hit',
+        type: "number",
+        label: "Max Bolts Per Hit",
         default: 3,
         min: 1,
         max: 10,
         step: 1,
       },
       branchChance: {
-        type: 'number',
-        label: 'Branch Chance',
+        type: "number",
+        label: "Branch Chance",
         default: 0.3,
         min: 0,
         max: 1,
         step: 0.1,
       },
       fadeSpeed: {
-        type: 'number',
-        label: 'Fade Speed',
+        type: "number",
+        label: "Fade Speed",
         default: 0.05,
         min: 0.01,
         max: 0.2,
         step: 0.01,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
         ],
       },
     };

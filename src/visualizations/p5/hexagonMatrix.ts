@@ -1,10 +1,11 @@
-import p5 from 'p5';
+import p5 from "p5";
 import {
-  Visualization,
   AudioData,
-  VisualizationConfig,
   ConfigSchema,
-} from '../types';
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface HexagonMatrixConfig extends VisualizationConfig {
   hexSize: number;
@@ -19,34 +20,34 @@ const COLOR_SCHEMES: Record<
   { primary: string; secondary: string; tertiary: string; accent: string }
 > = {
   cyberpunk: {
-    primary: '#00ffff',
-    secondary: '#ff00ff',
-    tertiary: '#8000ff',
-    accent: '#39ff14',
+    primary: "#00ffff",
+    secondary: "#ff00ff",
+    tertiary: "#8000ff",
+    accent: "#39ff14",
   },
   neon: {
-    primary: '#ff0080',
-    secondary: '#00ff80',
-    tertiary: '#8000ff',
-    accent: '#ffff00',
+    primary: "#ff0080",
+    secondary: "#00ff80",
+    tertiary: "#8000ff",
+    accent: "#ffff00",
   },
   sunset: {
-    primary: '#ff6600',
-    secondary: '#ff0066',
-    tertiary: '#ffcc00',
-    accent: '#ff0080',
+    primary: "#ff6600",
+    secondary: "#ff0066",
+    tertiary: "#ffcc00",
+    accent: "#ff0080",
   },
   ice: {
-    primary: '#00d4ff',
-    secondary: '#ffffff',
-    tertiary: '#0099cc',
-    accent: '#80e5ff',
+    primary: "#00d4ff",
+    secondary: "#ffffff",
+    tertiary: "#0099cc",
+    accent: "#80e5ff",
   },
   fire: {
-    primary: '#ff4400',
-    secondary: '#ff8800',
-    tertiary: '#ffcc00',
-    accent: '#ff0000',
+    primary: "#ff4400",
+    secondary: "#ff8800",
+    tertiary: "#ffcc00",
+    accent: "#ff0000",
   },
 };
 
@@ -67,7 +68,7 @@ class HexCell {
     this.wavePhase = Math.sqrt(q * q + r * r);
   }
 
-  update(freqValue: number, bass: number, deltaTime: number): void {
+  update(freqValue: number, _bass: number, deltaTime: number): void {
     this.targetEnergy = freqValue / 255;
     // Smooth energy transition
     this.energy += (this.targetEnergy - this.energy) * 5 * deltaTime;
@@ -75,13 +76,20 @@ class HexCell {
 }
 
 export class HexagonMatrixVisualization implements Visualization {
-  id = 'hexagonMatrix';
-  name = 'Hexagon Matrix';
-  author = 'Vizec';
-  description =
-    'Hexagonal grid where cells light up to frequency, with radial bass waves';
-  renderer: 'p5' = 'p5';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "hexagonMatrix",
+    name: "Hexagon Matrix",
+    author: "Vizec",
+    renderer: "p5",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private sketch: p5 | null = null;
@@ -95,7 +103,7 @@ export class HexagonMatrixVisualization implements Visualization {
     hexSize: 15,
     spacing: 2,
     bassWaveIntensity: 1.0,
-    colorScheme: 'cyberpunk',
+    colorScheme: "cyberpunk",
     showGrid: false,
   };
 
@@ -107,8 +115,7 @@ export class HexagonMatrixVisualization implements Visualization {
     this.sketch = new p5((p: p5) => {
       p.setup = () => this.setup(p);
       p.draw = () => this.draw(p);
-      p.windowResized = () =>
-        this.resize(container.clientWidth, container.clientHeight);
+      p.windowResized = () => this.resize(container.clientWidth, container.clientHeight);
     }, container);
   }
 
@@ -147,8 +154,7 @@ export class HexagonMatrixVisualization implements Visualization {
     // Clear with transparent background
     p.clear();
 
-    const colors =
-      COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.cyberpunk;
+    const colors = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.cyberpunk;
     const { sensitivity, hexSize, bassWaveIntensity, showGrid } = this.config;
 
     this.hexesFlat.forEach((hex) => {
@@ -162,10 +168,7 @@ export class HexagonMatrixVisualization implements Visualization {
       const waveEffect = bassWave * bassWaveIntensity;
 
       // Color based on energy and wave
-      const energyLevel = Math.min(
-        1,
-        hex.energy * sensitivity * (1 + waveEffect * 2),
-      );
+      const energyLevel = Math.min(1, hex.energy * sensitivity * (1 + waveEffect * 2));
 
       if (energyLevel > 0.1) {
         // Color interpolation based on energy
@@ -227,9 +230,7 @@ export class HexagonMatrixVisualization implements Visualization {
     // Update hexes with frequency data
     this.hexesFlat.forEach((hex, index) => {
       // Map hex to frequency band
-      const freqIndex = Math.floor(
-        (index / this.hexesFlat.length) * frequencyData.length,
-      );
+      const freqIndex = Math.floor((index / this.hexesFlat.length) * frequencyData.length);
       const freqValue = frequencyData[freqIndex];
 
       // Add bass wave effect to target energy
@@ -279,44 +280,44 @@ export class HexagonMatrixVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       hexSize: {
-        type: 'number',
-        label: 'Hexagon Size',
+        type: "number",
+        label: "Hexagon Size",
         default: 15,
         min: 5,
         max: 30,
         step: 1,
       },
       spacing: {
-        type: 'number',
-        label: 'Spacing',
+        type: "number",
+        label: "Spacing",
         default: 2,
         min: 0,
         max: 10,
         step: 1,
       },
       bassWaveIntensity: {
-        type: 'number',
-        label: 'Bass Wave Intensity',
+        type: "number",
+        label: "Bass Wave Intensity",
         default: 1.0,
         min: 0,
         max: 3,
         step: 0.1,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyberpunk',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyberpunk",
         options: [
-          { value: 'cyberpunk', label: 'Cyberpunk' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'fire', label: 'Fire' },
+          { value: "cyberpunk", label: "Cyberpunk" },
+          { value: "neon", label: "Neon" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ice", label: "Ice" },
+          { value: "fire", label: "Fire" },
         ],
       },
       showGrid: {
-        type: 'boolean',
-        label: 'Show Grid',
+        type: "boolean",
+        label: "Show Grid",
         default: false,
       },
     };

@@ -1,19 +1,70 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
-const COLOR_SCHEMES: Record<string, {
-  core: string;
-  beam: string;
-  jets: string;
-  glow: string;
-  stars: string;
-  accent: string;
-}> = {
-  magnetar: { core: '#00ffff', beam: '#ffffff', jets: '#ff00ff', glow: '#00aaff', stars: '#aaddff', accent: '#00ffaa' },
-  xray: { core: '#ff00ff', beam: '#ffffff', jets: '#00ffff', glow: '#ff00aa', stars: '#ffccff', accent: '#aa00ff' },
-  radio: { core: '#ff6600', beam: '#ffff00', jets: '#ff3300', glow: '#ffaa00', stars: '#ffffcc', accent: '#ff8800' },
-  gamma: { core: '#00ff00', beam: '#ffffff', jets: '#88ff00', glow: '#00ff44', stars: '#ccffcc', accent: '#44ff00' },
-  millisecond: { core: '#ffffff', beam: '#00ffff', jets: '#ff00ff', glow: '#aaaaff', stars: '#ffffff', accent: '#88aaff' },
-  binary: { core: '#ff3366', beam: '#ffff00', jets: '#ff6600', glow: '#ff0066', stars: '#ffccdd', accent: '#ff9900' },
+const COLOR_SCHEMES: Record<
+  string,
+  {
+    core: string;
+    beam: string;
+    jets: string;
+    glow: string;
+    stars: string;
+    accent: string;
+  }
+> = {
+  magnetar: {
+    core: "#00ffff",
+    beam: "#ffffff",
+    jets: "#ff00ff",
+    glow: "#00aaff",
+    stars: "#aaddff",
+    accent: "#00ffaa",
+  },
+  xray: {
+    core: "#ff00ff",
+    beam: "#ffffff",
+    jets: "#00ffff",
+    glow: "#ff00aa",
+    stars: "#ffccff",
+    accent: "#aa00ff",
+  },
+  radio: {
+    core: "#ff6600",
+    beam: "#ffff00",
+    jets: "#ff3300",
+    glow: "#ffaa00",
+    stars: "#ffffcc",
+    accent: "#ff8800",
+  },
+  gamma: {
+    core: "#00ff00",
+    beam: "#ffffff",
+    jets: "#88ff00",
+    glow: "#00ff44",
+    stars: "#ccffcc",
+    accent: "#44ff00",
+  },
+  millisecond: {
+    core: "#ffffff",
+    beam: "#00ffff",
+    jets: "#ff00ff",
+    glow: "#aaaaff",
+    stars: "#ffffff",
+    accent: "#88aaff",
+  },
+  binary: {
+    core: "#ff3366",
+    beam: "#ffff00",
+    jets: "#ff6600",
+    glow: "#ff0066",
+    stars: "#ffccdd",
+    accent: "#ff9900",
+  },
 };
 
 interface JetParticle {
@@ -47,12 +98,21 @@ interface PulsarConfig extends VisualizationConfig {
 }
 
 export class PulsarVisualization implements Visualization {
-  id = 'pulsar';
-  name = 'Pulsar';
-  author = 'Vizec';
-  description = 'Rotating neutron star with sweeping light beams that pulse with the beat';
-  renderer = 'canvas2d' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "pulsar",
+    name: "Pulsar",
+    author: "Vizec",
+    description: "Rotating neutron star with sweeping light beams that pulse with the beat",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -61,7 +121,7 @@ export class PulsarVisualization implements Visualization {
 
   private config: PulsarConfig = {
     sensitivity: 1.0,
-    colorScheme: 'magnetar',
+    colorScheme: "magnetar",
     beamWidth: 15,
     beamLength: 1.0,
     rotationSpeed: 1.0,
@@ -81,15 +141,15 @@ export class PulsarVisualization implements Visualization {
   private time = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -101,7 +161,7 @@ export class PulsarVisualization implements Visualization {
 
   private initStars(): void {
     this.stars = [];
-    const { starCount, colorScheme } = this.config;
+    const { starCount } = this.config;
 
     for (let i = 0; i < starCount; i++) {
       this.stars.push({
@@ -118,8 +178,16 @@ export class PulsarVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { bass, mid, treble, volume, frequencyData } = audioData;
-    const { sensitivity, colorScheme, beamWidth, beamLength, rotationSpeed, jetIntensity, coreSize } = this.config;
+    const { bass, mid, treble, volume } = audioData;
+    const {
+      sensitivity,
+      colorScheme,
+      beamWidth,
+      beamLength,
+      rotationSpeed,
+      jetIntensity,
+      coreSize,
+    } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.magnetar;
 
     this.time += deltaTime;
@@ -149,7 +217,15 @@ export class PulsarVisualization implements Visualization {
     this.drawStars(colors, trebleBoost);
 
     // Draw particle jets from poles
-    this.updateAndDrawJets(centerX, centerY, colors, bassBoost, trebleBoost, jetIntensity, deltaTime);
+    this.updateAndDrawJets(
+      centerX,
+      centerY,
+      colors,
+      bassBoost,
+      trebleBoost,
+      jetIntensity,
+      deltaTime,
+    );
 
     // Draw light beams
     this.drawBeams(centerX, centerY, colors, beamWidth, beamLength, bassBoost, volumeBoost);
@@ -164,7 +240,7 @@ export class PulsarVisualization implements Visualization {
     this.drawCorona(centerX, centerY, colors, coreSize, volumeBoost);
   }
 
-  private drawStars(colors: typeof COLOR_SCHEMES['magnetar'], trebleBoost: number): void {
+  private drawStars(colors: (typeof COLOR_SCHEMES)["magnetar"], trebleBoost: number): void {
     if (!this.ctx) return;
 
     for (const star of this.stars) {
@@ -185,11 +261,11 @@ export class PulsarVisualization implements Visualization {
   private updateAndDrawJets(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['magnetar'],
+    colors: (typeof COLOR_SCHEMES)["magnetar"],
     bassBoost: number,
     trebleBoost: number,
     intensity: number,
-    deltaTime: number
+    deltaTime: number,
   ): void {
     if (!this.ctx) return;
 
@@ -257,8 +333,8 @@ export class PulsarVisualization implements Visualization {
       // Glow
       if (p.life > 0.5) {
         const gradient = this.ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
-        gradient.addColorStop(0, colors.jets + '60');
-        gradient.addColorStop(1, 'transparent');
+        gradient.addColorStop(0, colors.jets + "60");
+        gradient.addColorStop(1, "transparent");
         this.ctx.fillStyle = gradient;
         this.ctx.beginPath();
         this.ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
@@ -277,11 +353,11 @@ export class PulsarVisualization implements Visualization {
   private drawBeams(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['magnetar'],
+    colors: (typeof COLOR_SCHEMES)["magnetar"],
     beamWidth: number,
     beamLength: number,
     bassBoost: number,
-    volumeBoost: number
+    volumeBoost: number,
   ): void {
     if (!this.ctx) return;
 
@@ -300,11 +376,11 @@ export class PulsarVisualization implements Visualization {
       const gradient = this.ctx.createLinearGradient(centerX, centerY, endX, endY);
       const baseAlpha = 0.6 + volumeBoost * 0.4;
 
-      gradient.addColorStop(0, colors.beam + 'ff');
-      gradient.addColorStop(0.1, colors.beam + 'cc');
-      gradient.addColorStop(0.3, colors.beam + '88');
-      gradient.addColorStop(0.6, colors.beam + '44');
-      gradient.addColorStop(1, 'transparent');
+      gradient.addColorStop(0, colors.beam + "ff");
+      gradient.addColorStop(0.1, colors.beam + "cc");
+      gradient.addColorStop(0.3, colors.beam + "88");
+      gradient.addColorStop(0.6, colors.beam + "44");
+      gradient.addColorStop(1, "transparent");
 
       // Draw main beam as a triangle fan
       this.ctx.globalAlpha = baseAlpha * 0.7;
@@ -317,11 +393,11 @@ export class PulsarVisualization implements Visualization {
       this.ctx.moveTo(centerX, centerY);
       this.ctx.lineTo(
         endX + Math.cos(perpAngle) * halfWidth * 2,
-        endY + Math.sin(perpAngle) * halfWidth * 2
+        endY + Math.sin(perpAngle) * halfWidth * 2,
       );
       this.ctx.lineTo(
         endX - Math.cos(perpAngle) * halfWidth * 2,
-        endY - Math.sin(perpAngle) * halfWidth * 2
+        endY - Math.sin(perpAngle) * halfWidth * 2,
       );
       this.ctx.closePath();
       this.ctx.fill();
@@ -351,8 +427,8 @@ export class PulsarVisualization implements Visualization {
   private drawMagneticField(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['magnetar'],
-    midBoost: number
+    colors: (typeof COLOR_SCHEMES)["magnetar"],
+    midBoost: number,
   ): void {
     if (!this.ctx) return;
 
@@ -393,10 +469,10 @@ export class PulsarVisualization implements Visualization {
   private drawCore(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['magnetar'],
+    colors: (typeof COLOR_SCHEMES)["magnetar"],
     baseSize: number,
     bassBoost: number,
-    volumeBoost: number
+    volumeBoost: number,
   ): void {
     if (!this.ctx) return;
 
@@ -404,12 +480,16 @@ export class PulsarVisualization implements Visualization {
 
     // Outer glow
     const glowGradient = this.ctx.createRadialGradient(
-      centerX, centerY, size * 0.5,
-      centerX, centerY, size * 3
+      centerX,
+      centerY,
+      size * 0.5,
+      centerX,
+      centerY,
+      size * 3,
     );
-    glowGradient.addColorStop(0, colors.glow + '60');
-    glowGradient.addColorStop(0.5, colors.glow + '30');
-    glowGradient.addColorStop(1, 'transparent');
+    glowGradient.addColorStop(0, colors.glow + "60");
+    glowGradient.addColorStop(0.5, colors.glow + "30");
+    glowGradient.addColorStop(1, "transparent");
 
     this.ctx.globalAlpha = 0.7;
     this.ctx.fillStyle = glowGradient;
@@ -419,13 +499,17 @@ export class PulsarVisualization implements Visualization {
 
     // Core gradient
     const coreGradient = this.ctx.createRadialGradient(
-      centerX - size * 0.2, centerY - size * 0.2, 0,
-      centerX, centerY, size
+      centerX - size * 0.2,
+      centerY - size * 0.2,
+      0,
+      centerX,
+      centerY,
+      size,
     );
-    coreGradient.addColorStop(0, '#ffffff');
+    coreGradient.addColorStop(0, "#ffffff");
     coreGradient.addColorStop(0.3, colors.core);
     coreGradient.addColorStop(0.7, colors.glow);
-    coreGradient.addColorStop(1, colors.glow + '88');
+    coreGradient.addColorStop(1, colors.glow + "88");
 
     this.ctx.globalAlpha = 0.9 * 0.7;
     this.ctx.fillStyle = coreGradient;
@@ -435,12 +519,16 @@ export class PulsarVisualization implements Visualization {
 
     // Bright center
     const brightGradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, size * 0.5
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      size * 0.5,
     );
-    brightGradient.addColorStop(0, '#ffffff');
-    brightGradient.addColorStop(0.5, colors.core + 'cc');
-    brightGradient.addColorStop(1, 'transparent');
+    brightGradient.addColorStop(0, "#ffffff");
+    brightGradient.addColorStop(0.5, colors.core + "cc");
+    brightGradient.addColorStop(1, "transparent");
 
     this.ctx.globalAlpha = (0.8 + volumeBoost * 0.2) * 0.7;
     this.ctx.fillStyle = brightGradient;
@@ -455,13 +543,10 @@ export class PulsarVisualization implements Visualization {
       const spotX = centerX + Math.cos(angle) * size * 0.6;
       const spotY = centerY + Math.sin(angle) * size * 0.6;
 
-      const spotGradient = this.ctx.createRadialGradient(
-        spotX, spotY, 0,
-        spotX, spotY, size * 0.3
-      );
-      spotGradient.addColorStop(0, '#ffffff88');
-      spotGradient.addColorStop(0.5, colors.beam + '44');
-      spotGradient.addColorStop(1, 'transparent');
+      const spotGradient = this.ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, size * 0.3);
+      spotGradient.addColorStop(0, "#ffffff88");
+      spotGradient.addColorStop(0.5, colors.beam + "44");
+      spotGradient.addColorStop(1, "transparent");
 
       this.ctx.globalAlpha = 0.5 * 0.7;
       this.ctx.fillStyle = spotGradient;
@@ -476,9 +561,9 @@ export class PulsarVisualization implements Visualization {
   private drawCorona(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['magnetar'],
+    colors: (typeof COLOR_SCHEMES)["magnetar"],
     baseSize: number,
-    volumeBoost: number
+    volumeBoost: number,
   ): void {
     if (!this.ctx) return;
 
@@ -493,25 +578,20 @@ export class PulsarVisualization implements Visualization {
       const length = baseSize * (1.5 + Math.sin(time * 3 + i) * 0.5 + volumeBoost);
 
       const gradient = this.ctx.createLinearGradient(
-        centerX, centerY,
+        centerX,
+        centerY,
         centerX + Math.cos(angle) * length,
-        centerY + Math.sin(angle) * length
+        centerY + Math.sin(angle) * length,
       );
-      gradient.addColorStop(0, colors.glow + '00');
-      gradient.addColorStop(0.3, colors.glow + '44');
-      gradient.addColorStop(1, 'transparent');
+      gradient.addColorStop(0, colors.glow + "00");
+      gradient.addColorStop(0.3, colors.glow + "44");
+      gradient.addColorStop(1, "transparent");
 
       this.ctx.strokeStyle = gradient;
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
-      this.ctx.moveTo(
-        centerX + Math.cos(angle) * baseSize,
-        centerY + Math.sin(angle) * baseSize
-      );
-      this.ctx.lineTo(
-        centerX + Math.cos(angle) * length,
-        centerY + Math.sin(angle) * length
-      );
+      this.ctx.moveTo(centerX + Math.cos(angle) * baseSize, centerY + Math.sin(angle) * baseSize);
+      this.ctx.lineTo(centerX + Math.cos(angle) * length, centerY + Math.sin(angle) * length);
       this.ctx.stroke();
     }
 
@@ -538,7 +618,10 @@ export class PulsarVisualization implements Visualization {
     const oldStarCount = this.config.starCount;
     this.config = { ...this.config, ...config } as PulsarConfig;
 
-    if ((config as PulsarConfig).starCount !== undefined && (config as PulsarConfig).starCount !== oldStarCount) {
+    if (
+      (config as PulsarConfig).starCount !== undefined &&
+      (config as PulsarConfig).starCount !== oldStarCount
+    ) {
       this.initStars();
     }
   }
@@ -555,26 +638,54 @@ export class PulsarVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Audio Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'magnetar', label: 'Magnetar' },
-          { value: 'xray', label: 'X-Ray' },
-          { value: 'radio', label: 'Radio' },
-          { value: 'gamma', label: 'Gamma Ray' },
-          { value: 'millisecond', label: 'Millisecond' },
-          { value: 'binary', label: 'Binary' },
-        ],
-        default: 'magnetar',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Audio Sensitivity",
       },
-      beamWidth: { type: 'number', min: 5, max: 40, step: 5, default: 15, label: 'Beam Width' },
-      beamLength: { type: 'number', min: 0.3, max: 1.5, step: 0.1, default: 1.0, label: 'Beam Length' },
-      rotationSpeed: { type: 'number', min: 0.2, max: 3, step: 0.1, default: 1.0, label: 'Rotation Speed' },
-      jetIntensity: { type: 'number', min: 0.2, max: 2, step: 0.1, default: 1.0, label: 'Jet Intensity' },
-      coreSize: { type: 'number', min: 15, max: 60, step: 5, default: 30, label: 'Core Size' },
-      starCount: { type: 'number', min: 50, max: 400, step: 50, default: 200, label: 'Star Count' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "magnetar", label: "Magnetar" },
+          { value: "xray", label: "X-Ray" },
+          { value: "radio", label: "Radio" },
+          { value: "gamma", label: "Gamma Ray" },
+          { value: "millisecond", label: "Millisecond" },
+          { value: "binary", label: "Binary" },
+        ],
+        default: "magnetar",
+        label: "Color Scheme",
+      },
+      beamWidth: { type: "number", min: 5, max: 40, step: 5, default: 15, label: "Beam Width" },
+      beamLength: {
+        type: "number",
+        min: 0.3,
+        max: 1.5,
+        step: 0.1,
+        default: 1.0,
+        label: "Beam Length",
+      },
+      rotationSpeed: {
+        type: "number",
+        min: 0.2,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Rotation Speed",
+      },
+      jetIntensity: {
+        type: "number",
+        min: 0.2,
+        max: 2,
+        step: 0.1,
+        default: 1.0,
+        label: "Jet Intensity",
+      },
+      coreSize: { type: "number", min: 15, max: 60, step: 5, default: 30, label: "Core Size" },
+      starCount: { type: "number", min: 50, max: 400, step: 50, default: 200, label: "Star Count" },
     };
   }
 }

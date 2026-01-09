@@ -1,5 +1,11 @@
-import p5 from 'p5';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import p5 from "p5";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface FractalTreeConfig extends VisualizationConfig {
   depth: number;
@@ -9,30 +15,40 @@ interface FractalTreeConfig extends VisualizationConfig {
   growth: number;
 }
 
-const COLOR_SCHEMES: Record<string, { trunk: string; branch: string; leaf: string; glow: string }> = {
-  cyanMagenta: { trunk: '#4a00e0', branch: '#00ffff', leaf: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { trunk: '#1a1a2e', branch: '#4a00e0', leaf: '#8000ff', glow: '#8000ff' },
-  neon: { trunk: '#ff073a', branch: '#39ff14', leaf: '#ffff00', glow: '#39ff14' },
-  monochrome: { trunk: '#404040', branch: '#808080', leaf: '#ffffff', glow: '#ffffff' },
-  acid: { trunk: '#006600', branch: '#00ff00', leaf: '#88ff00', glow: '#00ff00' },
-  autumn: { trunk: '#8b4513', branch: '#cd853f', leaf: '#ff4500', glow: '#ffd700' },
-  sakura: { trunk: '#4a3728', branch: '#8b6b61', leaf: '#ffb7c5', glow: '#ff69b4' },
-  ice: { trunk: '#1e3a5f', branch: '#4682b4', leaf: '#e0ffff', glow: '#87ceeb' },
-};
+const COLOR_SCHEMES: Record<string, { trunk: string; branch: string; leaf: string; glow: string }> =
+  {
+    cyanMagenta: { trunk: "#4a00e0", branch: "#00ffff", leaf: "#ff00ff", glow: "#00ffff" },
+    darkTechno: { trunk: "#1a1a2e", branch: "#4a00e0", leaf: "#8000ff", glow: "#8000ff" },
+    neon: { trunk: "#ff073a", branch: "#39ff14", leaf: "#ffff00", glow: "#39ff14" },
+    monochrome: { trunk: "#404040", branch: "#808080", leaf: "#ffffff", glow: "#ffffff" },
+    acid: { trunk: "#006600", branch: "#00ff00", leaf: "#88ff00", glow: "#00ff00" },
+    autumn: { trunk: "#8b4513", branch: "#cd853f", leaf: "#ff4500", glow: "#ffd700" },
+    sakura: { trunk: "#4a3728", branch: "#8b6b61", leaf: "#ffb7c5", glow: "#ff69b4" },
+    ice: { trunk: "#1e3a5f", branch: "#4682b4", leaf: "#e0ffff", glow: "#87ceeb" },
+  };
 
 export class FractalTreeVisualization implements Visualization {
-  id = 'fractalTree';
-  name = 'Fractal Tree';
-  author = 'Vizec';
-  description = 'Recursive fractal tree that sways and pulses with audio';
-  renderer: 'p5' = 'p5';
-  transitionType: 'zoom' = 'zoom';
+  static readonly meta: VisualizationMeta = {
+    id: "fractalTree",
+    name: "Fractal Tree",
+    author: "Vizec",
+    description: "Recursive fractal tree that sways and pulses with audio",
+    renderer: "p5",
+    transitionType: "zoom",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;
   private config: FractalTreeConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     depth: 8,
     branchAngle: 25,
     swayAmount: 0.5,
@@ -51,7 +67,7 @@ export class FractalTreeVisualization implements Visualization {
     this.updateConfig(config);
 
     // Initialize leaf glow array
-    this.leafGlow = new Array(100).fill(0);
+    this.leafGlow = Array.from({ length: 100 }, () => 0);
 
     // Create p5 instance in instance mode
     this.p5Instance = new p5((p: p5) => {
@@ -128,7 +144,7 @@ export class FractalTreeVisualization implements Visualization {
       sensitivity,
       swayAmount,
       frequencyData,
-      { value: leafIndex }
+      { value: leafIndex },
     );
 
     p.pop();
@@ -147,7 +163,7 @@ export class FractalTreeVisualization implements Visualization {
     sensitivity: number,
     swayAmount: number,
     frequencyData: Uint8Array,
-    leafIndexRef: { value: number }
+    leafIndexRef: { value: number },
   ): void {
     if (currentDepth >= depth) {
       // Draw leaf/endpoint with glow
@@ -179,7 +195,8 @@ export class FractalTreeVisualization implements Visualization {
     const freqIndex = Math.floor((currentDepth / depth) * (frequencyData.length / 4));
     const freqValue = frequencyData[freqIndex] / 255;
 
-    const sway = Math.sin(this.windOffset + currentDepth * 0.5) * swayAmount * 15 * (1 + mid * sensitivity);
+    const sway =
+      Math.sin(this.windOffset + currentDepth * 0.5) * swayAmount * 15 * (1 + mid * sensitivity);
     const audioSway = (freqValue - 0.5) * swayAmount * 20 * sensitivity;
 
     // Branch reduction factor
@@ -215,7 +232,7 @@ export class FractalTreeVisualization implements Visualization {
       sensitivity,
       swayAmount,
       frequencyData,
-      leafIndexRef
+      leafIndexRef,
     );
     p.pop();
 
@@ -237,7 +254,7 @@ export class FractalTreeVisualization implements Visualization {
       sensitivity,
       swayAmount,
       frequencyData,
-      leafIndexRef
+      leafIndexRef,
     );
     p.pop();
 
@@ -260,13 +277,13 @@ export class FractalTreeVisualization implements Visualization {
         sensitivity,
         swayAmount,
         frequencyData,
-        leafIndexRef
+        leafIndexRef,
       );
       p.pop();
     }
   }
 
-  render(audioData: AudioData, deltaTime: number): void {
+  render(audioData: AudioData, _deltaTime: number): void {
     this.currentAudioData = audioData;
     // p5 handles its own draw loop, we just update the data
   }
@@ -296,47 +313,47 @@ export class FractalTreeVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       depth: {
-        type: 'number',
-        label: 'Branch Depth',
+        type: "number",
+        label: "Branch Depth",
         default: 8,
         min: 4,
         max: 12,
         step: 1,
       },
       branchAngle: {
-        type: 'number',
-        label: 'Branch Angle',
+        type: "number",
+        label: "Branch Angle",
         default: 25,
         min: 10,
         max: 45,
         step: 1,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'autumn', label: 'Autumn' },
-          { value: 'sakura', label: 'Sakura' },
-          { value: 'ice', label: 'Ice' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "acid", label: "Acid" },
+          { value: "autumn", label: "Autumn" },
+          { value: "sakura", label: "Sakura" },
+          { value: "ice", label: "Ice" },
         ],
       },
       swayAmount: {
-        type: 'number',
-        label: 'Sway Amount',
+        type: "number",
+        label: "Sway Amount",
         default: 0.5,
         min: 0,
         max: 1,
         step: 0.1,
       },
       growth: {
-        type: 'number',
-        label: 'Tree Size',
+        type: "number",
+        label: "Tree Size",
         default: 0.7,
         min: 0.3,
         max: 1.0,

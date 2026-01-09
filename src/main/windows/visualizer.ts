@@ -1,5 +1,5 @@
-import { BrowserWindow } from 'electron';
-import * as path from 'path';
+import { app, BrowserWindow } from "electron";
+import * as path from "path";
 
 export function createVisualizerWindow(): BrowserWindow {
   const window = new BrowserWindow({
@@ -10,7 +10,7 @@ export function createVisualizerWindow(): BrowserWindow {
     resizable: true,
     hasShadow: false,
     webPreferences: {
-      preload: path.join(__dirname, '..', '..', 'preload', 'preload.js'),
+      preload: path.join(app.getAppPath(), "dist/preload/preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -18,14 +18,20 @@ export function createVisualizerWindow(): BrowserWindow {
   });
 
   // Load the visualizer HTML
-  window.loadFile(path.join(__dirname, '..', '..', 'renderer', 'visualizer', 'index.html'));
+  window.loadFile(path.join(app.getAppPath(), "dist/renderer/visualizer/index.html"));
 
   // Open DevTools for debugging (uncomment when needed)
   // window.webContents.openDevTools({ mode: 'detach' });
 
   // Prevent the window from being closed accidentally
-  window.on('close', (e) => {
+  window.on("close", (_e) => {
     // Allow close
+  });
+
+  // Forward console logs to terminal
+  window.webContents.on("console-message", (_event, level, message, _line, _sourceId) => {
+    const type = level === 0 ? "INFO" : level === 1 ? "WARN" : "ERROR";
+    console.log(`[VisualizerRenderer][${type}] ${message}`);
   });
 
   return window;

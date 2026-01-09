@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface FresnelGlowConfig extends VisualizationConfig {
   colorScheme: string;
@@ -18,12 +24,21 @@ const COLOR_SCHEMES: Record<string, { base: number; edge: number; glow: number }
 };
 
 export class FresnelGlowVisualization implements Visualization {
-  id = 'fresnelGlow';
-  name = 'Fresnel Pulse';
-  author = 'Vizec';
-  description = 'Transparent fresnel-edged form that glows on loud audio bursts';
-  renderer: 'threejs' = 'threejs';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "fresnelGlow",
+    name: "Fresnel Pulse",
+    author: "Vizec",
+    description: "Transparent fresnel-edged form that glows on loud audio bursts",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -35,7 +50,7 @@ export class FresnelGlowVisualization implements Visualization {
 
   private config: FresnelGlowConfig = {
     sensitivity: 1,
-    colorScheme: 'aurora',
+    colorScheme: "aurora",
     baseColor: 0x5af2ff,
     edgeColor: 0xff6be3,
     fresnelPower: 2.5,
@@ -59,7 +74,11 @@ export class FresnelGlowVisualization implements Visualization {
     this.camera.position.set(0, 0, 60);
     this.camera.lookAt(0, 0, 0);
 
-    this.rendererThree = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    this.rendererThree = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance",
+    });
     this.rendererThree.setSize(width, height);
     this.rendererThree.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.rendererThree.setClearColor(0x000000, 0);
@@ -95,7 +114,11 @@ export class FresnelGlowVisualization implements Visualization {
     this.scene.add(this.halo);
   }
 
-  private createFresnelMaterial(colors: { base: number; edge: number; glow: number }): THREE.ShaderMaterial {
+  private createFresnelMaterial(colors: {
+    base: number;
+    edge: number;
+    glow: number;
+  }): THREE.ShaderMaterial {
     this.uniforms = {
       baseColor: { value: new THREE.Color(colors.base) },
       edgeColor: { value: new THREE.Color(colors.edge) },
@@ -139,7 +162,8 @@ export class FresnelGlowVisualization implements Visualization {
   }
 
   render(audioData: AudioData, deltaTime: number): void {
-    if (!this.rendererThree || !this.scene || !this.camera || !this.sphere || !this.uniforms) return;
+    if (!this.rendererThree || !this.scene || !this.camera || !this.sphere || !this.uniforms)
+      return;
 
     this.time += deltaTime;
     this.uniforms.time.value = this.time;
@@ -201,42 +225,42 @@ export class FresnelGlowVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'aurora',
+        type: "select",
+        label: "Color Scheme",
+        default: "aurora",
         options: [
-          { value: 'aurora', label: 'Aurora' },
-          { value: 'eclipse', label: 'Eclipse' },
-          { value: 'ember', label: 'Ember' },
+          { value: "aurora", label: "Aurora" },
+          { value: "eclipse", label: "Eclipse" },
+          { value: "ember", label: "Ember" },
         ],
       },
       fresnelPower: {
-        type: 'number',
-        label: 'Fresnel Power',
+        type: "number",
+        label: "Fresnel Power",
         default: 2.5,
         min: 1,
         max: 5,
         step: 0.1,
       },
       glow: {
-        type: 'number',
-        label: 'Glow Intensity',
+        type: "number",
+        label: "Glow Intensity",
         default: 0.55,
         min: 0,
         max: 1,
         step: 0.05,
       },
       rotationSpeed: {
-        type: 'number',
-        label: 'Rotation Speed',
+        type: "number",
+        label: "Rotation Speed",
         default: 0.25,
         min: 0,
         max: 1,
         step: 0.05,
       },
       audioSensitivity: {
-        type: 'number',
-        label: 'Audio Sensitivity',
+        type: "number",
+        label: "Audio Sensitivity",
         default: 2,
         min: 0.5,
         max: 4,

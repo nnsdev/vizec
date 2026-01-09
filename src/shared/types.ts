@@ -16,7 +16,7 @@ export interface VisualizationConfig {
 }
 
 export interface ConfigField {
-  type: 'number' | 'boolean' | 'select' | 'color';
+  type: "number" | "boolean" | "select" | "color";
   label: string;
   default: unknown;
   min?: number;
@@ -34,8 +34,8 @@ export interface VisualizationMeta {
   name: string;
   author?: string;
   description?: string;
-  renderer: 'canvas2d' | 'webgl' | 'p5' | 'threejs';
-  transitionType: 'crossfade' | 'cut' | 'zoom';
+  renderer: "canvas2d" | "webgl" | "p5" | "threejs";
+  transitionType: "crossfade" | "cut" | "zoom";
 }
 
 // Visualization interface is defined in the renderer since it uses DOM types
@@ -55,13 +55,13 @@ export interface AudioConfig {
 }
 
 export interface DisplayConfig {
-  background: 'transparent' | 'solid';
+  background: "transparent" | "solid";
 }
 
 export interface RotationConfig {
   enabled: boolean;
   interval: number;
-  order: 'sequential' | 'random';
+  order: "sequential" | "random";
   randomizeColors: boolean;
   randomizeAll: boolean;
 }
@@ -80,7 +80,7 @@ export interface Preset {
 export interface AudioSource {
   id: string;
   name: string;
-  type: 'screen' | 'window' | 'audio' | 'audioInput';
+  type: "screen" | "window" | "audio" | "audioInput";
 }
 
 export interface AppState {
@@ -97,33 +97,35 @@ export interface AppState {
 // IPC Channel names
 export const IPC_CHANNELS = {
   // Audio
-  GET_AUDIO_SOURCES: 'get-audio-sources',
-  START_AUDIO_CAPTURE: 'start-audio-capture',
-  STOP_AUDIO_CAPTURE: 'stop-audio-capture',
-  AUDIO_SOURCE_SELECTED: 'audio-source-selected',
-  
+  GET_AUDIO_SOURCES: "get-audio-sources",
+  START_AUDIO_CAPTURE: "start-audio-capture",
+  STOP_AUDIO_CAPTURE: "stop-audio-capture",
+  AUDIO_SOURCE_SELECTED: "audio-source-selected",
+
   // Visualization
-  GET_VISUALIZATIONS: 'get-visualizations',
-  SET_VISUALIZATION: 'set-visualization',
-  UPDATE_VISUALIZATION_CONFIG: 'update-visualization-config',
-  
+  GET_VISUALIZATIONS: "get-visualizations",
+  SET_VISUALIZATION: "set-visualization",
+  UPDATE_VISUALIZATION_CONFIG: "update-visualization-config",
+  REGISTER_VISUALIZATIONS: "register-visualizations",
+  VISUALIZATIONS_UPDATED: "visualizations-updated", // NEW
+
   // Presets
-  GET_PRESETS: 'get-presets',
-  LOAD_PRESET: 'load-preset',
-  SAVE_PRESET: 'save-preset',
-  DELETE_PRESET: 'delete-preset',
-  
+  GET_PRESETS: "get-presets",
+  LOAD_PRESET: "load-preset",
+  SAVE_PRESET: "save-preset",
+  DELETE_PRESET: "delete-preset",
+
   // State
-  GET_STATE: 'get-state',
-  UPDATE_STATE: 'update-state',
-  STATE_CHANGED: 'state-changed',
-  
+  GET_STATE: "get-state",
+  UPDATE_STATE: "update-state",
+  STATE_CHANGED: "state-changed",
+
   // Rotation
-  NEXT_VISUALIZATION: 'next-visualization',
-  PREV_VISUALIZATION: 'prev-visualization',
-  SET_ROTATION: 'set-rotation',
-  
+  NEXT_VISUALIZATION: "next-visualization",
+  PREV_VISUALIZATION: "prev-visualization",
+  SET_ROTATION: "set-rotation",
+
   // Display
-  SET_DISPLAY_CONFIG: 'set-display-config',
-  SET_AUDIO_CONFIG: 'set-audio-config',
+  SET_DISPLAY_CONFIG: "set-display-config",
+  SET_AUDIO_CONFIG: "set-audio-config",
 } as const;

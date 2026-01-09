@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; accent: number }> = {
   cyanMagenta: { primary: 0x00ffff, secondary: 0xff00ff, accent: 0x8000ff },
@@ -33,12 +39,21 @@ interface CubeData {
 }
 
 export class CubeFieldVisualization implements Visualization {
-  id = 'cubeField';
-  name = 'Cube Field';
-  author = 'Vizec';
-  description = 'Grid of cubes that react to frequency data';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "cubeField",
+    name: "Cube Field",
+    author: "Vizec",
+    description: "Grid of cubes that react to frequency data",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -49,7 +64,7 @@ export class CubeFieldVisualization implements Visualization {
 
   private config: CubeFieldConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     gridSize: 8,
     spacing: 3,
     maxHeight: 20,
@@ -97,7 +112,7 @@ export class CubeFieldVisualization implements Visualization {
     // Remove existing cubes
     if (this.cubeGroup) {
       this.scene.remove(this.cubeGroup);
-      this.cubes.forEach(cubeData => {
+      this.cubes.forEach((cubeData) => {
         cubeData.mesh.geometry.dispose();
         (cubeData.mesh.material as THREE.Material).dispose();
       });
@@ -107,14 +122,11 @@ export class CubeFieldVisualization implements Visualization {
     this.cubeGroup = new THREE.Group();
     this.cubes = [];
 
-    const totalCubes = gridSize * gridSize;
-    const halfGrid = (gridSize - 1) * spacing / 2;
+    const halfGrid = ((gridSize - 1) * spacing) / 2;
 
     // Create cubes
     for (let i = 0; i < gridSize; i++) {
       for (let j = 0; j < gridSize; j++) {
-        const cubeIndex = i * gridSize + j;
-
         // Create cube geometry
         const geometry = new THREE.BoxGeometry(spacing * 0.8, 1, spacing * 0.8);
 
@@ -122,7 +134,7 @@ export class CubeFieldVisualization implements Visualization {
         const posRatio = (i + j) / (gridSize * 2 - 2);
         const color = new THREE.Color(colors.primary).lerp(
           new THREE.Color(colors.secondary),
-          posRatio
+          posRatio,
         );
 
         const material = new THREE.MeshBasicMaterial({
@@ -141,10 +153,8 @@ export class CubeFieldVisualization implements Visualization {
 
         // Map cube to frequency bin
         // Center cubes get bass, edges get treble
-        const centerDist = Math.sqrt(
-          Math.pow(i - gridSize / 2, 2) + Math.pow(j - gridSize / 2, 2)
-        );
-        const maxDist = Math.sqrt(2) * gridSize / 2;
+        const centerDist = Math.sqrt(Math.pow(i - gridSize / 2, 2) + Math.pow(j - gridSize / 2, 2));
+        const maxDist = (Math.sqrt(2) * gridSize) / 2;
         const freqIndex = Math.floor((centerDist / maxDist) * 0.7 * 255);
 
         this.cubes.push({
@@ -163,14 +173,13 @@ export class CubeFieldVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.scene || !this.camera || !this.rendererThree || !this.cubeGroup) return;
 
-    const { bass, mid, treble, volume, frequencyData } = audioData;
+    const { bass, mid, frequencyData } = audioData;
     const { sensitivity, maxHeight, rotateWithAudio, gridSize } = this.config;
 
     this.time += deltaTime;
 
     const bassBoost = Math.pow(bass, 0.7) * 2;
     const midBoost = Math.pow(mid, 0.7) * 1.5;
-    const trebleBoost = Math.pow(treble, 0.7) * 1.5;
 
     // Rotate entire grid based on audio
     if (rotateWithAudio) {
@@ -257,18 +266,19 @@ export class CubeFieldVisualization implements Visualization {
     this.config = { ...this.config, ...config } as CubeFieldConfig;
 
     // Recreate cube field if relevant settings changed
-    if (this.scene && (
-      this.config.colorScheme !== oldColorScheme ||
-      this.config.gridSize !== oldGridSize ||
-      this.config.spacing !== oldSpacing
-    )) {
+    if (
+      this.scene &&
+      (this.config.colorScheme !== oldColorScheme ||
+        this.config.gridSize !== oldGridSize ||
+        this.config.spacing !== oldSpacing)
+    ) {
       this.createCubeField();
     }
   }
 
   destroy(): void {
     // Clean up cubes
-    this.cubes.forEach(cubeData => {
+    this.cubes.forEach((cubeData) => {
       cubeData.mesh.geometry.dispose();
       (cubeData.mesh.material as THREE.Material).dispose();
     });
@@ -293,32 +303,39 @@ export class CubeFieldVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      gridSize: { type: 'number', min: 4, max: 16, step: 1, default: 8, label: 'Grid Size' },
-      spacing: { type: 'number', min: 2, max: 6, step: 0.5, default: 3, label: 'Cube Spacing' },
-      maxHeight: { type: 'number', min: 5, max: 40, step: 1, default: 20, label: 'Max Height' },
-      rotateWithAudio: { type: 'boolean', default: true, label: 'Rotate with Audio' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      gridSize: { type: "number", min: 4, max: 16, step: 1, default: 8, label: "Grid Size" },
+      spacing: { type: "number", min: 2, max: 6, step: 0.5, default: 3, label: "Cube Spacing" },
+      maxHeight: { type: "number", min: 5, max: 40, step: 1, default: 20, label: "Max Height" },
+      rotateWithAudio: { type: "boolean", default: true, label: "Rotate with Audio" },
     };
   }
 }

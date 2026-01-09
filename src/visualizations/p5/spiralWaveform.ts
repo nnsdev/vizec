@@ -1,5 +1,11 @@
-import p5 from 'p5';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import p5 from "p5";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface SpiralWaveformConfig extends VisualizationConfig {
   spiralTightness: number;
@@ -10,14 +16,14 @@ interface SpiralWaveformConfig extends VisualizationConfig {
 }
 
 const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; accent: string }> = {
-  cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', accent: '#ffffff' },
-  darkTechno: { primary: '#4a00e0', secondary: '#8000ff', accent: '#1a1a2e' },
-  neon: { primary: '#39ff14', secondary: '#ff073a', accent: '#ffff00' },
-  monochrome: { primary: '#ffffff', secondary: '#808080', accent: '#404040' },
-  acid: { primary: '#00ff00', secondary: '#ffff00', accent: '#88ff00' },
-  fire: { primary: '#ff4500', secondary: '#ffd700', accent: '#ff6600' },
-  ice: { primary: '#00bfff', secondary: '#e0ffff', accent: '#87ceeb' },
-  synthwave: { primary: '#ff00ff', secondary: '#00ffff', accent: '#ff00aa' },
+  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", accent: "#ffffff" },
+  darkTechno: { primary: "#4a00e0", secondary: "#8000ff", accent: "#1a1a2e" },
+  neon: { primary: "#39ff14", secondary: "#ff073a", accent: "#ffff00" },
+  monochrome: { primary: "#ffffff", secondary: "#808080", accent: "#404040" },
+  acid: { primary: "#00ff00", secondary: "#ffff00", accent: "#88ff00" },
+  fire: { primary: "#ff4500", secondary: "#ffd700", accent: "#ff6600" },
+  ice: { primary: "#00bfff", secondary: "#e0ffff", accent: "#87ceeb" },
+  synthwave: { primary: "#ff00ff", secondary: "#00ffff", accent: "#ff00aa" },
 };
 
 interface SpiralPoint {
@@ -28,18 +34,27 @@ interface SpiralPoint {
 }
 
 export class SpiralWaveformVisualization implements Visualization {
-  id = 'spiralWaveform';
-  name = 'Spiral Waveform';
-  author = 'Vizec';
-  description = 'Waveform drawn as an expanding spiral from center';
-  renderer: 'p5' = 'p5';
-  transitionType: 'zoom' = 'zoom';
+  static readonly meta: VisualizationMeta = {
+    id: "spiralWaveform",
+    name: "Spiral Waveform",
+    author: "Vizec",
+    description: "Waveform drawn as an expanding spiral from center",
+    renderer: "p5",
+    transitionType: "zoom",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;
   private config: SpiralWaveformConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     spiralTightness: 0.5,
     expansionSpeed: 1.0,
     trailLength: 200,
@@ -75,7 +90,14 @@ export class SpiralWaveformVisualization implements Visualization {
   }
 
   private drawVisualization(p: p5): void {
-    const { spiralTightness, expansionSpeed, colorScheme, trailLength, rotationSpeed, sensitivity } = this.config;
+    const {
+      spiralTightness,
+      expansionSpeed,
+      colorScheme,
+      trailLength,
+      rotationSpeed,
+      sensitivity,
+    } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     // Clear with transparent background
@@ -151,7 +173,7 @@ export class SpiralWaveformVisualization implements Visualization {
         const strokeColor = p.lerpColor(
           p.color(colors.primary),
           p.color(colors.secondary),
-          colorProgress
+          colorProgress,
         );
         strokeColor.setAlpha(alpha);
         p.stroke(strokeColor);
@@ -202,7 +224,7 @@ export class SpiralWaveformVisualization implements Visualization {
     p.pop();
   }
 
-  render(audioData: AudioData, deltaTime: number): void {
+  render(audioData: AudioData, _deltaTime: number): void {
     this.currentAudioData = audioData;
     // p5 handles its own draw loop, we just update the data
   }
@@ -233,47 +255,47 @@ export class SpiralWaveformVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       spiralTightness: {
-        type: 'number',
-        label: 'Spiral Tightness',
+        type: "number",
+        label: "Spiral Tightness",
         default: 0.5,
         min: 0.1,
         max: 2.0,
         step: 0.1,
       },
       expansionSpeed: {
-        type: 'number',
-        label: 'Expansion Speed',
+        type: "number",
+        label: "Expansion Speed",
         default: 1.0,
         min: 0.2,
         max: 3.0,
         step: 0.1,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'synthwave', label: 'Synthwave' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "acid", label: "Acid" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "synthwave", label: "Synthwave" },
         ],
       },
       trailLength: {
-        type: 'number',
-        label: 'Trail Length',
+        type: "number",
+        label: "Trail Length",
         default: 200,
         min: 50,
         max: 500,
         step: 25,
       },
       rotationSpeed: {
-        type: 'number',
-        label: 'Rotation Speed',
+        type: "number",
+        label: "Rotation Speed",
         default: 0.5,
         min: 0,
         max: 2.0,

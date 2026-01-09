@@ -1,21 +1,27 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 // Color schemes
 const COLOR_SCHEMES: Record<string, { start: string; end: string; glow: string }> = {
-  cyanMagenta: { start: '#00ffff', end: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { start: '#1a1a2e', end: '#4a00e0', glow: '#8000ff' },
-  neon: { start: '#39ff14', end: '#ff073a', glow: '#ffff00' },
-  fire: { start: '#ff4500', end: '#ffd700', glow: '#ff6600' },
-  ice: { start: '#00bfff', end: '#e0ffff', glow: '#87ceeb' },
-  acid: { start: '#00ff00', end: '#ffff00', glow: '#00ff00' },
-  monochrome: { start: '#ffffff', end: '#808080', glow: '#ffffff' },
-  purpleHaze: { start: '#8b00ff', end: '#ff1493', glow: '#9400d3' },
-  sunset: { start: '#ff6b6b', end: '#feca57', glow: '#ff9f43' },
-  ocean: { start: '#0077be', end: '#00d4aa', glow: '#00b4d8' },
-  toxic: { start: '#00ff41', end: '#0aff0a', glow: '#39ff14' },
-  bloodMoon: { start: '#8b0000', end: '#ff4500', glow: '#dc143c' },
-  synthwave: { start: '#ff00ff', end: '#00ffff', glow: '#ff00aa' },
-  golden: { start: '#ffd700', end: '#ff8c00', glow: '#ffb347' },
+  cyanMagenta: { start: "#00ffff", end: "#ff00ff", glow: "#00ffff" },
+  darkTechno: { start: "#1a1a2e", end: "#4a00e0", glow: "#8000ff" },
+  neon: { start: "#39ff14", end: "#ff073a", glow: "#ffff00" },
+  fire: { start: "#ff4500", end: "#ffd700", glow: "#ff6600" },
+  ice: { start: "#00bfff", end: "#e0ffff", glow: "#87ceeb" },
+  acid: { start: "#00ff00", end: "#ffff00", glow: "#00ff00" },
+  monochrome: { start: "#ffffff", end: "#808080", glow: "#ffffff" },
+  purpleHaze: { start: "#8b00ff", end: "#ff1493", glow: "#9400d3" },
+  sunset: { start: "#ff6b6b", end: "#feca57", glow: "#ff9f43" },
+  ocean: { start: "#0077be", end: "#00d4aa", glow: "#00b4d8" },
+  toxic: { start: "#00ff41", end: "#0aff0a", glow: "#39ff14" },
+  bloodMoon: { start: "#8b0000", end: "#ff4500", glow: "#dc143c" },
+  synthwave: { start: "#ff00ff", end: "#00ffff", glow: "#ff00aa" },
+  golden: { start: "#ffd700", end: "#ff8c00", glow: "#ffb347" },
 };
 
 interface DNAHelixConfig extends VisualizationConfig {
@@ -25,18 +31,27 @@ interface DNAHelixConfig extends VisualizationConfig {
 }
 
 export class DNAHelixVisualization implements Visualization {
-  id = 'dnaHelix';
-  name = 'DNA Helix';
-  author = 'Vizec';
-  description = 'Double helix rotating around vertical center axis with audio-reactive pulsing';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "dnaHelix",
+    name: "DNA Helix",
+    author: "Vizec",
+    description: "Double helix rotating around vertical center axis with audio-reactive pulsing",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private config: DNAHelixConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     rotationSpeed: 1.0,
     strandCount: 30,
     pulseIntensity: 1.0,
@@ -48,15 +63,15 @@ export class DNAHelixVisualization implements Visualization {
   private smoothedMid = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     // Initial resize
@@ -68,7 +83,7 @@ export class DNAHelixVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { frequencyData, bass, mid, treble } = audioData;
+    const { frequencyData, bass, mid } = audioData;
     const { rotationSpeed, strandCount, pulseIntensity, sensitivity, colorScheme } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
@@ -121,7 +136,7 @@ export class DNAHelixVisualization implements Visualization {
 
       // Get frequency value for this connection
       const freqIndex = Math.floor((i / strandCount) * frequencyData.length * 0.5);
-      const freqValue = frequencyData[freqIndex] / 255 * sensitivity;
+      const freqValue = (frequencyData[freqIndex] / 255) * sensitivity;
 
       // Only draw if both points are in front (z > 0) or create depth effect
       const avgZ = (p1.z + p2.z) / 2;
@@ -173,7 +188,7 @@ export class DNAHelixVisualization implements Visualization {
       const p2 = strand2Points[i];
 
       const freqIndex = Math.floor((i / strandCount) * frequencyData.length * 0.5);
-      const freqValue = frequencyData[freqIndex] / 255 * sensitivity;
+      const freqValue = (frequencyData[freqIndex] / 255) * sensitivity;
 
       // Sphere size based on z-depth and frequency
       const size1 = (4 + p1.z * 3) * (1 + freqValue * 0.5);
@@ -211,21 +226,20 @@ export class DNAHelixVisualization implements Visualization {
   private drawStrandBackbone(
     points: { x: number; y: number; z: number }[],
     color: string,
-    glowColor: string
+    glowColor: string,
   ): void {
     if (!this.ctx || points.length < 2) return;
 
     this.ctx.beginPath();
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = 2;
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
+    this.ctx.lineCap = "round";
+    this.ctx.lineJoin = "round";
 
     // Draw smooth curve through points
     this.ctx.moveTo(points[0].x, points[0].y);
 
     for (let i = 1; i < points.length - 1; i++) {
-      const prev = points[i - 1];
       const curr = points[i];
       const next = points[i + 1];
 
@@ -281,45 +295,45 @@ export class DNAHelixVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       rotationSpeed: {
-        type: 'number',
-        label: 'Rotation Speed',
+        type: "number",
+        label: "Rotation Speed",
         default: 1.0,
         min: 0.1,
         max: 3.0,
         step: 0.1,
       },
       strandCount: {
-        type: 'number',
-        label: 'Strand Segments',
+        type: "number",
+        label: "Strand Segments",
         default: 30,
         min: 15,
         max: 60,
         step: 5,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
         ],
       },
       pulseIntensity: {
-        type: 'number',
-        label: 'Pulse Intensity',
+        type: "number",
+        label: "Pulse Intensity",
         default: 1.0,
         min: 0.0,
         max: 2.0,

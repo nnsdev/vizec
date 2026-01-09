@@ -3,12 +3,14 @@
 ## Project Overview
 
 An Electron app with two windows:
+
 1. **Visualizer Window** - 1920x1080, transparent background, normal z-order
 2. **Control Window** - 400x600 UI for audio source selection, visualization picker, presets, and settings
 
 ## Design Direction
 
 **Techno-focused aesthetic:**
+
 - Dark theme with high contrast
 - Color palette: Deep blacks, electric cyan, magenta, purple, with occasional white/strobe effects
 - Sharp geometric shapes, clean lines
@@ -20,10 +22,12 @@ An Electron app with two windows:
 ## Tasks
 
 ### Phase 1: Project Setup
+
 - [ ] Initialize Electron project with TypeScript and build configuration
 - [ ] Set up project structure (main, renderer, visualizations, preload)
 
 ### Phase 2: Core Infrastructure
+
 - [ ] Create main process with window management (visualizer + control windows)
 - [ ] Implement transparent 1080p visualizer window
 - [ ] Implement control window with UI (400x600)
@@ -31,26 +35,31 @@ An Electron app with two windows:
 - [ ] Create preload script with context bridge
 
 ### Phase 3: Audio System
+
 - [ ] Implement audio source enumeration via desktopCapturer
 - [ ] Implement audio capture with loopback
 - [ ] Create Web Audio API analyzer for frequency/waveform data
 
 ### Phase 4: Visualization System
+
 - [ ] Design visualization plugin interface and registry
 - [ ] Create visualization engine (lifecycle management, transitions)
 - [ ] Implement auto-rotation system with configurable interval
 
 ### Phase 5: Preset System
+
 - [ ] Create preset manager (save/load/delete)
 - [ ] Create built-in presets (Dark Techno, Rave, Minimal, Acid)
 - [ ] Wire up preset UI in control window
 
 ### Phase 6: Visualizations
+
 - [ ] Create Canvas2D visualization: Frequency Bars (techno style)
 - [ ] Create WebGL/Three.js visualization: Particle Storm
 - [ ] Create p5.js visualization: Circular Waveform
 
 ### Phase 7: Integration & Polish
+
 - [ ] Wire up control window to switch visualizations and adjust settings
 - [ ] Implement per-visualization dynamic settings UI
 - [ ] Test and verify audio capture and visualization rendering
@@ -60,6 +69,7 @@ An Electron app with two windows:
 ## Technical Architecture
 
 ### File Structure
+
 ```
 vizec/
 ├── package.json
@@ -106,35 +116,39 @@ vizec/
 ```
 
 ### Tech Stack
-| Component | Choice |
-|-----------|--------|
-| Framework | Electron 28+ |
-| Language | TypeScript 5.3+ |
-| Build | electron-builder |
-| 3D | Three.js |
-| Creative | p5.js |
-| Audio | Web Audio API (AnalyserNode) |
+
+| Component | Choice                       |
+| --------- | ---------------------------- |
+| Framework | Electron 28+                 |
+| Language  | TypeScript 5.3+              |
+| Build     | electron-builder             |
+| 3D        | Three.js                     |
+| Creative  | p5.js                        |
+| Audio     | Web Audio API (AnalyserNode) |
 
 ### Key Technical Decisions
-| Aspect | Approach |
-|--------|----------|
-| Audio Capture | `desktopCapturer` + `setDisplayMediaRequestHandler` with `audio: 'loopback'` |
-| Audio Analysis | Web Audio API `AnalyserNode` for FFT frequency data and time-domain waveform |
-| Window Communication | Electron IPC via `contextBridge` (secure) |
-| Transparent Window | `BrowserWindow({ frame: false, transparent: true })` |
-| Visualization System | Plugin interface supporting Canvas2D, WebGL/Three.js, and p5.js |
+
+| Aspect               | Approach                                                                     |
+| -------------------- | ---------------------------------------------------------------------------- |
+| Audio Capture        | `desktopCapturer` + `setDisplayMediaRequestHandler` with `audio: 'loopback'` |
+| Audio Analysis       | Web Audio API `AnalyserNode` for FFT frequency data and time-domain waveform |
+| Window Communication | Electron IPC via `contextBridge` (secure)                                    |
+| Transparent Window   | `BrowserWindow({ frame: false, transparent: true })`                         |
+| Visualization System | Plugin interface supporting Canvas2D, WebGL/Three.js, and p5.js              |
 
 ---
 
 ## Preset System
 
 ### What's saved in a preset:
+
 - Selected visualization + its specific settings
 - Audio settings (sensitivity, smoothing)
 - Display settings (background mode)
 - Auto-rotation settings (enabled, interval, order)
 
 ### Preset file format:
+
 ```json
 {
   "name": "Dark Techno",
@@ -161,12 +175,13 @@ vizec/
 ```
 
 ### Built-in Presets:
-| Preset | Vibe |
-|--------|------|
+
+| Preset          | Vibe                                                        |
+| --------------- | ----------------------------------------------------------- |
 | **Dark Techno** | Muted colors, slower response, atmospheric, deep bass focus |
-| **Rave** | Bright neon, fast response, high contrast, strobe-friendly |
-| **Minimal** | Monochrome, clean lines, subtle movements |
-| **Acid** | Green/yellow palette, 303 vibes, warped geometry |
+| **Rave**        | Bright neon, fast response, high contrast, strobe-friendly  |
+| **Minimal**     | Monochrome, clean lines, subtle movements                   |
+| **Acid**        | Green/yellow palette, 303 vibes, warped geometry            |
 
 ---
 
@@ -183,6 +198,7 @@ vizec/
 ## Visualization Plugin Interface
 
 Each visualization implements:
+
 - `init(container, config)` - Set up the visualization
 - `render(audioData, deltaTime)` - Render frame with audio data
 - `resize(width, height)` - Handle window resize
@@ -191,6 +207,7 @@ Each visualization implements:
 - `getConfigSchema()` - Define configurable parameters for UI
 
 ### Audio data provided:
+
 - `frequencyData` - FFT frequency bins (Uint8Array)
 - `timeDomainData` - Waveform data (Uint8Array)
 - `volume`, `bass`, `mid`, `treble` - Normalized energy levels
@@ -248,8 +265,8 @@ Each visualization implements:
 
 ## Starter Visualizations
 
-| Name | Renderer | Description |
-|------|----------|-------------|
-| **Frequency Bars** | Canvas2D | Classic vertical bars, gradient cyan→magenta, bass-reactive pulse |
-| **Particle Storm** | Three.js | 3D particles that explode outward on beats, swirl on sustained notes |
-| **Circular Waveform** | p5.js | Circular oscilloscope with geometric patterns, rotates with bass |
+| Name                  | Renderer | Description                                                          |
+| --------------------- | -------- | -------------------------------------------------------------------- |
+| **Frequency Bars**    | Canvas2D | Classic vertical bars, gradient cyan→magenta, bass-reactive pulse    |
+| **Particle Storm**    | Three.js | 3D particles that explode outward on beats, swirl on sustained notes |
+| **Circular Waveform** | p5.js    | Circular oscilloscope with geometric patterns, rotates with bass     |

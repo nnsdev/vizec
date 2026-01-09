@@ -1,76 +1,85 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 // Color schemes for voronoi cells
-const COLOR_SCHEMES: Record<string, { cellColors: string[]; borderColor: string; glowColor: string }> = {
+const COLOR_SCHEMES: Record<
+  string,
+  { cellColors: string[]; borderColor: string; glowColor: string }
+> = {
   cyanMagenta: {
-    cellColors: ['#00ffff', '#ff00ff', '#00ccff', '#ff00cc', '#00ffcc', '#cc00ff'],
-    borderColor: '#ffffff',
-    glowColor: '#00ffff',
+    cellColors: ["#00ffff", "#ff00ff", "#00ccff", "#ff00cc", "#00ffcc", "#cc00ff"],
+    borderColor: "#ffffff",
+    glowColor: "#00ffff",
   },
   darkTechno: {
-    cellColors: ['#1a1a2e', '#4a00e0', '#8000ff', '#3d0066', '#2a0052', '#5c00a3'],
-    borderColor: '#8000ff',
-    glowColor: '#4a00e0',
+    cellColors: ["#1a1a2e", "#4a00e0", "#8000ff", "#3d0066", "#2a0052", "#5c00a3"],
+    borderColor: "#8000ff",
+    glowColor: "#4a00e0",
   },
   neon: {
-    cellColors: ['#39ff14', '#ff073a', '#ffff00', '#00ff80', '#ff00ff', '#00ffff'],
-    borderColor: '#ffffff',
-    glowColor: '#39ff14',
+    cellColors: ["#39ff14", "#ff073a", "#ffff00", "#00ff80", "#ff00ff", "#00ffff"],
+    borderColor: "#ffffff",
+    glowColor: "#39ff14",
   },
   fire: {
-    cellColors: ['#ff4500', '#ffd700', '#ff6600', '#ff0000', '#ff8c00', '#ffcc00'],
-    borderColor: '#ffffff',
-    glowColor: '#ff4500',
+    cellColors: ["#ff4500", "#ffd700", "#ff6600", "#ff0000", "#ff8c00", "#ffcc00"],
+    borderColor: "#ffffff",
+    glowColor: "#ff4500",
   },
   ice: {
-    cellColors: ['#00bfff', '#e0ffff', '#87ceeb', '#b0e0e6', '#add8e6', '#87cefa'],
-    borderColor: '#ffffff',
-    glowColor: '#00bfff',
+    cellColors: ["#00bfff", "#e0ffff", "#87ceeb", "#b0e0e6", "#add8e6", "#87cefa"],
+    borderColor: "#ffffff",
+    glowColor: "#00bfff",
   },
   acid: {
-    cellColors: ['#00ff00', '#ffff00', '#00ff41', '#80ff00', '#40ff00', '#ccff00'],
-    borderColor: '#ffffff',
-    glowColor: '#00ff00',
+    cellColors: ["#00ff00", "#ffff00", "#00ff41", "#80ff00", "#40ff00", "#ccff00"],
+    borderColor: "#ffffff",
+    glowColor: "#00ff00",
   },
   monochrome: {
-    cellColors: ['#ffffff', '#cccccc', '#999999', '#666666', '#b3b3b3', '#e6e6e6'],
-    borderColor: '#ffffff',
-    glowColor: '#ffffff',
+    cellColors: ["#ffffff", "#cccccc", "#999999", "#666666", "#b3b3b3", "#e6e6e6"],
+    borderColor: "#ffffff",
+    glowColor: "#ffffff",
   },
   purpleHaze: {
-    cellColors: ['#8b00ff', '#ff1493', '#9400d3', '#ba55d3', '#da70d6', '#ee82ee'],
-    borderColor: '#ffffff',
-    glowColor: '#8b00ff',
+    cellColors: ["#8b00ff", "#ff1493", "#9400d3", "#ba55d3", "#da70d6", "#ee82ee"],
+    borderColor: "#ffffff",
+    glowColor: "#8b00ff",
   },
   sunset: {
-    cellColors: ['#ff6b6b', '#feca57', '#ff9f43', '#ff4757', '#ff6348', '#ffa502'],
-    borderColor: '#ffffff',
-    glowColor: '#ff6b6b',
+    cellColors: ["#ff6b6b", "#feca57", "#ff9f43", "#ff4757", "#ff6348", "#ffa502"],
+    borderColor: "#ffffff",
+    glowColor: "#ff6b6b",
   },
   ocean: {
-    cellColors: ['#0077be', '#00d4aa', '#00b4d8', '#0096c7', '#48cae4', '#90e0ef'],
-    borderColor: '#ffffff',
-    glowColor: '#00b4d8',
+    cellColors: ["#0077be", "#00d4aa", "#00b4d8", "#0096c7", "#48cae4", "#90e0ef"],
+    borderColor: "#ffffff",
+    glowColor: "#00b4d8",
   },
   toxic: {
-    cellColors: ['#00ff41', '#0aff0a', '#39ff14', '#00c832', '#00e639', '#66ff66'],
-    borderColor: '#00ff00',
-    glowColor: '#39ff14',
+    cellColors: ["#00ff41", "#0aff0a", "#39ff14", "#00c832", "#00e639", "#66ff66"],
+    borderColor: "#00ff00",
+    glowColor: "#39ff14",
   },
   bloodMoon: {
-    cellColors: ['#8b0000', '#ff4500', '#dc143c', '#b22222', '#cd5c5c', '#ff6347'],
-    borderColor: '#ff4500',
-    glowColor: '#dc143c',
+    cellColors: ["#8b0000", "#ff4500", "#dc143c", "#b22222", "#cd5c5c", "#ff6347"],
+    borderColor: "#ff4500",
+    glowColor: "#dc143c",
   },
   synthwave: {
-    cellColors: ['#ff00ff', '#00ffff', '#ff00aa', '#00aaff', '#ff55ff', '#55ffff'],
-    borderColor: '#ffffff',
-    glowColor: '#ff00ff',
+    cellColors: ["#ff00ff", "#00ffff", "#ff00aa", "#00aaff", "#ff55ff", "#55ffff"],
+    borderColor: "#ffffff",
+    glowColor: "#ff00ff",
   },
   golden: {
-    cellColors: ['#ffd700', '#ff8c00', '#ffb347', '#daa520', '#f4a460', '#ffc125'],
-    borderColor: '#ffffff',
-    glowColor: '#ffd700',
+    cellColors: ["#ffd700", "#ff8c00", "#ffb347", "#daa520", "#f4a460", "#ffc125"],
+    borderColor: "#ffffff",
+    glowColor: "#ffd700",
   },
 };
 
@@ -89,18 +98,27 @@ interface VoronoiConfig extends VisualizationConfig {
 }
 
 export class VoronoiVisualization implements Visualization {
-  id = 'voronoi';
-  name = 'Voronoi';
-  author = 'Vizec';
-  description = 'Voronoi diagram with animated seed points reacting to audio';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "voronoi",
+    name: "Voronoi",
+    author: "Vizec",
+    description: "Voronoi diagram with animated seed points reacting to audio",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private config: VoronoiConfig = {
     sensitivity: 1.0,
-    colorScheme: 'synthwave',
+    colorScheme: "synthwave",
     cellCount: 24,
     borderGlow: true,
     speed: 1.0,
@@ -112,15 +130,15 @@ export class VoronoiVisualization implements Visualization {
   private lastBass = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -333,45 +351,45 @@ export class VoronoiVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       cellCount: {
-        type: 'number',
-        label: 'Cell Count',
+        type: "number",
+        label: "Cell Count",
         default: 24,
         min: 8,
         max: 64,
         step: 4,
       },
       speed: {
-        type: 'number',
-        label: 'Speed',
+        type: "number",
+        label: "Speed",
         default: 1.0,
         min: 0.1,
         max: 3.0,
         step: 0.1,
       },
       borderGlow: {
-        type: 'boolean',
-        label: 'Border Glow',
+        type: "boolean",
+        label: "Border Glow",
         default: true,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'synthwave',
+        type: "select",
+        label: "Color Scheme",
+        default: "synthwave",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
         ],
       },
     };

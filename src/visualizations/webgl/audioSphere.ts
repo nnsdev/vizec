@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; glow: number }> = {
   cyanMagenta: { primary: 0x00ffff, secondary: 0xff00ff, glow: 0x00ffff },
@@ -27,12 +33,21 @@ interface AudioSphereConfig extends VisualizationConfig {
 }
 
 export class AudioSphereVisualization implements Visualization {
-  id = 'audioSphere';
-  name = 'Audio Sphere';
-  author = 'Vizec';
-  description = 'Glowing wireframe sphere with frequency-based vertex displacement';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "audioSphere",
+    name: "Audio Sphere",
+    author: "Vizec",
+    description: "Glowing wireframe sphere with frequency-based vertex displacement",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -45,7 +60,7 @@ export class AudioSphereVisualization implements Visualization {
 
   private config: AudioSphereConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     radius: 15,
     segments: 4,
     displacementIntensity: 1.0,
@@ -132,7 +147,15 @@ export class AudioSphereVisualization implements Visualization {
   }
 
   render(audioData: AudioData, deltaTime: number): void {
-    if (!this.scene || !this.camera || !this.rendererThree || !this.sphere || !this.geometry || !this.originalPositions) return;
+    if (
+      !this.scene ||
+      !this.camera ||
+      !this.rendererThree ||
+      !this.sphere ||
+      !this.geometry ||
+      !this.originalPositions
+    )
+      return;
 
     const { bass, mid, treble, volume, frequencyData } = audioData;
     const { sensitivity, displacementIntensity, rotationSpeed } = this.config;
@@ -174,7 +197,6 @@ export class AudioSphereVisualization implements Visualization {
       const oz = this.originalPositions[i3 + 2];
 
       // Calculate spherical coordinates for frequency mapping
-      const theta = Math.atan2(oz, ox);
       const phi = Math.acos(oy / Math.sqrt(ox * ox + oy * oy + oz * oz));
 
       // Map vertex position to frequency bin
@@ -189,11 +211,13 @@ export class AudioSphereVisualization implements Visualization {
 
       // Calculate displacement
       const displacement = freqValue * displacementIntensity * sensitivity * 3;
-      const trebleDisplacement = trebleBoost * trebleWeight * displacementIntensity * sensitivity * 2;
+      const trebleDisplacement =
+        trebleBoost * trebleWeight * displacementIntensity * sensitivity * 2;
       const bassDisplacement = bassBoost * bassWeight * displacementIntensity * sensitivity * 1.5;
 
       // Total displacement
-      const totalDisplacement = 1 + displacement + trebleDisplacement * 0.3 + bassDisplacement * 0.2;
+      const totalDisplacement =
+        1 + displacement + trebleDisplacement * 0.3 + bassDisplacement * 0.2;
 
       // Apply displacement along vertex normal (outward)
       const length = Math.sqrt(ox * ox + oy * oy + oz * oz);
@@ -244,11 +268,12 @@ export class AudioSphereVisualization implements Visualization {
     this.config = { ...this.config, ...config } as AudioSphereConfig;
 
     // Recreate sphere if relevant settings changed
-    if (this.scene && (
-      this.config.colorScheme !== oldColorScheme ||
-      this.config.radius !== oldRadius ||
-      this.config.segments !== oldSegments
-    )) {
+    if (
+      this.scene &&
+      (this.config.colorScheme !== oldColorScheme ||
+        this.config.radius !== oldRadius ||
+        this.config.segments !== oldSegments)
+    ) {
       this.createSphere();
     }
   }
@@ -285,32 +310,53 @@ export class AudioSphereVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      radius: { type: 'number', min: 5, max: 30, step: 1, default: 15, label: 'Sphere Radius' },
-      segments: { type: 'number', min: 1, max: 6, step: 1, default: 4, label: 'Detail Level' },
-      displacementIntensity: { type: 'number', min: 0, max: 3, step: 0.1, default: 1.0, label: 'Displacement' },
-      rotationSpeed: { type: 'number', min: 0, max: 2, step: 0.1, default: 0.5, label: 'Rotation Speed' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      radius: { type: "number", min: 5, max: 30, step: 1, default: 15, label: "Sphere Radius" },
+      segments: { type: "number", min: 1, max: 6, step: 1, default: 4, label: "Detail Level" },
+      displacementIntensity: {
+        type: "number",
+        min: 0,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Displacement",
+      },
+      rotationSpeed: {
+        type: "number",
+        min: 0,
+        max: 2,
+        step: 0.1,
+        default: 0.5,
+        label: "Rotation Speed",
+      },
     };
   }
 }

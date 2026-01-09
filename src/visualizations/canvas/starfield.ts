@@ -1,4 +1,10 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface Star {
   x: number;
@@ -11,29 +17,37 @@ interface Star {
 }
 
 const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; accent: string }> = {
-  cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', accent: '#ffffff' },
-  darkTechno: { primary: '#4a00e0', secondary: '#8e2de2', accent: '#ffffff' },
-  neon: { primary: '#39ff14', secondary: '#ff073a', accent: '#ffff00' },
-  fire: { primary: '#ff4500', secondary: '#ffd700', accent: '#ffffff' },
-  ice: { primary: '#00bfff', secondary: '#e0ffff', accent: '#ffffff' },
-  acid: { primary: '#adff2f', secondary: '#00ff00', accent: '#ffffff' },
-  monochrome: { primary: '#ffffff', secondary: '#aaaaaa', accent: '#ffffff' },
-  purpleHaze: { primary: '#8b00ff', secondary: '#ff1493', accent: '#9400d3' },
-  sunset: { primary: '#ff6b6b', secondary: '#feca57', accent: '#ff9f43' },
-  ocean: { primary: '#0077be', secondary: '#00d4aa', accent: '#00b4d8' },
-  toxic: { primary: '#00ff41', secondary: '#0aff0a', accent: '#39ff14' },
-  bloodMoon: { primary: '#8b0000', secondary: '#ff4500', accent: '#dc143c' },
-  synthwave: { primary: '#ff00ff', secondary: '#00ffff', accent: '#ff00aa' },
-  golden: { primary: '#ffd700', secondary: '#ff8c00', accent: '#ffb347' },
+  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", accent: "#ffffff" },
+  darkTechno: { primary: "#4a00e0", secondary: "#8e2de2", accent: "#ffffff" },
+  neon: { primary: "#39ff14", secondary: "#ff073a", accent: "#ffff00" },
+  fire: { primary: "#ff4500", secondary: "#ffd700", accent: "#ffffff" },
+  ice: { primary: "#00bfff", secondary: "#e0ffff", accent: "#ffffff" },
+  acid: { primary: "#adff2f", secondary: "#00ff00", accent: "#ffffff" },
+  monochrome: { primary: "#ffffff", secondary: "#aaaaaa", accent: "#ffffff" },
+  purpleHaze: { primary: "#8b00ff", secondary: "#ff1493", accent: "#9400d3" },
+  sunset: { primary: "#ff6b6b", secondary: "#feca57", accent: "#ff9f43" },
+  ocean: { primary: "#0077be", secondary: "#00d4aa", accent: "#00b4d8" },
+  toxic: { primary: "#00ff41", secondary: "#0aff0a", accent: "#39ff14" },
+  bloodMoon: { primary: "#8b0000", secondary: "#ff4500", accent: "#dc143c" },
+  synthwave: { primary: "#ff00ff", secondary: "#00ffff", accent: "#ff00aa" },
+  golden: { primary: "#ffd700", secondary: "#ff8c00", accent: "#ffb347" },
 };
 
 export class StarfieldVisualization implements Visualization {
-  id = 'starfield';
-  name = 'Starfield';
-  author = 'Vizec';
-  description = 'Stars flying through space, speed based on audio';
-  renderer = 'canvas2d' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "starfield",
+    name: "Starfield",
+    author: "Vizec",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -41,7 +55,7 @@ export class StarfieldVisualization implements Visualization {
   private height = 0;
   private config: VisualizationConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     starCount: 400,
     baseSpeed: 2,
     trailLength: 0.8,
@@ -51,15 +65,15 @@ export class StarfieldVisualization implements Visualization {
   private stars: Star[] = [];
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -72,7 +86,7 @@ export class StarfieldVisualization implements Visualization {
   private initStars(): void {
     const { starCount, colorScheme, colorfulStars } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
-    
+
     this.stars = [];
     for (let i = 0; i < starCount; i++) {
       let starColor: string;
@@ -104,8 +118,8 @@ export class StarfieldVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { bass, mid, volume, frequencyData } = audioData;
-    const { sensitivity, baseSpeed, trailLength, colorScheme } = this.config;
+    const { bass, mid, volume } = audioData;
+    const { sensitivity, baseSpeed, colorScheme } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     // Clear canvas for transparent background
@@ -186,10 +200,17 @@ export class StarfieldVisualization implements Visualization {
 
     // Center glow based on bass
     const centerGlowSize = 50 + bass * sensitivity * 100;
-    const centerGradient = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerGlowSize);
-    centerGradient.addColorStop(0, colors.primary + '30');
-    centerGradient.addColorStop(0.5, colors.secondary + '10');
-    centerGradient.addColorStop(1, 'transparent');
+    const centerGradient = this.ctx.createRadialGradient(
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      centerGlowSize,
+    );
+    centerGradient.addColorStop(0, colors.primary + "30");
+    centerGradient.addColorStop(0.5, colors.secondary + "10");
+    centerGradient.addColorStop(1, "transparent");
 
     this.ctx.globalAlpha = 0.5;
     this.ctx.fillStyle = centerGradient;
@@ -214,7 +235,7 @@ export class StarfieldVisualization implements Visualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     const oldStarCount = this.config.starCount;
     this.config = { ...this.config, ...config };
-    
+
     if (config.starCount && config.starCount !== oldStarCount) {
       this.initStars();
     }
@@ -231,32 +252,53 @@ export class StarfieldVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      starCount: { type: 'number', min: 100, max: 800, step: 50, default: 400, label: 'Star Count' },
-      baseSpeed: { type: 'number', min: 0.5, max: 5, step: 0.5, default: 2, label: 'Base Speed' },
-      trailLength: { type: 'number', min: 0, max: 0.95, step: 0.05, default: 0.8, label: 'Trail Length' },
-      colorfulStars: { type: 'boolean', default: true, label: 'Colorful Stars' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      starCount: {
+        type: "number",
+        min: 100,
+        max: 800,
+        step: 50,
+        default: 400,
+        label: "Star Count",
+      },
+      baseSpeed: { type: "number", min: 0.5, max: 5, step: 0.5, default: 2, label: "Base Speed" },
+      trailLength: {
+        type: "number",
+        min: 0,
+        max: 0.95,
+        step: 0.05,
+        default: 0.8,
+        label: "Trail Length",
+      },
+      colorfulStars: { type: "boolean", default: true, label: "Colorful Stars" },
     };
   }
 }

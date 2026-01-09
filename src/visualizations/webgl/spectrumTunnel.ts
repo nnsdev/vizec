@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface SpectrumTunnelConfig extends VisualizationConfig {
   ringCount: number;
@@ -17,12 +23,21 @@ const COLOR_PALETTES: Record<string, number[]> = {
 };
 
 export class SpectrumTunnelVisualization implements Visualization {
-  id = 'spectrumTunnel';
-  name = 'Spectrum Tunnel';
-  author = 'Vizec';
-  description = 'Circular rings rushing toward viewer, bass expands tunnel dramatically';
-  renderer: 'threejs' = 'threejs';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "spectrumTunnel",
+    name: "Spectrum Tunnel",
+    author: "Vizec",
+    description: "Spectrum tunnel with geometric patterns",
+    renderer: "webgl",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -33,7 +48,7 @@ export class SpectrumTunnelVisualization implements Visualization {
 
   private config: SpectrumTunnelConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     ringCount: 30,
     tunnelSpeed: 0.5,
     bassExpansion: 1.0,
@@ -52,14 +67,19 @@ export class SpectrumTunnelVisualization implements Visualization {
     this.scene = new THREE.Scene();
 
     // Create camera
-    this.camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(
+      75,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      1000,
+    );
     this.camera.position.z = 50;
 
     // Create renderer
     this.rendererThree = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      powerPreference: 'high-performance'
+      powerPreference: "high-performance",
     });
     this.rendererThree.setPixelRatio(window.devicePixelRatio);
     this.rendererThree.setClearColor(0x000000, 0);
@@ -76,12 +96,12 @@ export class SpectrumTunnelVisualization implements Visualization {
     if (!this.scene) return;
 
     // Remove existing rings
-    this.rings.forEach(ring => {
+    this.rings.forEach((ring) => {
       this.scene?.remove(ring);
       (ring.material as THREE.Material).dispose();
     });
     this.rings = [];
-    this.ringGeometries.forEach(geo => geo.dispose());
+    this.ringGeometries.forEach((geo) => geo.dispose());
     this.ringGeometries = [];
     this.ringPositions = [];
 
@@ -102,7 +122,7 @@ export class SpectrumTunnelVisualization implements Visualization {
         positions[j * 3 + 2] = 0;
       }
 
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       this.ringGeometries.push(geometry);
 
       // Choose color based on ring position
@@ -129,7 +149,7 @@ export class SpectrumTunnelVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.scene || !this.camera || !this.rendererThree) return;
 
-    const { frequencyData, bass, volume } = audioData;
+    const { frequencyData, bass } = audioData;
     const { sensitivity, tunnelSpeed, bassExpansion, ringCount } = this.config;
 
     this.time += deltaTime;
@@ -166,7 +186,7 @@ export class SpectrumTunnelVisualization implements Visualization {
 
       for (let j = 0; j < segments; j++) {
         const angle = (j / segments) * Math.PI * 2;
-        const freqValue = frequencyData[j * freqStep] / 255 * sensitivity;
+        const freqValue = (frequencyData[j * freqStep] / 255) * sensitivity;
 
         // Base radius varies by position in tunnel
         const baseRadius = 10 + depthEffect * 20;
@@ -211,17 +231,20 @@ export class SpectrumTunnelVisualization implements Visualization {
     this.config = { ...this.config, ...config } as SpectrumTunnelConfig;
 
     // Recreate rings if count or colors changed
-    if (this.scene && (this.config.ringCount !== oldRingCount || this.config.colorScheme !== oldColorScheme)) {
+    if (
+      this.scene &&
+      (this.config.ringCount !== oldRingCount || this.config.colorScheme !== oldColorScheme)
+    ) {
       this.createRings();
     }
   }
 
   destroy(): void {
-    this.rings.forEach(ring => {
+    this.rings.forEach((ring) => {
       this.scene?.remove(ring);
       (ring.material as THREE.Material).dispose();
     });
-    this.ringGeometries.forEach(geo => geo.dispose());
+    this.ringGeometries.forEach((geo) => geo.dispose());
 
     if (this.rendererThree) {
       this.rendererThree.dispose();
@@ -241,36 +264,36 @@ export class SpectrumTunnelVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       ringCount: {
-        type: 'number',
-        label: 'Ring Count',
+        type: "number",
+        label: "Ring Count",
         default: 30,
         min: 10,
         max: 60,
         step: 5,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'plasma', label: 'Plasma' },
-          { value: 'sunset', label: 'Sunset' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "plasma", label: "Plasma" },
+          { value: "sunset", label: "Sunset" },
         ],
       },
       tunnelSpeed: {
-        type: 'number',
-        label: 'Tunnel Speed',
+        type: "number",
+        label: "Tunnel Speed",
         default: 0.5,
         min: 0.1,
         max: 2,
         step: 0.1,
       },
       bassExpansion: {
-        type: 'number',
-        label: 'Bass Expansion',
+        type: "number",
+        label: "Bass Expansion",
         default: 1.0,
         min: 0,
         max: 3,

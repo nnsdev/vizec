@@ -1,9 +1,10 @@
 import {
-  Visualization,
   AudioData,
-  VisualizationConfig,
   ConfigSchema,
-} from '../types';
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface GlitchSpectrumConfig extends VisualizationConfig {
   barCount: number;
@@ -12,30 +13,36 @@ interface GlitchSpectrumConfig extends VisualizationConfig {
   mirror: boolean;
 }
 
-const COLOR_SCHEMES: Record<
-  string,
-  { primary: string; secondary: string; glitch: string }
-> = {
-  cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', glitch: '#ffffff' },
-  darkTechno: { primary: '#1a1a2e', secondary: '#4a00e0', glitch: '#00ffff' },
-  neon: { primary: '#39ff14', secondary: '#ff073a', glitch: '#ffff00' },
-  monochrome: { primary: '#ffffff', secondary: '#808080', glitch: '#000000' },
-  acid: { primary: '#00ff00', secondary: '#ffff00', glitch: '#ff0080' },
+const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; glitch: string }> = {
+  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", glitch: "#ffffff" },
+  darkTechno: { primary: "#1a1a2e", secondary: "#4a00e0", glitch: "#00ffff" },
+  neon: { primary: "#39ff14", secondary: "#ff073a", glitch: "#ffff00" },
+  monochrome: { primary: "#ffffff", secondary: "#808080", glitch: "#000000" },
+  acid: { primary: "#00ff00", secondary: "#ffff00", glitch: "#ff0080" },
 };
 
 export class GlitchSpectrumVisualization implements Visualization {
-  id = 'glitchSpectrum';
-  name = 'Glitch Spectrum';
-  author = 'Vizec';
-  description = 'Frequency bars with intentional glitch effects on bass kicks';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "glitchSpectrum",
+    name: "Glitch Spectrum",
+    author: "Vizec",
+    description: "Frequency bars with intentional glitch effects on bass kicks",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private config: GlitchSpectrumConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     barCount: 64,
     glitchIntensity: 1.0,
     mirror: true,
@@ -51,15 +58,15 @@ export class GlitchSpectrumVisualization implements Visualization {
   private lastFlashTime: number = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     // Initial resize
@@ -68,15 +75,14 @@ export class GlitchSpectrumVisualization implements Visualization {
     this.resize(width, height);
 
     // Initialize smoothed data
-    this.smoothedData = new Array(this.config.barCount).fill(0);
+    this.smoothedData = Array.from({ length: this.config.barCount }, () => 0);
   }
 
-  render(audioData: AudioData, deltaTime: number): void {
+  render(audioData: AudioData, _deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
     const { frequencyData, bass } = audioData;
-    const { barCount, glitchIntensity, mirror, sensitivity, colorScheme } =
-      this.config;
+    const { barCount, glitchIntensity, mirror, sensitivity, colorScheme } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     const now = performance.now();
@@ -163,7 +169,6 @@ export class GlitchSpectrumVisualization implements Visualization {
       // Vertical slice glitch (split bars)
       if (isGlitching && Math.random() < 0.2 * glitchIntensity) {
         const sliceY = Math.random() * this.height;
-        const sliceHeight = Math.random() * 50 * glitchIntensity;
 
         // Top part
         this.ctx.fillStyle = barColor;
@@ -187,24 +192,14 @@ export class GlitchSpectrumVisualization implements Visualization {
         this.ctx.fillStyle = barColor;
 
         if (mirror) {
-          this.ctx.fillRect(
-            x + offsetX,
-            centerY - barHeight,
-            barWidth,
-            barHeight,
-          );
+          this.ctx.fillRect(x + offsetX, centerY - barHeight, barWidth, barHeight);
           this.ctx.fillRect(x + offsetX, centerY, barWidth, barHeight);
 
           const mirrorX = this.width - x - barWidth - offsetX;
           this.ctx.fillRect(mirrorX, centerY - barHeight, barWidth, barHeight);
           this.ctx.fillRect(mirrorX, centerY, barWidth, barHeight);
         } else {
-          this.ctx.fillRect(
-            x + offsetX,
-            this.height - barHeight * 2,
-            barWidth,
-            barHeight * 2,
-          );
+          this.ctx.fillRect(x + offsetX, this.height - barHeight * 2, barWidth, barHeight * 2);
         }
       }
 
@@ -229,11 +224,10 @@ export class GlitchSpectrumVisualization implements Visualization {
 
     // RGB split effect on strong beats - throttled for safety
     if (isGlitching && canFlash && Math.random() < 0.15 * glitchIntensity) {
-      const splitOffset = glitchIntensity * 3;
-      this.ctx.globalCompositeOperation = 'screen';
+      this.ctx.globalCompositeOperation = "screen";
       this.ctx.fillStyle = `rgba(255, 0, 0, 0.15)`;
       this.ctx.fillRect(0, 0, this.width, this.height);
-      this.ctx.globalCompositeOperation = 'source-over';
+      this.ctx.globalCompositeOperation = "source-over";
       this.lastFlashTime = now;
     }
 
@@ -276,7 +270,7 @@ export class GlitchSpectrumVisualization implements Visualization {
     this.config = { ...this.config, ...config } as GlitchSpectrumConfig;
 
     if (this.smoothedData.length !== this.config.barCount) {
-      this.smoothedData = new Array(this.config.barCount).fill(0);
+      this.smoothedData = Array.from({ length: this.config.barCount }, () => 0);
     }
   }
 
@@ -291,36 +285,36 @@ export class GlitchSpectrumVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       barCount: {
-        type: 'number',
-        label: 'Bar Count',
+        type: "number",
+        label: "Bar Count",
         default: 64,
         min: 16,
         max: 256,
         step: 8,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'acid', label: 'Acid' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "acid", label: "Acid" },
         ],
       },
       glitchIntensity: {
-        type: 'number',
-        label: 'Glitch Intensity',
+        type: "number",
+        label: "Glitch Intensity",
         default: 1.0,
         min: 0,
         max: 3,
         step: 0.1,
       },
       mirror: {
-        type: 'boolean',
-        label: 'Mirror Mode',
+        type: "boolean",
+        label: "Mirror Mode",
         default: true,
       },
     };

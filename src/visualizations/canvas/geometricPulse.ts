@@ -1,24 +1,30 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 // Color schemes
 const COLOR_SCHEMES: Record<string, { start: string; end: string; glow: string }> = {
-  cyanMagenta: { start: '#00ffff', end: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { start: '#1a1a2e', end: '#4a00e0', glow: '#8000ff' },
-  neon: { start: '#39ff14', end: '#ff073a', glow: '#ffff00' },
-  fire: { start: '#ff4500', end: '#ffd700', glow: '#ff6600' },
-  ice: { start: '#00bfff', end: '#e0ffff', glow: '#87ceeb' },
-  acid: { start: '#00ff00', end: '#ffff00', glow: '#00ff00' },
-  monochrome: { start: '#ffffff', end: '#808080', glow: '#ffffff' },
-  purpleHaze: { start: '#8b00ff', end: '#ff1493', glow: '#9400d3' },
-  sunset: { start: '#ff6b6b', end: '#feca57', glow: '#ff9f43' },
-  ocean: { start: '#0077be', end: '#00d4aa', glow: '#00b4d8' },
-  toxic: { start: '#00ff41', end: '#0aff0a', glow: '#39ff14' },
-  bloodMoon: { start: '#8b0000', end: '#ff4500', glow: '#dc143c' },
-  synthwave: { start: '#ff00ff', end: '#00ffff', glow: '#ff00aa' },
-  golden: { start: '#ffd700', end: '#ff8c00', glow: '#ffb347' },
+  cyanMagenta: { start: "#00ffff", end: "#ff00ff", glow: "#00ffff" },
+  darkTechno: { start: "#1a1a2e", end: "#4a00e0", glow: "#8000ff" },
+  neon: { start: "#39ff14", end: "#ff073a", glow: "#ffff00" },
+  fire: { start: "#ff4500", end: "#ffd700", glow: "#ff6600" },
+  ice: { start: "#00bfff", end: "#e0ffff", glow: "#87ceeb" },
+  acid: { start: "#00ff00", end: "#ffff00", glow: "#00ff00" },
+  monochrome: { start: "#ffffff", end: "#808080", glow: "#ffffff" },
+  purpleHaze: { start: "#8b00ff", end: "#ff1493", glow: "#9400d3" },
+  sunset: { start: "#ff6b6b", end: "#feca57", glow: "#ff9f43" },
+  ocean: { start: "#0077be", end: "#00d4aa", glow: "#00b4d8" },
+  toxic: { start: "#00ff41", end: "#0aff0a", glow: "#39ff14" },
+  bloodMoon: { start: "#8b0000", end: "#ff4500", glow: "#dc143c" },
+  synthwave: { start: "#ff00ff", end: "#00ffff", glow: "#ff00aa" },
+  golden: { start: "#ffd700", end: "#ff8c00", glow: "#ffb347" },
 };
 
-type ShapeType = 'triangle' | 'square' | 'pentagon' | 'hexagon';
+type ShapeType = "triangle" | "square" | "pentagon" | "hexagon";
 
 interface GeometricPulseConfig extends VisualizationConfig {
   shape: ShapeType;
@@ -34,19 +40,28 @@ interface Layer {
 }
 
 export class GeometricPulseVisualization implements Visualization {
-  id = 'geometricPulse';
-  name = 'Geometric Pulse';
-  author = 'Vizec';
-  description = 'Central rotating geometric shape with nested layers that pulse with audio';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "geometricPulse",
+    name: "Geometric Pulse",
+    author: "Vizec",
+    description: "Central rotating geometric shape with nested layers that pulse with audio",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private config: GeometricPulseConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
-    shape: 'hexagon',
+    colorScheme: "cyanMagenta",
+    shape: "hexagon",
     layers: 5,
     rotationSpeed: 1.0,
     pulseIntensity: 0.8,
@@ -61,15 +76,15 @@ export class GeometricPulseVisualization implements Visualization {
   private beatDecay = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     // Initial resize
@@ -97,11 +112,16 @@ export class GeometricPulseVisualization implements Visualization {
 
   private getVertexCount(): number {
     switch (this.config.shape) {
-      case 'triangle': return 3;
-      case 'square': return 4;
-      case 'pentagon': return 5;
-      case 'hexagon': return 6;
-      default: return 6;
+      case "triangle":
+        return 3;
+      case "square":
+        return 4;
+      case "pentagon":
+        return 5;
+      case "hexagon":
+        return 6;
+      default:
+        return 6;
     }
   }
 
@@ -113,7 +133,7 @@ export class GeometricPulseVisualization implements Visualization {
     rotation: number,
     vertexCount: number,
     vertexExtensions: number[],
-    filled: boolean = false
+    filled: boolean = false,
   ): void {
     ctx.beginPath();
 
@@ -203,8 +223,10 @@ export class GeometricPulseVisualization implements Visualization {
 
       // Create gradient for stroke
       const gradient = this.ctx.createLinearGradient(
-        centerX - radius, centerY - radius,
-        centerX + radius, centerY + radius
+        centerX - radius,
+        centerY - radius,
+        centerX + radius,
+        centerY + radius,
       );
 
       // Color interpolation based on layer
@@ -233,7 +255,7 @@ export class GeometricPulseVisualization implements Visualization {
         radius,
         layer.rotation,
         vertexCount,
-        vertexExtensions
+        vertexExtensions,
       );
 
       // Draw connecting lines from center to outer for inner layers
@@ -248,14 +270,8 @@ export class GeometricPulseVisualization implements Visualization {
           const innerR = radius * 0.1;
 
           this.ctx.beginPath();
-          this.ctx.moveTo(
-            centerX + Math.cos(angle) * innerR,
-            centerY + Math.sin(angle) * innerR
-          );
-          this.ctx.lineTo(
-            centerX + Math.cos(angle) * outerR,
-            centerY + Math.sin(angle) * outerR
-          );
+          this.ctx.moveTo(centerX + Math.cos(angle) * innerR, centerY + Math.sin(angle) * innerR);
+          this.ctx.lineTo(centerX + Math.cos(angle) * outerR, centerY + Math.sin(angle) * outerR);
           this.ctx.stroke();
         }
       }
@@ -265,12 +281,16 @@ export class GeometricPulseVisualization implements Visualization {
     if (this.glowIntensity > 0.2 || volume > 0.4) {
       const orbSize = 10 + this.smoothedBass * 30 + this.glowIntensity * 20;
       const orbGradient = this.ctx.createRadialGradient(
-        centerX, centerY, 0,
-        centerX, centerY, orbSize
+        centerX,
+        centerY,
+        0,
+        centerX,
+        centerY,
+        orbSize,
       );
       orbGradient.addColorStop(0, colors.glow);
       orbGradient.addColorStop(0.5, colors.start);
-      orbGradient.addColorStop(1, 'transparent');
+      orbGradient.addColorStop(1, "transparent");
 
       this.ctx.globalAlpha = 0.5 + this.glowIntensity * 0.5;
       this.ctx.fillStyle = orbGradient;
@@ -322,56 +342,56 @@ export class GeometricPulseVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       shape: {
-        type: 'select',
-        label: 'Shape',
-        default: 'hexagon',
+        type: "select",
+        label: "Shape",
+        default: "hexagon",
         options: [
-          { value: 'triangle', label: 'Triangle' },
-          { value: 'square', label: 'Square' },
-          { value: 'pentagon', label: 'Pentagon' },
-          { value: 'hexagon', label: 'Hexagon' },
+          { value: "triangle", label: "Triangle" },
+          { value: "square", label: "Square" },
+          { value: "pentagon", label: "Pentagon" },
+          { value: "hexagon", label: "Hexagon" },
         ],
       },
       layers: {
-        type: 'number',
-        label: 'Layers',
+        type: "number",
+        label: "Layers",
         default: 5,
         min: 2,
         max: 8,
         step: 1,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
         ],
       },
       rotationSpeed: {
-        type: 'number',
-        label: 'Rotation Speed',
+        type: "number",
+        label: "Rotation Speed",
         default: 1.0,
         min: 0.1,
         max: 3.0,
         step: 0.1,
       },
       pulseIntensity: {
-        type: 'number',
-        label: 'Pulse Intensity',
+        type: "number",
+        label: "Pulse Intensity",
         default: 0.8,
         min: 0,
         max: 1.5,

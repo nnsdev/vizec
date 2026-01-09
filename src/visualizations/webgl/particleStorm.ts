@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface ParticleStormConfig extends VisualizationConfig {
   particleCount: number;
@@ -17,12 +23,21 @@ const COLOR_PALETTES: Record<string, number[]> = {
 };
 
 export class ParticleStormVisualization implements Visualization {
-  id = 'particleStorm';
-  name = 'Particle Storm';
-  author = 'Vizec';
-  description = '3D particles that react to audio';
-  renderer: 'threejs' = 'threejs';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "particleStorm",
+    name: "Particle Storm",
+    author: "Vizec",
+    description: "3D particles that react to audio",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -35,7 +50,7 @@ export class ParticleStormVisualization implements Visualization {
 
   private config: ParticleStormConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     particleCount: 5000,
     rotationSpeed: 0.5,
     explosionIntensity: 1.0,
@@ -53,14 +68,19 @@ export class ParticleStormVisualization implements Visualization {
     this.scene = new THREE.Scene();
 
     // Create camera
-    this.camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(
+      75,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      1000,
+    );
     this.camera.position.z = 50;
 
     // Create renderer
-    this.rendererThree = new THREE.WebGLRenderer({ 
-      antialias: true, 
+    this.rendererThree = new THREE.WebGLRenderer({
+      antialias: true,
       alpha: true,
-      powerPreference: 'high-performance'
+      powerPreference: "high-performance",
     });
     this.rendererThree.setPixelRatio(window.devicePixelRatio);
     this.rendererThree.setClearColor(0x000000, 0);
@@ -121,8 +141,8 @@ export class ParticleStormVisualization implements Visualization {
       particleColors[i3 + 2] = color.b;
     }
 
-    this.particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+    this.particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    this.particleGeometry.setAttribute("color", new THREE.BufferAttribute(particleColors, 3));
 
     // Create material with transparency for overlay mode
     const material = new THREE.PointsMaterial({
@@ -140,7 +160,14 @@ export class ParticleStormVisualization implements Visualization {
   }
 
   render(audioData: AudioData, deltaTime: number): void {
-    if (!this.scene || !this.camera || !this.rendererThree || !this.particles || !this.particleGeometry) return;
+    if (
+      !this.scene ||
+      !this.camera ||
+      !this.rendererThree ||
+      !this.particles ||
+      !this.particleGeometry
+    )
+      return;
 
     const { bass, mid, treble, volume, frequencyData } = audioData;
     const { sensitivity, rotationSpeed, explosionIntensity } = this.config;
@@ -151,10 +178,11 @@ export class ParticleStormVisualization implements Visualization {
     const bassBoost = Math.pow(bass, 0.7) * 3; // Amplify bass response
     const midBoost = Math.pow(mid, 0.7) * 2;
     const trebleBoost = Math.pow(treble, 0.7) * 2;
-    
+
     this.particles.rotation.y += rotationSpeed * 0.02 * (1 + midBoost * sensitivity);
     this.particles.rotation.x += rotationSpeed * 0.01 * (1 + trebleBoost * sensitivity);
-    this.particles.rotation.z += rotationSpeed * 0.005 * Math.sin(this.time * 2) * (1 + bassBoost * 0.5);
+    this.particles.rotation.z +=
+      rotationSpeed * 0.005 * Math.sin(this.time * 2) * (1 + bassBoost * 0.5);
 
     // Pulsing camera zoom based on bass
     const targetZ = 50 - bassBoost * sensitivity * 8;
@@ -171,15 +199,15 @@ export class ParticleStormVisualization implements Visualization {
         // Get frequency data for this particle (spread across spectrum)
         const freqIndex = Math.floor((i / particleCount) * frequencyData.length);
         const freqValue = frequencyData[freqIndex] / 255;
-        
+
         // Continuous expansion/contraction based on frequency
         const freqBoost = Math.pow(freqValue, 0.6) * sensitivity * 2;
-        
+
         // Direction from center
         const direction = new THREE.Vector3(
           this.originalPositions[i3],
           this.originalPositions[i3 + 1],
-          this.originalPositions[i3 + 2]
+          this.originalPositions[i3 + 2],
         ).normalize();
 
         // Always apply some movement based on audio
@@ -187,7 +215,7 @@ export class ParticleStormVisualization implements Visualization {
         this.velocities[i3] += direction.x * expansion;
         this.velocities[i3 + 1] += direction.y * expansion;
         this.velocities[i3 + 2] += direction.z * expansion;
-        
+
         // Extra explosion on strong bass hits
         if (bassBoost > 0.3) {
           const bassExplosion = bassBoost * explosionIntensity * sensitivity * 0.5;
@@ -199,8 +227,8 @@ export class ParticleStormVisualization implements Visualization {
         // Swirl effect based on mid frequencies
         const swirlStrength = midBoost * sensitivity * 0.02;
         const angle = Math.atan2(positions[i3 + 1], positions[i3]);
-        this.velocities[i3] += Math.cos(angle + Math.PI/2) * swirlStrength;
-        this.velocities[i3 + 1] += Math.sin(angle + Math.PI/2) * swirlStrength;
+        this.velocities[i3] += Math.cos(angle + Math.PI / 2) * swirlStrength;
+        this.velocities[i3 + 1] += Math.sin(angle + Math.PI / 2) * swirlStrength;
 
         // Apply velocities
         positions[i3] += this.velocities[i3];
@@ -253,7 +281,10 @@ export class ParticleStormVisualization implements Visualization {
     this.config = { ...this.config, ...config } as ParticleStormConfig;
 
     // Recreate particles if count or colors changed
-    if (this.scene && (this.config.particleCount !== oldParticleCount || this.config.colorScheme !== oldColorScheme)) {
+    if (
+      this.scene &&
+      (this.config.particleCount !== oldParticleCount || this.config.colorScheme !== oldColorScheme)
+    ) {
       this.createParticles();
     }
   }
@@ -284,36 +315,36 @@ export class ParticleStormVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       particleCount: {
-        type: 'number',
-        label: 'Particle Count',
+        type: "number",
+        label: "Particle Count",
         default: 5000,
         min: 1000,
         max: 20000,
         step: 1000,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
         ],
       },
       rotationSpeed: {
-        type: 'number',
-        label: 'Rotation Speed',
+        type: "number",
+        label: "Rotation Speed",
         default: 0.5,
         min: 0,
         max: 2,
         step: 0.1,
       },
       explosionIntensity: {
-        type: 'number',
-        label: 'Explosion Intensity',
+        type: "number",
+        label: "Explosion Intensity",
         default: 1.0,
         min: 0,
         max: 3,

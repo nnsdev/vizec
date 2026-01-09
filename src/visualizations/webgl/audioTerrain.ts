@@ -1,21 +1,78 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
-const COLOR_SCHEMES: Record<string, {
-  primary: number;
-  secondary: number;
-  fog: number;
-  horizon: number;
-  background: number
-}> = {
-  synthwave: { primary: 0xff00ff, secondary: 0x00ffff, fog: 0x110022, horizon: 0xff6600, background: 0x000011 },
-  tron: { primary: 0x00ffff, secondary: 0xffffff, fog: 0x001122, horizon: 0x00ffff, background: 0x000000 },
-  vaporwave: { primary: 0xff71ce, secondary: 0x01cdfe, fog: 0x2d1b4e, horizon: 0xffc857, background: 0x1a0a2e },
-  neonNight: { primary: 0x39ff14, secondary: 0xff073a, fog: 0x0a0a0f, horizon: 0xff073a, background: 0x000000 },
-  cyberPunk: { primary: 0xf9f002, secondary: 0xff00ff, fog: 0x1a0a2e, horizon: 0xf9f002, background: 0x0d0221 },
-  outrun: { primary: 0xff2975, secondary: 0x00e5ff, fog: 0x0f0326, horizon: 0xf5a623, background: 0x0a0015 },
-  matrix: { primary: 0x00ff41, secondary: 0x008f11, fog: 0x001100, horizon: 0x00ff00, background: 0x000000 },
-  bloodMoon: { primary: 0xff0000, secondary: 0xff4500, fog: 0x1a0000, horizon: 0xff4500, background: 0x0a0000 },
+const COLOR_SCHEMES: Record<
+  string,
+  {
+    primary: number;
+    secondary: number;
+    fog: number;
+    horizon: number;
+    background: number;
+  }
+> = {
+  synthwave: {
+    primary: 0xff00ff,
+    secondary: 0x00ffff,
+    fog: 0x110022,
+    horizon: 0xff6600,
+    background: 0x000011,
+  },
+  tron: {
+    primary: 0x00ffff,
+    secondary: 0xffffff,
+    fog: 0x001122,
+    horizon: 0x00ffff,
+    background: 0x000000,
+  },
+  vaporwave: {
+    primary: 0xff71ce,
+    secondary: 0x01cdfe,
+    fog: 0x2d1b4e,
+    horizon: 0xffc857,
+    background: 0x1a0a2e,
+  },
+  neonNight: {
+    primary: 0x39ff14,
+    secondary: 0xff073a,
+    fog: 0x0a0a0f,
+    horizon: 0xff073a,
+    background: 0x000000,
+  },
+  cyberPunk: {
+    primary: 0xf9f002,
+    secondary: 0xff00ff,
+    fog: 0x1a0a2e,
+    horizon: 0xf9f002,
+    background: 0x0d0221,
+  },
+  outrun: {
+    primary: 0xff2975,
+    secondary: 0x00e5ff,
+    fog: 0x0f0326,
+    horizon: 0xf5a623,
+    background: 0x0a0015,
+  },
+  matrix: {
+    primary: 0x00ff41,
+    secondary: 0x008f11,
+    fog: 0x001100,
+    horizon: 0x00ff00,
+    background: 0x000000,
+  },
+  bloodMoon: {
+    primary: 0xff0000,
+    secondary: 0xff4500,
+    fog: 0x1a0000,
+    horizon: 0xff4500,
+    background: 0x0a0000,
+  },
 };
 
 interface SpeedParticle {
@@ -25,12 +82,21 @@ interface SpeedParticle {
 }
 
 export class AudioTerrainVisualization implements Visualization {
-  id = 'audioTerrain';
-  name = 'Audio Terrain';
-  author = 'Vizec';
-  description = 'Flying over mountains that ARE the music - synthwave terrain flythrough';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "audioTerrain",
+    name: "Audio Terrain",
+    author: "Vizec",
+    description: "Flying over mountains that ARE the music - synthwave terrain flythrough",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -60,7 +126,7 @@ export class AudioTerrainVisualization implements Visualization {
 
   private config: VisualizationConfig = {
     sensitivity: 1.0,
-    colorScheme: 'synthwave',
+    colorScheme: "synthwave",
     speed: 1.0,
     gridSize: 80,
     heightScale: 25,
@@ -219,7 +285,8 @@ export class AudioTerrainVisualization implements Visualization {
       const line = new THREE.Mesh(lineGeometry, lineMaterial);
       const yOffset = (i / lineCount) * 40 - 20;
       line.position.set(0, 25 + yOffset, -349);
-      if (yOffset < 0) { // Only lines in bottom half of sun
+      if (yOffset < 0) {
+        // Only lines in bottom half of sun
         this.scene.add(line);
       }
     }
@@ -241,7 +308,7 @@ export class AudioTerrainVisualization implements Visualization {
         position: new THREE.Vector3(
           (Math.random() - 0.5) * 100,
           Math.random() * 30 + 5,
-          (Math.random() - 0.5) * 200
+          (Math.random() - 0.5) * 200,
         ),
         velocity: Math.random() * 2 + 1,
         size: Math.random() * 2 + 0.5,
@@ -255,8 +322,8 @@ export class AudioTerrainVisualization implements Visualization {
     }
 
     this.particleGeometry = new THREE.BufferGeometry();
-    this.particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.particleGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    this.particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    this.particleGeometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 
     const particleMaterial = new THREE.PointsMaterial({
       color: colors.secondary,
@@ -322,7 +389,7 @@ export class AudioTerrainVisualization implements Visualization {
     this.camera.position.set(
       this.cameraShake.x,
       baseY + this.cameraShake.y,
-      50 + this.cameraShake.z
+      50 + this.cameraShake.z,
     );
 
     // Update glow intensity based on volume
@@ -560,27 +627,48 @@ export class AudioTerrainVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'tron', label: 'Tron' },
-          { value: 'vaporwave', label: 'Vaporwave' },
-          { value: 'neonNight', label: 'Neon Night' },
-          { value: 'cyberPunk', label: 'Cyberpunk' },
-          { value: 'outrun', label: 'Outrun' },
-          { value: 'matrix', label: 'Matrix' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-        ],
-        default: 'synthwave',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      speed: { type: 'number', min: 0.2, max: 3, step: 0.1, default: 1.0, label: 'Flight Speed' },
-      gridSize: { type: 'number', min: 32, max: 128, step: 16, default: 80, label: 'Grid Detail' },
-      heightScale: { type: 'number', min: 10, max: 50, step: 5, default: 25, label: 'Mountain Height' },
-      fogDensity: { type: 'number', min: 0.005, max: 0.05, step: 0.005, default: 0.02, label: 'Fog Density' },
-      wireframe: { type: 'boolean', default: true, label: 'Show Grid Lines' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "synthwave", label: "Synthwave" },
+          { value: "tron", label: "Tron" },
+          { value: "vaporwave", label: "Vaporwave" },
+          { value: "neonNight", label: "Neon Night" },
+          { value: "cyberPunk", label: "Cyberpunk" },
+          { value: "outrun", label: "Outrun" },
+          { value: "matrix", label: "Matrix" },
+          { value: "bloodMoon", label: "Blood Moon" },
+        ],
+        default: "synthwave",
+        label: "Color Scheme",
+      },
+      speed: { type: "number", min: 0.2, max: 3, step: 0.1, default: 1.0, label: "Flight Speed" },
+      gridSize: { type: "number", min: 32, max: 128, step: 16, default: 80, label: "Grid Detail" },
+      heightScale: {
+        type: "number",
+        min: 10,
+        max: 50,
+        step: 5,
+        default: 25,
+        label: "Mountain Height",
+      },
+      fogDensity: {
+        type: "number",
+        min: 0.005,
+        max: 0.05,
+        step: 0.005,
+        default: 0.02,
+        label: "Fog Density",
+      },
+      wireframe: { type: "boolean", default: true, label: "Show Grid Lines" },
     };
   }
 }

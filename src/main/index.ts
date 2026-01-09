@@ -1,10 +1,9 @@
-import { app, BrowserWindow, ipcMain, desktopCapturer, session } from 'electron';
-import * as path from 'path';
-import { createVisualizerWindow } from './windows/visualizer';
-import { createControlWindow } from './windows/control';
-import { setupIpcHandlers } from './ipc/handlers';
-import { PresetManager } from './presets/presetManager';
-import { AppState, AudioConfig, DisplayConfig, RotationConfig, VisualizationConfig } from '../shared/types';
+import { app, BrowserWindow, desktopCapturer, session } from "electron";
+import { createVisualizerWindow } from "./windows/visualizer";
+import { createControlWindow } from "./windows/control";
+import { setupIpcHandlers } from "./ipc/handlers";
+import { PresetManager } from "./presets/presetManager";
+import { AppState } from "../shared/types";
 
 // Keep references to windows
 let visualizerWindow: BrowserWindow | null = null;
@@ -15,34 +14,34 @@ let presetManager: PresetManager;
 const appState: AppState = {
   audioSource: null,
   isCapturing: false,
-  currentVisualization: 'frequencyBars',
+  currentVisualization: "frequencyBars",
   currentPreset: null,
   audioConfig: {
     sensitivity: 1.0,
     smoothing: 0.8,
   },
   displayConfig: {
-    background: 'transparent',
+    background: "transparent",
   },
   rotation: {
     enabled: false,
     interval: 30,
-    order: 'sequential',
+    order: "sequential",
     randomizeColors: false,
     randomizeAll: false,
   },
   visualizationConfig: {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
   },
 };
 
 // Function to broadcast state changes to all windows
 function broadcastState() {
   const windows = [visualizerWindow, controlWindow].filter(Boolean);
-  windows.forEach(win => {
+  windows.forEach((win) => {
     if (win && !win.isDestroyed()) {
-      win.webContents.send('state-changed', appState);
+      win.webContents.send("state-changed", appState);
     }
   });
 }
@@ -70,15 +69,17 @@ export function getControlWindow(): BrowserWindow | null {
 }
 
 async function createWindows() {
-  // Initialize preset manager
+  // Initialize preset manager FIRST
   presetManager = new PresetManager();
   await presetManager.init();
 
-  // Set up audio loopback handler for system audio capture
+  // Set up IPC handlers BEFORE creating windows
+  setupIpcHandlers();
+
+  // Set up audio loopback handler
   session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
-    desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
-      // Return the first screen source with loopback audio
-      callback({ video: sources[0], audio: 'loopback' });
+    desktopCapturer.getSources({ types: ["screen"] }).then((sources) => {
+      callback({ video: sources[0], audio: "loopback" });
     });
   });
 
@@ -86,24 +87,21 @@ async function createWindows() {
   visualizerWindow = createVisualizerWindow();
   controlWindow = createControlWindow();
 
-  // Set up IPC handlers
-  setupIpcHandlers();
-
-  // Handle window closed - closing either window quits the app
-  visualizerWindow.on('closed', () => {
+  // Handle window closed
+  visualizerWindow.on("closed", () => {
     visualizerWindow = null;
     app.quit();
   });
 
-  controlWindow.on('closed', () => {
+  controlWindow.on("closed", () => {
     controlWindow = null;
     app.quit();
   });
 
-  // Load default preset if available
+  // Load default preset
   const presets = presetManager.getAllPresets();
   if (presets.length > 0) {
-    const defaultPreset = presets.find(p => p.id === 'dark-techno') || presets[0];
+    const defaultPreset = presets.find((p) => p.id === "dark-techno") || presets[0];
     appState.currentPreset = defaultPreset.id;
     appState.currentVisualization = defaultPreset.visualization;
     appState.visualizationConfig = defaultPreset.visualizationConfig;
@@ -116,13 +114,13 @@ async function createWindows() {
 // App lifecycle
 app.whenReady().then(createWindows);
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindows();
   }

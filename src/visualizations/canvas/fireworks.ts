@@ -1,4 +1,10 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface Particle {
   x: number;
@@ -22,29 +28,38 @@ interface Firework {
 }
 
 const COLOR_SCHEMES: Record<string, { colors: string[] }> = {
-  cyanMagenta: { colors: ['#00ffff', '#ff00ff', '#8000ff', '#ffffff', '#00ff80'] },
-  darkTechno: { colors: ['#4a00e0', '#8e2de2', '#6b21a8', '#9333ea', '#a855f7'] },
-  neon: { colors: ['#39ff14', '#ff073a', '#ffff00', '#ff6600', '#00ffff'] },
-  fire: { colors: ['#ff4500', '#ffd700', '#ff8c00', '#ff0000', '#ffff00'] },
-  ice: { colors: ['#00bfff', '#e0ffff', '#1e90ff', '#87ceeb', '#ffffff'] },
-  acid: { colors: ['#adff2f', '#00ff00', '#7fff00', '#32cd32', '#00fa9a'] },
-  monochrome: { colors: ['#ffffff', '#cccccc', '#999999', '#666666', '#ffffff'] },
-  purpleHaze: { colors: ['#8b00ff', '#ff1493', '#9400d3', '#ba55d3', '#da70d6'] },
-  sunset: { colors: ['#ff6b6b', '#feca57', '#ff9f43', '#ee5a24', '#f8b500'] },
-  ocean: { colors: ['#0077be', '#00d4aa', '#00b4d8', '#48cae4', '#90e0ef'] },
-  toxic: { colors: ['#00ff41', '#0aff0a', '#39ff14', '#7cfc00', '#adff2f'] },
-  bloodMoon: { colors: ['#8b0000', '#ff4500', '#dc143c', '#b22222', '#cd5c5c'] },
-  synthwave: { colors: ['#ff00ff', '#00ffff', '#ff00aa', '#aa00ff', '#ff69b4'] },
-  golden: { colors: ['#ffd700', '#ff8c00', '#ffb347', '#daa520', '#f4a460'] },
+  cyanMagenta: { colors: ["#00ffff", "#ff00ff", "#8000ff", "#ffffff", "#00ff80"] },
+  darkTechno: { colors: ["#4a00e0", "#8e2de2", "#6b21a8", "#9333ea", "#a855f7"] },
+  neon: { colors: ["#39ff14", "#ff073a", "#ffff00", "#ff6600", "#00ffff"] },
+  fire: { colors: ["#ff4500", "#ffd700", "#ff8c00", "#ff0000", "#ffff00"] },
+  ice: { colors: ["#00bfff", "#e0ffff", "#1e90ff", "#87ceeb", "#ffffff"] },
+  acid: { colors: ["#adff2f", "#00ff00", "#7fff00", "#32cd32", "#00fa9a"] },
+  monochrome: { colors: ["#ffffff", "#cccccc", "#999999", "#666666", "#ffffff"] },
+  purpleHaze: { colors: ["#8b00ff", "#ff1493", "#9400d3", "#ba55d3", "#da70d6"] },
+  sunset: { colors: ["#ff6b6b", "#feca57", "#ff9f43", "#ee5a24", "#f8b500"] },
+  ocean: { colors: ["#0077be", "#00d4aa", "#00b4d8", "#48cae4", "#90e0ef"] },
+  toxic: { colors: ["#00ff41", "#0aff0a", "#39ff14", "#7cfc00", "#adff2f"] },
+  bloodMoon: { colors: ["#8b0000", "#ff4500", "#dc143c", "#b22222", "#cd5c5c"] },
+  synthwave: { colors: ["#ff00ff", "#00ffff", "#ff00aa", "#aa00ff", "#ff69b4"] },
+  golden: { colors: ["#ffd700", "#ff8c00", "#ffb347", "#daa520", "#f4a460"] },
 };
 
 export class FireworksVisualization implements Visualization {
-  id = 'fireworks';
-  name = 'Fireworks';
-  author = 'Vizec';
-  description = 'Fireworks that launch and explode on beats';
-  renderer = 'canvas2d' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "fireworks",
+    name: "Fireworks",
+    author: "Vizec",
+    description: "Fireworks that launch and explode on beats",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -52,7 +67,7 @@ export class FireworksVisualization implements Visualization {
   private height = 0;
   private config: VisualizationConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     particleCount: 80,
     gravity: 0.15,
     trailLength: 5,
@@ -65,15 +80,15 @@ export class FireworksVisualization implements Visualization {
   private beatCooldown = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -84,7 +99,7 @@ export class FireworksVisualization implements Visualization {
   private launchFirework(): void {
     const { colorScheme } = this.config;
     const colors = COLOR_SCHEMES[colorScheme]?.colors || COLOR_SCHEMES.cyanMagenta.colors;
-    
+
     this.fireworks.push({
       x: Math.random() * this.width * 0.8 + this.width * 0.1,
       y: this.height,
@@ -103,7 +118,7 @@ export class FireworksVisualization implements Visualization {
     for (let i = 0; i < particleCount; i++) {
       const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.2;
       const speed = 3 + Math.random() * 5;
-      
+
       this.particles.push({
         x: firework.x,
         y: firework.y,
@@ -111,7 +126,8 @@ export class FireworksVisualization implements Visualization {
         vy: Math.sin(angle) * speed,
         life: 1,
         maxLife: 1,
-        color: Math.random() < 0.7 ? firework.color : colors[Math.floor(Math.random() * colors.length)],
+        color:
+          Math.random() < 0.7 ? firework.color : colors[Math.floor(Math.random() * colors.length)],
         size: 2 + Math.random() * 2,
         trail: [],
       });
@@ -121,7 +137,7 @@ export class FireworksVisualization implements Visualization {
     for (let i = 0; i < particleCount / 3; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 1 + Math.random() * 2;
-      
+
       this.particles.push({
         x: firework.x,
         y: firework.y,
@@ -129,7 +145,7 @@ export class FireworksVisualization implements Visualization {
         vy: Math.sin(angle) * speed,
         life: 0.8,
         maxLife: 0.8,
-        color: '#ffffff',
+        color: "#ffffff",
         size: 1.5,
         trail: [],
       });
@@ -139,7 +155,8 @@ export class FireworksVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { bass, mid, volume } = audioData;
+    const { bass, mid } = audioData;
+    void mid; // Used for random launches
     const { sensitivity, gravity, trailLength, beatThreshold } = this.config;
 
     // Clear canvas for transparent background
@@ -193,7 +210,7 @@ export class FireworksVisualization implements Visualization {
       this.ctx.fill();
 
       // Trail
-      this.ctx.strokeStyle = fw.color + '80';
+      this.ctx.strokeStyle = fw.color + "80";
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
       this.ctx.moveTo(fw.x, fw.y);
@@ -289,32 +306,53 @@ export class FireworksVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      particleCount: { type: 'number', min: 40, max: 150, step: 10, default: 80, label: 'Particle Count' },
-      gravity: { type: 'number', min: 0.05, max: 0.3, step: 0.05, default: 0.15, label: 'Gravity' },
-      trailLength: { type: 'number', min: 0, max: 10, step: 1, default: 5, label: 'Trail Length' },
-      beatThreshold: { type: 'number', min: 0.1, max: 0.6, step: 0.05, default: 0.3, label: 'Beat Threshold' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      particleCount: {
+        type: "number",
+        min: 40,
+        max: 150,
+        step: 10,
+        default: 80,
+        label: "Particle Count",
+      },
+      gravity: { type: "number", min: 0.05, max: 0.3, step: 0.05, default: 0.15, label: "Gravity" },
+      trailLength: { type: "number", min: 0, max: 10, step: 1, default: 5, label: "Trail Length" },
+      beatThreshold: {
+        type: "number",
+        min: 0.1,
+        max: 0.6,
+        step: 0.05,
+        default: 0.3,
+        label: "Beat Threshold",
+      },
     };
   }
 }

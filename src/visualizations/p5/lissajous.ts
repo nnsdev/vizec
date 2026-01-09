@@ -1,5 +1,11 @@
-import p5 from 'p5';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import p5 from "p5";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface LissajousConfig extends VisualizationConfig {
   lineCount: number;
@@ -10,14 +16,14 @@ interface LissajousConfig extends VisualizationConfig {
 }
 
 const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; accent: string }> = {
-  cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', accent: '#ffffff' },
-  darkTechno: { primary: '#4a00e0', secondary: '#8000ff', accent: '#1a1a2e' },
-  neon: { primary: '#39ff14', secondary: '#ff073a', accent: '#ffff00' },
-  monochrome: { primary: '#ffffff', secondary: '#808080', accent: '#404040' },
-  acid: { primary: '#00ff00', secondary: '#ffff00', accent: '#88ff00' },
-  fire: { primary: '#ff4500', secondary: '#ffd700', accent: '#ff6600' },
-  ice: { primary: '#00bfff', secondary: '#e0ffff', accent: '#87ceeb' },
-  synthwave: { primary: '#ff00ff', secondary: '#00ffff', accent: '#ff00aa' },
+  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", accent: "#ffffff" },
+  darkTechno: { primary: "#4a00e0", secondary: "#8000ff", accent: "#1a1a2e" },
+  neon: { primary: "#39ff14", secondary: "#ff073a", accent: "#ffff00" },
+  monochrome: { primary: "#ffffff", secondary: "#808080", accent: "#404040" },
+  acid: { primary: "#00ff00", secondary: "#ffff00", accent: "#88ff00" },
+  fire: { primary: "#ff4500", secondary: "#ffd700", accent: "#ff6600" },
+  ice: { primary: "#00bfff", secondary: "#e0ffff", accent: "#87ceeb" },
+  synthwave: { primary: "#ff00ff", secondary: "#00ffff", accent: "#ff00aa" },
 };
 
 interface TrailPoint {
@@ -36,18 +42,27 @@ interface LissajousCurve {
 }
 
 export class LissajousVisualization implements Visualization {
-  id = 'lissajous';
-  name = 'Lissajous Curves';
-  author = 'Vizec';
-  description = 'Classic Lissajous curves with audio-reactive frequency ratios';
-  renderer: 'p5' = 'p5';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "lissajous",
+    name: "Lissajous Curves",
+    author: "Vizec",
+    description: "Classic Lissajous curves with audio-reactive frequency ratios",
+    renderer: "p5",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;
   private config: LissajousConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     lineCount: 3,
     trailLength: 150,
     complexity: 1.0,
@@ -207,7 +222,7 @@ export class LissajousVisualization implements Visualization {
           const strokeColor = p.lerpColor(
             p.color(colors.primary),
             p.color(colors.secondary),
-            colorProgress
+            colorProgress,
           );
           strokeColor.setAlpha(alpha);
           p.stroke(strokeColor);
@@ -287,47 +302,47 @@ export class LissajousVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       lineCount: {
-        type: 'number',
-        label: 'Line Count',
+        type: "number",
+        label: "Line Count",
         default: 3,
         min: 1,
         max: 5,
         step: 1,
       },
       trailLength: {
-        type: 'number',
-        label: 'Trail Length',
+        type: "number",
+        label: "Trail Length",
         default: 150,
         min: 50,
         max: 400,
         step: 25,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'synthwave', label: 'Synthwave' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "acid", label: "Acid" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "synthwave", label: "Synthwave" },
         ],
       },
       complexity: {
-        type: 'number',
-        label: 'Complexity',
+        type: "number",
+        label: "Complexity",
         default: 1.0,
         min: 0.5,
         max: 3.0,
         step: 0.25,
       },
       speed: {
-        type: 'number',
-        label: 'Speed',
+        type: "number",
+        label: "Speed",
         default: 1.0,
         min: 0.2,
         max: 3.0,

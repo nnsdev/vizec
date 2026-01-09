@@ -1,10 +1,11 @@
-import p5 from 'p5';
+import p5 from "p5";
 import {
-  Visualization,
   AudioData,
-  VisualizationConfig,
   ConfigSchema,
-} from '../types';
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface CircularWaveConfig extends VisualizationConfig {
   rings: number;
@@ -14,30 +15,36 @@ interface CircularWaveConfig extends VisualizationConfig {
   pulse: boolean;
 }
 
-const COLOR_SCHEMES: Record<
-  string,
-  { primary: string; secondary: string; accent: string }
-> = {
-  cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', accent: '#ffffff' },
-  darkTechno: { primary: '#4a00e0', secondary: '#8000ff', accent: '#1a1a2e' },
-  neon: { primary: '#39ff14', secondary: '#ff073a', accent: '#ffff00' },
-  monochrome: { primary: '#ffffff', secondary: '#808080', accent: '#404040' },
-  acid: { primary: '#00ff00', secondary: '#ffff00', accent: '#88ff00' },
+const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; accent: string }> = {
+  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", accent: "#ffffff" },
+  darkTechno: { primary: "#4a00e0", secondary: "#8000ff", accent: "#1a1a2e" },
+  neon: { primary: "#39ff14", secondary: "#ff073a", accent: "#ffff00" },
+  monochrome: { primary: "#ffffff", secondary: "#808080", accent: "#404040" },
+  acid: { primary: "#00ff00", secondary: "#ffff00", accent: "#88ff00" },
 };
 
 export class CircularWaveVisualization implements Visualization {
-  id = 'circularWave';
-  name = 'Circular Waveform';
-  author = 'Vizec';
-  description = 'Circular oscilloscope with geometric patterns';
-  renderer: 'p5' = 'p5';
-  transitionType: 'zoom' = 'zoom';
+  static readonly meta: VisualizationMeta = {
+    id: "circularWave",
+    name: "Circular Waveform",
+    author: "Vizec",
+    description: "Circular oscilloscope with geometric patterns",
+    renderer: "p5",
+    transitionType: "zoom",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;
   private config: CircularWaveConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     rings: 3,
     rotationSpeed: 0.5,
     lineWidth: 2,
@@ -56,10 +63,7 @@ export class CircularWaveVisualization implements Visualization {
     // Create p5 instance in instance mode
     this.p5Instance = new p5((p: p5) => {
       p.setup = () => {
-        const canvas = p.createCanvas(
-          container.clientWidth,
-          container.clientHeight,
-        );
+        const canvas = p.createCanvas(container.clientWidth, container.clientHeight);
         canvas.parent(container);
         p.colorMode(p.HSB, 360, 100, 100, 100);
         p.strokeCap(p.ROUND);
@@ -74,8 +78,7 @@ export class CircularWaveVisualization implements Visualization {
   }
 
   private drawVisualization(p: p5): void {
-    const { rings, colorScheme, rotationSpeed, lineWidth, pulse, sensitivity } =
-      this.config;
+    const { rings, colorScheme, rotationSpeed, lineWidth, pulse, sensitivity } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     // Clear with transparent background
@@ -85,8 +88,7 @@ export class CircularWaveVisualization implements Visualization {
       return;
     }
 
-    const { frequencyData, timeDomainData, bass, volume } =
-      this.currentAudioData;
+    const { frequencyData, timeDomainData, bass, volume } = this.currentAudioData;
     const centerX = this.width / 2;
     const centerY = this.height / 2;
     const maxRadius = Math.min(this.width, this.height) * 0.4;
@@ -112,11 +114,7 @@ export class CircularWaveVisualization implements Visualization {
       } else if (ring === rings - 1) {
         strokeColor = p.color(colors.secondary);
       } else {
-        strokeColor = p.lerpColor(
-          p.color(colors.primary),
-          p.color(colors.secondary),
-          ringProgress,
-        );
+        strokeColor = p.lerpColor(p.color(colors.primary), p.color(colors.secondary), ringProgress);
       }
 
       // Add transparency (70% opacity)
@@ -140,8 +138,7 @@ export class CircularWaveVisualization implements Visualization {
         const timeValue = timeDomainData[i * freqStep] / 128 - 1;
 
         // Much more aggressive scaling
-        const combinedValue =
-          (freqValue * 0.8 + timeValue * 0.2) * sensitivity * 2;
+        const combinedValue = (freqValue * 0.8 + timeValue * 0.2) * sensitivity * 2;
         const waveRadius = radius + combinedValue * 100 * (1 + ring * 0.3);
 
         const x = Math.cos(angle) * waveRadius;
@@ -194,7 +191,7 @@ export class CircularWaveVisualization implements Visualization {
     p.pop();
   }
 
-  render(audioData: AudioData, deltaTime: number): void {
+  render(audioData: AudioData, _deltaTime: number): void {
     this.currentAudioData = audioData;
     // p5 handles its own draw loop, we just update the data
   }
@@ -224,44 +221,44 @@ export class CircularWaveVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       rings: {
-        type: 'number',
-        label: 'Ring Count',
+        type: "number",
+        label: "Ring Count",
         default: 3,
         min: 1,
         max: 6,
         step: 1,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'acid', label: 'Acid' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "acid", label: "Acid" },
         ],
       },
       rotationSpeed: {
-        type: 'number',
-        label: 'Rotation Speed',
+        type: "number",
+        label: "Rotation Speed",
         default: 0.5,
         min: 0,
         max: 2,
         step: 0.1,
       },
       lineWidth: {
-        type: 'number',
-        label: 'Line Width',
+        type: "number",
+        label: "Line Width",
         default: 2,
         min: 1,
         max: 5,
         step: 0.5,
       },
       pulse: {
-        type: 'boolean',
-        label: 'Pulse Effect',
+        type: "boolean",
+        label: "Pulse Effect",
         default: true,
       },
     };

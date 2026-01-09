@@ -1,10 +1,11 @@
-import p5 from 'p5';
+import p5 from "p5";
 import {
-  Visualization,
   AudioData,
-  VisualizationConfig,
   ConfigSchema,
-} from '../types';
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface NeonFlowFieldConfig extends VisualizationConfig {
   particleCount: number;
@@ -14,39 +15,43 @@ interface NeonFlowFieldConfig extends VisualizationConfig {
   baseColor: string;
 }
 
-const COLOR_SCHEMES: Record<
-  string,
-  { primary: string; secondary: string; tertiary: string }
-> = {
+const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; tertiary: string }> = {
   cyanMagenta: {
-    primary: '#00ffff',
-    secondary: '#ff00ff',
-    tertiary: '#8000ff',
+    primary: "#00ffff",
+    secondary: "#ff00ff",
+    tertiary: "#8000ff",
   },
-  neon: { primary: '#39ff14', secondary: '#ff073a', tertiary: '#ffff00' },
-  sunset: { primary: '#ff6600', secondary: '#ff0066', tertiary: '#ffcc00' },
-  ocean: { primary: '#00bfff', secondary: '#00ffcc', tertiary: '#0066ff' },
-  plasma: { primary: '#ff0080', secondary: '#00ff80', tertiary: '#8000ff' },
+  neon: { primary: "#39ff14", secondary: "#ff073a", tertiary: "#ffff00" },
+  sunset: { primary: "#ff6600", secondary: "#ff0066", tertiary: "#ffcc00" },
+  ocean: { primary: "#00bfff", secondary: "#00ffcc", tertiary: "#0066ff" },
+  plasma: { primary: "#ff0080", secondary: "#00ff80", tertiary: "#8000ff" },
 };
 
 export class NeonFlowFieldVisualization implements Visualization {
-  id = 'neonFlowField';
-  name = 'Neon Flow Fields';
-  author = 'Vizec';
-  description =
-    'Particles following flow vectors determined by audio energy, surging with beats';
-  renderer: 'p5' = 'p5';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "neonFlowField",
+    name: "Neon Flow Fields",
+    author: "Vizec",
+    renderer: "p5",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;
   private config: NeonFlowFieldConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     particleCount: 2000,
     flowSpeed: 1.0,
     trailLength: 0.15,
-    baseColor: 'cyanMagenta',
+    baseColor: "cyanMagenta",
   };
 
   private width = 0;
@@ -68,9 +73,9 @@ export class NeonFlowFieldVisualization implements Visualization {
     // Initialize flow field
     this.cols = Math.ceil(container.clientWidth / this.resolution);
     this.rows = Math.ceil(container.clientHeight / this.resolution);
-    this.flowField = new Array(this.cols)
-      .fill(0)
-      .map(() => new Array(this.rows).fill(0));
+    this.flowField = Array.from({ length: this.cols }, () =>
+      Array.from({ length: this.rows }, () => 0),
+    );
 
     // Initialize particles
     this.particles = [];
@@ -81,10 +86,7 @@ export class NeonFlowFieldVisualization implements Visualization {
     // Create p5 instance
     this.p5Instance = new p5((p: p5) => {
       p.setup = () => {
-        const canvas = p.createCanvas(
-          container.clientWidth,
-          container.clientHeight,
-        );
+        const canvas = p.createCanvas(container.clientWidth, container.clientHeight);
         canvas.parent(container);
         p.colorMode(p.HSB, 360, 100, 100, 100);
         this.width = container.clientWidth;
@@ -101,7 +103,7 @@ export class NeonFlowFieldVisualization implements Visualization {
     if (!this.currentAudioData) return;
 
     const { frequencyData, bass, mid, treble, volume } = this.currentAudioData;
-    const { flowSpeed, trailLength, colorScheme, sensitivity } = this.config;
+    const { flowSpeed, colorScheme, sensitivity } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     this.time += 0.6 * this.currentDeltaTime;
@@ -141,13 +143,6 @@ export class NeonFlowFieldVisualization implements Visualization {
 
     for (let i = 0; i < this.cols; i++) {
       for (let j = 0; j < this.rows; j++) {
-        // Sample frequency data for this cell
-        const freqIndex = Math.floor(
-          (i + j * this.cols) *
-            (frequencyData.length / (this.cols * this.rows)),
-        );
-        const freqValue = frequencyData[freqIndex] / 255;
-
         // Perlin noise angle modified by audio
         const noiseVal = p.noise(i * 0.1 + xOff, j * 0.1 + yOff, this.time);
         const angle = noiseVal * p.TWO_PI * 2;
@@ -158,8 +153,7 @@ export class NeonFlowFieldVisualization implements Visualization {
         const trebleInfluence = treble * 0.5;
 
         // Combine influences
-        const audioModulation =
-          (bassInfluence + midInfluence + trebleInfluence) / 3.5;
+        const audioModulation = (bassInfluence + midInfluence + trebleInfluence) / 3.5;
         const finalAngle = angle + audioModulation;
 
         this.flowField[i][j] = finalAngle;
@@ -179,9 +173,9 @@ export class NeonFlowFieldVisualization implements Visualization {
     // Recalculate grid
     this.cols = Math.ceil(width / this.resolution);
     this.rows = Math.ceil(height / this.resolution);
-    this.flowField = new Array(this.cols)
-      .fill(0)
-      .map(() => new Array(this.rows).fill(0));
+    this.flowField = Array.from({ length: this.cols }, () =>
+      Array.from({ length: this.rows }, () => 0),
+    );
 
     if (this.p5Instance) {
       this.p5Instance.resizeCanvas(width, height);
@@ -214,36 +208,36 @@ export class NeonFlowFieldVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       particleCount: {
-        type: 'number',
-        label: 'Particle Count',
+        type: "number",
+        label: "Particle Count",
         default: 2000,
         min: 500,
         max: 5000,
         step: 100,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'plasma', label: 'Plasma' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "neon", label: "Neon" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "plasma", label: "Plasma" },
         ],
       },
       flowSpeed: {
-        type: 'number',
-        label: 'Flow Speed',
+        type: "number",
+        label: "Flow Speed",
         default: 1.0,
         min: 0.1,
         max: 3,
         step: 0.1,
       },
       trailLength: {
-        type: 'number',
-        label: 'Trail Length',
+        type: "number",
+        label: "Trail Length",
         default: 0.15,
         min: 0.01,
         max: 0.5,

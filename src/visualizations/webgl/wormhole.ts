@@ -1,20 +1,71 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
-const COLOR_SCHEMES: Record<string, {
-  inner: number;
-  outer: number;
-  rings: number;
-  energy: number;
-  stars: number;
-  glow: number;
-}> = {
-  blueShift: { inner: 0x0066ff, outer: 0x00ccff, rings: 0x4488ff, energy: 0x00ffff, stars: 0xffffff, glow: 0x0088ff },
-  redShift: { inner: 0xff3300, outer: 0xff6600, rings: 0xff4444, energy: 0xffaa00, stars: 0xffffcc, glow: 0xff4400 },
-  quantum: { inner: 0xff00ff, outer: 0x8800ff, rings: 0xaa00ff, energy: 0xff00aa, stars: 0xffccff, glow: 0xcc00ff },
-  emerald: { inner: 0x00ff66, outer: 0x00ff00, rings: 0x44ff88, energy: 0x88ffaa, stars: 0xccffcc, glow: 0x00ff44 },
-  void: { inner: 0x220044, outer: 0x440088, rings: 0x6600aa, energy: 0x8800cc, stars: 0xccccff, glow: 0x4400aa },
-  golden: { inner: 0xffaa00, outer: 0xffcc00, rings: 0xffdd44, energy: 0xffff88, stars: 0xffffee, glow: 0xffbb00 },
+const COLOR_SCHEMES: Record<
+  string,
+  {
+    inner: number;
+    outer: number;
+    rings: number;
+    energy: number;
+    stars: number;
+    glow: number;
+  }
+> = {
+  blueShift: {
+    inner: 0x0066ff,
+    outer: 0x00ccff,
+    rings: 0x4488ff,
+    energy: 0x00ffff,
+    stars: 0xffffff,
+    glow: 0x0088ff,
+  },
+  redShift: {
+    inner: 0xff3300,
+    outer: 0xff6600,
+    rings: 0xff4444,
+    energy: 0xffaa00,
+    stars: 0xffffcc,
+    glow: 0xff4400,
+  },
+  quantum: {
+    inner: 0xff00ff,
+    outer: 0x8800ff,
+    rings: 0xaa00ff,
+    energy: 0xff00aa,
+    stars: 0xffccff,
+    glow: 0xcc00ff,
+  },
+  emerald: {
+    inner: 0x00ff66,
+    outer: 0x00ff00,
+    rings: 0x44ff88,
+    energy: 0x88ffaa,
+    stars: 0xccffcc,
+    glow: 0x00ff44,
+  },
+  void: {
+    inner: 0x220044,
+    outer: 0x440088,
+    rings: 0x6600aa,
+    energy: 0x8800cc,
+    stars: 0xccccff,
+    glow: 0x4400aa,
+  },
+  golden: {
+    inner: 0xffaa00,
+    outer: 0xffcc00,
+    rings: 0xffdd44,
+    energy: 0xffff88,
+    stars: 0xffffee,
+    glow: 0xffbb00,
+  },
 };
 
 interface TunnelRing {
@@ -46,12 +97,21 @@ interface WormholeConfig extends VisualizationConfig {
 }
 
 export class WormholeVisualization implements Visualization {
-  id = 'wormhole';
-  name = 'Wormhole';
-  author = 'Vizec';
-  description = 'Spiraling tunnel through spacetime with camera flying through a twisting vortex';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "wormhole",
+    name: "Wormhole",
+    author: "Vizec",
+    description: "Spiraling tunnel through spacetime with camera flying through a twisting vortex",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -80,7 +140,7 @@ export class WormholeVisualization implements Visualization {
 
   private config: WormholeConfig = {
     sensitivity: 1.0,
-    colorScheme: 'blueShift',
+    colorScheme: "blueShift",
     tunnelLength: 200,
     ringCount: 40,
     speed: 1.0,
@@ -174,7 +234,7 @@ export class WormholeVisualization implements Visualization {
     this.ringGroup = null;
   }
 
-  private createStarfield(colors: typeof COLOR_SCHEMES['blueShift']): void {
+  private createStarfield(colors: (typeof COLOR_SCHEMES)["blueShift"]): void {
     if (!this.scene) return;
 
     const starCount = 500;
@@ -187,17 +247,13 @@ export class WormholeVisualization implements Visualization {
       const radius = 100 + Math.random() * 300;
       const z = 50 + Math.random() * 100;
 
-      positions.push(
-        Math.cos(angle) * radius,
-        Math.sin(angle) * radius,
-        z
-      );
+      positions.push(Math.cos(angle) * radius, Math.sin(angle) * radius, z);
       sizes.push(0.5 + Math.random() * 2);
     }
 
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -233,7 +289,7 @@ export class WormholeVisualization implements Visualization {
     this.scene.add(this.starField);
   }
 
-  private createTunnel(colors: typeof COLOR_SCHEMES['blueShift']): void {
+  private createTunnel(colors: (typeof COLOR_SCHEMES)["blueShift"]): void {
     if (!this.scene) return;
 
     const { tunnelLength, spiralTightness } = this.config;
@@ -257,9 +313,6 @@ export class WormholeVisualization implements Visualization {
     }
 
     const path = new THREE.CatmullRomCurve3(points);
-
-    // Radius decreases toward center
-    const radiusFunc = (t: number) => 30 - t * 20;
 
     this.tunnelGeometry = new THREE.TubeGeometry(path, 100, 30, 32, false);
 
@@ -325,7 +378,7 @@ export class WormholeVisualization implements Visualization {
     this.scene.add(this.tunnelMesh);
   }
 
-  private createTunnelRings(colors: typeof COLOR_SCHEMES['blueShift']): void {
+  private createTunnelRings(colors: (typeof COLOR_SCHEMES)["blueShift"]): void {
     if (!this.scene) return;
 
     const { ringCount, tunnelLength, spiralTightness } = this.config;
@@ -405,7 +458,7 @@ export class WormholeVisualization implements Visualization {
       ringMesh.position.set(
         Math.sin(angle) * spiralIntensity,
         Math.cos(angle) * spiralIntensity,
-        z
+        z,
       );
       ringMesh.scale.setScalar(ringData.scale);
       ringMesh.rotation.x = Math.PI / 2;
@@ -419,7 +472,7 @@ export class WormholeVisualization implements Visualization {
     this.scene.add(this.ringGroup);
   }
 
-  private createEnergyParticles(colors: typeof COLOR_SCHEMES['blueShift']): void {
+  private createEnergyParticles(colors: (typeof COLOR_SCHEMES)["blueShift"]): void {
     if (!this.scene) return;
 
     const { energyParticles, tunnelLength, spiralTightness } = this.config;
@@ -511,12 +564,12 @@ export class WormholeVisualization implements Visualization {
       alphas.push(p.life);
     }
 
-    this.energyGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.energyGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-    this.energyGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(alphas, 1));
+    this.energyGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.energyGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    this.energyGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
   }
 
-  private createEventHorizon(colors: typeof COLOR_SCHEMES['blueShift']): void {
+  private createEventHorizon(colors: (typeof COLOR_SCHEMES)["blueShift"]): void {
     if (!this.scene) return;
 
     const { tunnelLength, spiralTightness } = this.config;
@@ -577,7 +630,7 @@ export class WormholeVisualization implements Visualization {
     this.eventHorizon.position.set(
       Math.sin(spiralAngle) * spiralIntensity,
       Math.cos(spiralAngle) * spiralIntensity,
-      50 - tunnelLength
+      50 - tunnelLength,
     );
     this.eventHorizon.renderOrder = 30;
     this.scene.add(this.eventHorizon);
@@ -638,8 +691,10 @@ export class WormholeVisualization implements Visualization {
     const spiralIntensity = Math.pow(camT, 1.5) * 10 * spiralTightness;
     const spiralAngle = camT * Math.PI * 4 * spiralTightness;
 
-    this.camera.position.x = Math.sin(spiralAngle) * spiralIntensity + Math.sin(this.time) * 2 * (1 + bassBoost);
-    this.camera.position.y = Math.cos(spiralAngle) * spiralIntensity + Math.cos(this.time * 1.3) * 2 * (1 + bassBoost);
+    this.camera.position.x =
+      Math.sin(spiralAngle) * spiralIntensity + Math.sin(this.time) * 2 * (1 + bassBoost);
+    this.camera.position.y =
+      Math.cos(spiralAngle) * spiralIntensity + Math.cos(this.time * 1.3) * 2 * (1 + bassBoost);
     this.camera.position.z = camZ;
 
     // Look ahead in the tunnel
@@ -651,7 +706,7 @@ export class WormholeVisualization implements Visualization {
     this.camera.lookAt(
       Math.sin(lookSpiralAngle) * lookSpiralIntensity,
       Math.cos(lookSpiralAngle) * lookSpiralIntensity,
-      lookZ
+      lookZ,
     );
 
     // FOV distortion on bass
@@ -665,7 +720,7 @@ export class WormholeVisualization implements Visualization {
     deltaTime: number,
     bassBoost: number,
     midBoost: number,
-    trebleBoost: number
+    trebleBoost: number,
   ): void {
     const { tunnelLength, spiralTightness } = this.config;
 
@@ -690,7 +745,7 @@ export class WormholeVisualization implements Visualization {
       mesh.position.set(
         Math.sin(spiralAngle) * spiralIntensity,
         Math.cos(spiralAngle) * spiralIntensity,
-        ring.z
+        ring.z,
       );
 
       // Scale decreases with depth
@@ -716,7 +771,7 @@ export class WormholeVisualization implements Visualization {
     deltaTime: number,
     bassBoost: number,
     trebleBoost: number,
-    volumeBoost: number
+    volumeBoost: number,
   ): void {
     if (!this.energyGeometry) return;
 
@@ -739,8 +794,10 @@ export class WormholeVisualization implements Visualization {
 
       // Update position
       const maxRadius = 25 * Math.max(0.4, 1 - t * 0.6);
-      p.position.x = Math.cos(p.angle) * p.radius * (maxRadius / 25) + Math.sin(spiralAngle) * spiralIntensity;
-      p.position.y = Math.sin(p.angle) * p.radius * (maxRadius / 25) + Math.cos(spiralAngle) * spiralIntensity;
+      p.position.x =
+        Math.cos(p.angle) * p.radius * (maxRadius / 25) + Math.sin(spiralAngle) * spiralIntensity;
+      p.position.y =
+        Math.sin(p.angle) * p.radius * (maxRadius / 25) + Math.cos(spiralAngle) * spiralIntensity;
 
       // Reset if passed camera
       if (p.position.z > 60) {
@@ -769,16 +826,16 @@ export class WormholeVisualization implements Visualization {
 
   updateConfig(config: Partial<VisualizationConfig>): void {
     const needsRecreate =
-      (config as WormholeConfig).colorScheme !== undefined &&
-      (config as WormholeConfig).colorScheme !== this.config.colorScheme ||
-      (config as WormholeConfig).ringCount !== undefined &&
-      (config as WormholeConfig).ringCount !== this.config.ringCount ||
-      (config as WormholeConfig).tunnelLength !== undefined &&
-      (config as WormholeConfig).tunnelLength !== this.config.tunnelLength ||
-      (config as WormholeConfig).energyParticles !== undefined &&
-      (config as WormholeConfig).energyParticles !== this.config.energyParticles ||
-      (config as WormholeConfig).spiralTightness !== undefined &&
-      (config as WormholeConfig).spiralTightness !== this.config.spiralTightness;
+      ((config as WormholeConfig).colorScheme !== undefined &&
+        (config as WormholeConfig).colorScheme !== this.config.colorScheme) ||
+      ((config as WormholeConfig).ringCount !== undefined &&
+        (config as WormholeConfig).ringCount !== this.config.ringCount) ||
+      ((config as WormholeConfig).tunnelLength !== undefined &&
+        (config as WormholeConfig).tunnelLength !== this.config.tunnelLength) ||
+      ((config as WormholeConfig).energyParticles !== undefined &&
+        (config as WormholeConfig).energyParticles !== this.config.energyParticles) ||
+      ((config as WormholeConfig).spiralTightness !== undefined &&
+        (config as WormholeConfig).spiralTightness !== this.config.spiralTightness);
 
     this.config = { ...this.config, ...config } as WormholeConfig;
 
@@ -814,26 +871,61 @@ export class WormholeVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Audio Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'blueShift', label: 'Blue Shift' },
-          { value: 'redShift', label: 'Red Shift' },
-          { value: 'quantum', label: 'Quantum' },
-          { value: 'emerald', label: 'Emerald' },
-          { value: 'void', label: 'Void' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'blueShift',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Audio Sensitivity",
       },
-      tunnelLength: { type: 'number', min: 100, max: 400, step: 50, default: 200, label: 'Tunnel Length' },
-      ringCount: { type: 'number', min: 20, max: 80, step: 10, default: 40, label: 'Ring Count' },
-      speed: { type: 'number', min: 0.3, max: 3, step: 0.1, default: 1.0, label: 'Travel Speed' },
-      distortion: { type: 'number', min: 0.2, max: 2, step: 0.1, default: 1.0, label: 'Distortion' },
-      energyParticles: { type: 'number', min: 500, max: 3000, step: 250, default: 1500, label: 'Energy Particles' },
-      spiralTightness: { type: 'number', min: 0.5, max: 4, step: 0.5, default: 2.0, label: 'Spiral Tightness' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "blueShift", label: "Blue Shift" },
+          { value: "redShift", label: "Red Shift" },
+          { value: "quantum", label: "Quantum" },
+          { value: "emerald", label: "Emerald" },
+          { value: "void", label: "Void" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "blueShift",
+        label: "Color Scheme",
+      },
+      tunnelLength: {
+        type: "number",
+        min: 100,
+        max: 400,
+        step: 50,
+        default: 200,
+        label: "Tunnel Length",
+      },
+      ringCount: { type: "number", min: 20, max: 80, step: 10, default: 40, label: "Ring Count" },
+      speed: { type: "number", min: 0.3, max: 3, step: 0.1, default: 1.0, label: "Travel Speed" },
+      distortion: {
+        type: "number",
+        min: 0.2,
+        max: 2,
+        step: 0.1,
+        default: 1.0,
+        label: "Distortion",
+      },
+      energyParticles: {
+        type: "number",
+        min: 500,
+        max: 3000,
+        step: 250,
+        default: 1500,
+        label: "Energy Particles",
+      },
+      spiralTightness: {
+        type: "number",
+        min: 0.5,
+        max: 4,
+        step: 0.5,
+        default: 2.0,
+        label: "Spiral Tightness",
+      },
     };
   }
 }

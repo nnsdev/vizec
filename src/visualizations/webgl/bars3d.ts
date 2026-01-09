@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; glow: number }> = {
   cyanMagenta: { primary: 0x00ffff, secondary: 0xff00ff, glow: 0x00ffff },
@@ -27,12 +33,21 @@ interface Bars3DConfig extends VisualizationConfig {
 }
 
 export class Bars3DVisualization implements Visualization {
-  id = 'bars3d';
-  name = '3D Bars';
-  author = 'Vizec';
-  description = '3D equalizer bars arranged in a cylinder with audio-reactive heights';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "bars3d",
+    name: "3D Bars",
+    author: "Vizec",
+    description: "3D equalizer bars arranged in a cylinder with audio-reactive heights",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -43,7 +58,7 @@ export class Bars3DVisualization implements Visualization {
 
   private config: Bars3DConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     barCount: 64,
     radius: 20,
     maxHeight: 30,
@@ -86,13 +101,13 @@ export class Bars3DVisualization implements Visualization {
   private createBars(): void {
     if (!this.scene) return;
 
-    const { barCount, radius, colorScheme, maxHeight } = this.config;
+    const { barCount, radius, colorScheme } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     // Remove existing bars
     if (this.barGroup) {
       this.scene.remove(this.barGroup);
-      this.bars.forEach(bar => {
+      this.bars.forEach((bar) => {
         bar.geometry.dispose();
         (bar.material as THREE.Material).dispose();
       });
@@ -101,7 +116,7 @@ export class Bars3DVisualization implements Visualization {
 
     this.barGroup = new THREE.Group();
 
-    const barWidth = (2 * Math.PI * radius) / barCount * 0.7;
+    const barWidth = ((2 * Math.PI * radius) / barCount) * 0.7;
     const barDepth = 2;
 
     const primaryColor = new THREE.Color(colors.primary);
@@ -147,8 +162,8 @@ export class Bars3DVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.scene || !this.camera || !this.rendererThree || !this.barGroup) return;
 
-    const { bass, mid, treble, volume, frequencyData } = audioData;
-    const { sensitivity, maxHeight, twist, radius } = this.config;
+    const { bass, mid, frequencyData } = audioData;
+    const { sensitivity, maxHeight, twist } = this.config;
 
     this.time += deltaTime;
 
@@ -227,17 +242,18 @@ export class Bars3DVisualization implements Visualization {
     this.config = { ...this.config, ...config } as Bars3DConfig;
 
     // Recreate bars if relevant settings changed
-    if (this.scene && (
-      this.config.colorScheme !== oldColorScheme ||
-      this.config.barCount !== oldBarCount ||
-      this.config.radius !== oldRadius
-    )) {
+    if (
+      this.scene &&
+      (this.config.colorScheme !== oldColorScheme ||
+        this.config.barCount !== oldBarCount ||
+        this.config.radius !== oldRadius)
+    ) {
       this.createBars();
     }
   }
 
   destroy(): void {
-    this.bars.forEach(bar => {
+    this.bars.forEach((bar) => {
       bar.geometry.dispose();
       (bar.material as THREE.Material).dispose();
     });
@@ -262,32 +278,39 @@ export class Bars3DVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      barCount: { type: 'number', min: 16, max: 128, step: 8, default: 64, label: 'Bar Count' },
-      radius: { type: 'number', min: 10, max: 40, step: 2, default: 20, label: 'Circle Radius' },
-      maxHeight: { type: 'number', min: 10, max: 50, step: 5, default: 30, label: 'Max Height' },
-      twist: { type: 'number', min: 0, max: 2, step: 0.1, default: 0.5, label: 'Twist Amount' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      barCount: { type: "number", min: 16, max: 128, step: 8, default: 64, label: "Bar Count" },
+      radius: { type: "number", min: 10, max: 40, step: 2, default: 20, label: "Circle Radius" },
+      maxHeight: { type: "number", min: 10, max: 50, step: 5, default: 30, label: "Max Height" },
+      twist: { type: "number", min: 0, max: 2, step: 0.1, default: 0.5, label: "Twist Amount" },
     };
   }
 }

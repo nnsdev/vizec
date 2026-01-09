@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; glow: number }> = {
   cyanMagenta: { primary: 0x00ffff, secondary: 0xff00ff, glow: 0x00ffff },
@@ -37,12 +43,21 @@ interface Ribbon {
 }
 
 export class RibbonsVisualization implements Visualization {
-  id = 'ribbons';
-  name = 'Ribbons';
-  author = 'Vizec';
-  description = 'Flowing 3D ribbons that undulate through space with audio reactivity';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "ribbons",
+    name: "Ribbons",
+    author: "Vizec",
+    description: "Flowing 3D ribbons that undulate through space with audio reactivity",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -52,7 +67,7 @@ export class RibbonsVisualization implements Visualization {
 
   private config: RibbonsConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     ribbonCount: 8,
     length: 50,
     waveIntensity: 1.0,
@@ -112,7 +127,7 @@ export class RibbonsVisualization implements Visualization {
     index: number,
     total: number,
     length: number,
-    colors: { primary: number; secondary: number; glow: number }
+    colors: { primary: number; secondary: number; glow: number },
   ): Ribbon {
     // Generate base points for the ribbon curve
     const pointCount = 32;
@@ -157,7 +172,7 @@ export class RibbonsVisualization implements Visualization {
     const axis = new THREE.Vector3(
       Math.random() - 0.5,
       Math.random() - 0.5,
-      Math.random() - 0.5
+      Math.random() - 0.5,
     ).normalize();
 
     return {
@@ -193,26 +208,26 @@ export class RibbonsVisualization implements Visualization {
       const waveFreq = (1 + trebleBoost * sensitivity * 0.5) * ribbon.frequency;
 
       // Calculate wave offset
-      const waveOffset = Math.sin(
-        this.time * speed * 2 + ribbon.phase + t * Math.PI * 4 * waveFreq
-      ) * waveAmplitude;
+      const waveOffset =
+        Math.sin(this.time * speed * 2 + ribbon.phase + t * Math.PI * 4 * waveFreq) * waveAmplitude;
 
       // Apply wave along ribbon's random axis
       const offset = ribbon.axis.clone().multiplyScalar(waveOffset);
 
       // Secondary perpendicular wave
       const perpAxis = new THREE.Vector3(0, 1, 0).cross(ribbon.axis).normalize();
-      const perpWave = Math.sin(
-        this.time * speed * 1.5 + ribbon.phase * 0.5 + t * Math.PI * 2
-      ) * waveAmplitude * 0.5;
+      const perpWave =
+        Math.sin(this.time * speed * 1.5 + ribbon.phase * 0.5 + t * Math.PI * 2) *
+        waveAmplitude *
+        0.5;
       const perpOffset = perpAxis.multiplyScalar(perpWave);
 
       newPoints.push(
         new THREE.Vector3(
           base.x + offset.x + perpOffset.x,
           base.y + offset.y + perpOffset.y,
-          base.z + offset.z + perpOffset.z
-        )
+          base.z + offset.z + perpOffset.z,
+        ),
       );
     }
 
@@ -284,11 +299,12 @@ export class RibbonsVisualization implements Visualization {
     this.config = { ...this.config, ...config } as RibbonsConfig;
 
     // Recreate ribbons if relevant settings changed
-    if (this.scene && (
-      this.config.colorScheme !== oldColorScheme ||
-      this.config.ribbonCount !== oldRibbonCount ||
-      this.config.length !== oldLength
-    )) {
+    if (
+      this.scene &&
+      (this.config.colorScheme !== oldColorScheme ||
+        this.config.ribbonCount !== oldRibbonCount ||
+        this.config.length !== oldLength)
+    ) {
       this.createRibbons();
     }
   }
@@ -321,32 +337,53 @@ export class RibbonsVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      ribbonCount: { type: 'number', min: 2, max: 20, step: 1, default: 8, label: 'Ribbon Count' },
-      length: { type: 'number', min: 20, max: 100, step: 5, default: 50, label: 'Ribbon Length' },
-      waveIntensity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Wave Intensity' },
-      speed: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Animation Speed' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      ribbonCount: { type: "number", min: 2, max: 20, step: 1, default: 8, label: "Ribbon Count" },
+      length: { type: "number", min: 20, max: 100, step: 5, default: 50, label: "Ribbon Length" },
+      waveIntensity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Wave Intensity",
+      },
+      speed: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Animation Speed",
+      },
     };
   }
 }

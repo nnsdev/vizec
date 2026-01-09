@@ -1,146 +1,177 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com">
-  <title>Vizec Control</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="control-panel">
-    <header class="header">
-      <h1>VIZEC</h1>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com"
+    />
+    <title>Vizec Control</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="control-panel">
+      <header class="header">
+        <h1>VIZEC</h1>
+      </header>
 
-    <div class="panel-columns">
-      <!-- Left Column: Main Controls -->
-      <div class="column column-left">
-        <!-- Preset Section -->
-        <section class="section">
-          <h2>PRESET</h2>
-          <div class="control-group">
-            <select id="preset-select" class="select">
-              <option value="">Select preset...</option>
-            </select>
-          </div>
-          <div class="button-row">
-            <button id="save-preset-btn" class="btn btn-secondary">Save As</button>
-            <button id="delete-preset-btn" class="btn btn-danger">Delete</button>
-          </div>
-        </section>
+      <div class="panel-columns">
+        <!-- Left Column: Main Controls -->
+        <div class="column column-left">
+          <!-- Preset Section -->
+          <section class="section">
+            <h2>PRESET</h2>
+            <div class="control-group">
+              <select id="preset-select" class="select">
+                <option value="">Select preset...</option>
+              </select>
+            </div>
+            <div class="button-row">
+              <button id="save-preset-btn" class="btn btn-secondary">Save As</button>
+              <button id="delete-preset-btn" class="btn btn-danger">Delete</button>
+            </div>
+          </section>
 
-        <!-- Audio Source Section -->
-        <section class="section">
-          <h2>AUDIO SOURCE</h2>
-          <div class="control-group">
-            <select id="audio-source-select" class="select">
-              <option value="">Select to start capture...</option>
-            </select>
-          </div>
-          <div class="audio-meter">
-            <div id="audio-meter-fill" class="audio-meter-fill"></div>
-          </div>
-          <div id="capture-status" class="capture-status"></div>
-        </section>
+          <!-- Audio Source Section -->
+          <section class="section">
+            <h2>AUDIO SOURCE</h2>
+            <div class="control-group">
+              <select id="audio-source-select" class="select">
+                <option value="">Select to start capture...</option>
+              </select>
+            </div>
+            <div class="audio-meter">
+              <div id="audio-meter-fill" class="audio-meter-fill"></div>
+            </div>
+            <div id="capture-status" class="capture-status"></div>
+          </section>
 
-        <!-- Visualization Section -->
-        <section class="section">
-          <h2>VISUALIZATION</h2>
-          <div class="control-group">
-            <select id="viz-select" class="select">
-              <option value="">Select visualization...</option>
-            </select>
-          </div>
-          <div class="button-row">
-            <button id="prev-viz-btn" class="btn btn-icon">&lt; Prev</button>
-            <button id="next-viz-btn" class="btn btn-icon">Next &gt;</button>
-          </div>
-          <div class="control-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="auto-rotate-check">
-              <span>Auto-rotate</span>
-            </label>
-          </div>
-          <div class="control-group" id="rotation-settings" style="display: none;">
-            <label>Interval: <span id="rotation-interval-value">30s</span></label>
-            <input type="range" id="rotation-interval" class="slider" min="5" max="120" value="30">
-            <div class="radio-group">
-              <label class="radio-label">
-                <input type="radio" name="rotation-order" value="sequential" checked>
-                <span>Sequential</span>
-              </label>
-              <label class="radio-label">
-                <input type="radio" name="rotation-order" value="random">
-                <span>Random</span>
+          <!-- Visualization Section -->
+          <section class="section">
+            <h2>VISUALIZATION</h2>
+            <div class="control-group">
+              <select id="viz-select" class="select">
+                <option value="">Select visualization...</option>
+              </select>
+            </div>
+            <div class="button-row">
+              <button id="prev-viz-btn" class="btn btn-icon">&lt; Prev</button>
+              <button id="next-viz-btn" class="btn btn-icon">Next &gt;</button>
+            </div>
+            <div class="control-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="auto-rotate-check" />
+                <span>Auto-rotate</span>
               </label>
             </div>
-            <label class="checkbox-label" style="margin-top: 8px;">
-              <input type="checkbox" id="randomize-colors-check">
-              <span>Randomize colors</span>
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="randomize-all-check">
-              <span>Randomize all</span>
-            </label>
-          </div>
-        </section>
-
-        <!-- Audio Settings Section -->
-        <section class="section">
-          <h2>AUDIO</h2>
-          <div class="control-group">
-            <label>Sensitivity: <span id="sensitivity-value">1.0</span></label>
-            <input type="range" id="sensitivity" class="slider" min="0.1" max="2" step="0.1" value="1">
-          </div>
-          <div class="control-group">
-            <label>Smoothing: <span id="smoothing-value">0.8</span></label>
-            <input type="range" id="smoothing" class="slider" min="0" max="0.99" step="0.01" value="0.8">
-          </div>
-        </section>
-
-        <!-- Display Section -->
-        <section class="section">
-          <h2>DISPLAY</h2>
-          <div class="control-group">
-            <div class="radio-group">
-              <label class="radio-label">
-                <input type="radio" name="background" value="transparent" checked>
-                <span>Transparent</span>
+            <div class="control-group" id="rotation-settings" style="display: none">
+              <label>Interval: <span id="rotation-interval-value">30s</span></label>
+              <input
+                type="range"
+                id="rotation-interval"
+                class="slider"
+                min="5"
+                max="120"
+                value="30"
+              />
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="rotation-order" value="sequential" checked />
+                  <span>Sequential</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="rotation-order" value="random" />
+                  <span>Random</span>
+                </label>
+              </div>
+              <label class="checkbox-label" style="margin-top: 8px">
+                <input type="checkbox" id="randomize-colors-check" />
+                <span>Randomize colors</span>
               </label>
-              <label class="radio-label">
-                <input type="radio" name="background" value="solid">
-                <span>Solid Black</span>
+              <label class="checkbox-label">
+                <input type="checkbox" id="randomize-all-check" />
+                <span>Randomize all</span>
               </label>
             </div>
-          </div>
-        </section>
-      </div>
+          </section>
 
-      <!-- Right Column: Visualization Settings -->
-      <div class="column column-right">
-        <section class="section section-fill" id="viz-settings-section">
-          <h2>VISUALIZATION SETTINGS</h2>
-          <div id="viz-settings-container">
-            <!-- Dynamic settings will be inserted here -->
-          </div>
-        </section>
+          <!-- Audio Settings Section -->
+          <section class="section">
+            <h2>AUDIO</h2>
+            <div class="control-group">
+              <label>Sensitivity: <span id="sensitivity-value">1.0</span></label>
+              <input
+                type="range"
+                id="sensitivity"
+                class="slider"
+                min="0.1"
+                max="2"
+                step="0.1"
+                value="1"
+              />
+            </div>
+            <div class="control-group">
+              <label>Smoothing: <span id="smoothing-value">0.8</span></label>
+              <input
+                type="range"
+                id="smoothing"
+                class="slider"
+                min="0"
+                max="0.99"
+                step="0.01"
+                value="0.8"
+              />
+            </div>
+          </section>
+
+          <!-- Display Section -->
+          <section class="section">
+            <h2>DISPLAY</h2>
+            <div class="control-group">
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="background" value="transparent" checked />
+                  <span>Transparent</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="background" value="solid" />
+                  <span>Solid Black</span>
+                </label>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right Column: Visualization Settings -->
+        <div class="column column-right">
+          <section class="section section-fill" id="viz-settings-section">
+            <h2>VISUALIZATION SETTINGS</h2>
+            <div id="viz-settings-container">
+              <!-- Dynamic settings will be inserted here -->
+            </div>
+          </section>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Save Preset Modal -->
-  <div id="save-preset-modal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <h3>Save Preset</h3>
-      <input type="text" id="preset-name-input" class="text-input" placeholder="Enter preset name...">
-      <div class="button-row">
-        <button id="save-preset-confirm" class="btn btn-primary">Save</button>
-        <button id="save-preset-cancel" class="btn btn-secondary">Cancel</button>
+    <!-- Save Preset Modal -->
+    <div id="save-preset-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h3>Save Preset</h3>
+        <input
+          type="text"
+          id="preset-name-input"
+          class="text-input"
+          placeholder="Enter preset name..."
+        />
+        <div class="button-row">
+          <button id="save-preset-confirm" class="btn btn-primary">Save</button>
+          <button id="save-preset-cancel" class="btn btn-secondary">Cancel</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script type="module" src="./index.js"></script>
-</body>
+    <script type="module" src="./index.js"></script>
+  </body>
 </html>

@@ -1,17 +1,23 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 // Color schemes matching the project pattern
 const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; glow: string }> = {
-  cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { primary: '#4a00e0', secondary: '#8000ff', glow: '#8000ff' },
-  neon: { primary: '#39ff14', secondary: '#ff073a', glow: '#ffff00' },
-  fire: { primary: '#ff4500', secondary: '#ffd700', glow: '#ff6600' },
-  ice: { primary: '#00bfff', secondary: '#e0ffff', glow: '#87ceeb' },
-  acid: { primary: '#00ff00', secondary: '#ffff00', glow: '#00ff00' },
-  monochrome: { primary: '#ffffff', secondary: '#808080', glow: '#ffffff' },
-  synthwave: { primary: '#ff00ff', secondary: '#00ffff', glow: '#ff00aa' },
-  ocean: { primary: '#0077be', secondary: '#00d4aa', glow: '#00b4d8' },
-  sunset: { primary: '#ff6b6b', secondary: '#feca57', glow: '#ff9f43' },
+  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", glow: "#00ffff" },
+  darkTechno: { primary: "#4a00e0", secondary: "#8000ff", glow: "#8000ff" },
+  neon: { primary: "#39ff14", secondary: "#ff073a", glow: "#ffff00" },
+  fire: { primary: "#ff4500", secondary: "#ffd700", glow: "#ff6600" },
+  ice: { primary: "#00bfff", secondary: "#e0ffff", glow: "#87ceeb" },
+  acid: { primary: "#00ff00", secondary: "#ffff00", glow: "#00ff00" },
+  monochrome: { primary: "#ffffff", secondary: "#808080", glow: "#ffffff" },
+  synthwave: { primary: "#ff00ff", secondary: "#00ffff", glow: "#ff00aa" },
+  ocean: { primary: "#0077be", secondary: "#00d4aa", glow: "#00b4d8" },
+  sunset: { primary: "#ff6b6b", secondary: "#feca57", glow: "#ff9f43" },
 };
 
 interface Ring {
@@ -31,18 +37,27 @@ interface WaveformRingsConfig extends VisualizationConfig {
 }
 
 export class WaveformRingsVisualization implements Visualization {
-  id = 'waveformRings';
-  name = 'Waveform Rings';
-  author = 'Vizec';
-  description = 'Concentric rings showing waveform that expand on beats';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "waveformRings",
+    name: "Waveform Rings",
+    author: "Vizec",
+    description: "Concentric rings showing waveform that expand on beats",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private config: WaveformRingsConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     ringCount: 8,
     expansionSpeed: 2,
     lineWidth: 2,
@@ -56,15 +71,15 @@ export class WaveformRingsVisualization implements Visualization {
   private lastBass = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     // Initial resize
@@ -77,11 +92,12 @@ export class WaveformRingsVisualization implements Visualization {
     this.lastBass = 0;
   }
 
-  render(audioData: AudioData, deltaTime: number): void {
+  render(audioData: AudioData, _deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
     const { timeDomainData, bass, volume } = audioData;
-    const { ringCount, expansionSpeed, colorScheme, lineWidth, fadeRate, sensitivity } = this.config;
+    const { ringCount, expansionSpeed, colorScheme, lineWidth, fadeRate, sensitivity } =
+      this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     // Clear canvas with transparency
@@ -97,7 +113,11 @@ export class WaveformRingsVisualization implements Visualization {
     const bassIncrease = bass - this.lastBass;
     this.lastBass = bass;
 
-    if (bassIncrease > beatThreshold * 0.3 && bass > beatThreshold && now - this.lastBeatTime > this.beatCooldown) {
+    if (
+      bassIncrease > beatThreshold * 0.3 &&
+      bass > beatThreshold &&
+      now - this.lastBeatTime > this.beatCooldown
+    ) {
       this.lastBeatTime = now;
 
       // Create new ring with current waveform data
@@ -157,7 +177,14 @@ export class WaveformRingsVisualization implements Visualization {
     // Draw center glow based on bass
     if (bass > 0.3) {
       const glowRadius = 30 + bass * 50 * sensitivity;
-      const gradient = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
+      const gradient = this.ctx.createRadialGradient(
+        centerX,
+        centerY,
+        0,
+        centerX,
+        centerY,
+        glowRadius,
+      );
       gradient.addColorStop(0, this.hexToRgba(colors.glow, 0.3 * bass));
       gradient.addColorStop(1, this.hexToRgba(colors.glow, 0));
 
@@ -173,7 +200,7 @@ export class WaveformRingsVisualization implements Visualization {
     centerX: number,
     centerY: number,
     lineWidth: number,
-    glowColor: string
+    glowColor: string,
   ): void {
     if (!this.ctx) return;
 
@@ -183,8 +210,8 @@ export class WaveformRingsVisualization implements Visualization {
     // Set up drawing style
     this.ctx.strokeStyle = this.hexToRgba(color, alpha * 0.7);
     this.ctx.lineWidth = lineWidth;
-    this.ctx.lineCap = 'round';
-    this.ctx.lineJoin = 'round';
+    this.ctx.lineCap = "round";
+    this.ctx.lineJoin = "round";
 
     // Add glow effect
     if (alpha > 0.3) {
@@ -258,49 +285,49 @@ export class WaveformRingsVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       ringCount: {
-        type: 'number',
-        label: 'Max Rings',
+        type: "number",
+        label: "Max Rings",
         default: 8,
         min: 3,
         max: 15,
         step: 1,
       },
       expansionSpeed: {
-        type: 'number',
-        label: 'Expansion Speed',
+        type: "number",
+        label: "Expansion Speed",
         default: 2,
         min: 0.5,
         max: 5,
         step: 0.5,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'cyanMagenta',
+        type: "select",
+        label: "Color Scheme",
+        default: "cyanMagenta",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'sunset', label: 'Sunset' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "ocean", label: "Ocean" },
+          { value: "sunset", label: "Sunset" },
         ],
       },
       lineWidth: {
-        type: 'number',
-        label: 'Line Width',
+        type: "number",
+        label: "Line Width",
         default: 2,
         min: 1,
         max: 5,
         step: 0.5,
       },
       fadeRate: {
-        type: 'number',
-        label: 'Fade Rate',
+        type: "number",
+        label: "Fade Rate",
         default: 0.02,
         min: 0.005,
         max: 0.05,

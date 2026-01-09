@@ -1,20 +1,71 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
-const COLOR_SCHEMES: Record<string, {
-  nodes: number;
-  filaments: number;
-  glow: number;
-  background: number;
-  accent: number;
-  bright: number;
-}> = {
-  deepSpace: { nodes: 0xffaa00, filaments: 0x4488ff, glow: 0x00aaff, background: 0x000022, accent: 0xff6600, bright: 0xffffff },
-  darkMatter: { nodes: 0x8800ff, filaments: 0x4400aa, glow: 0xaa00ff, background: 0x110022, accent: 0xff00ff, bright: 0xffccff },
-  hotGas: { nodes: 0xff3300, filaments: 0xff6600, glow: 0xffaa00, background: 0x110000, accent: 0xffcc00, bright: 0xffffff },
-  coldDark: { nodes: 0x00ffff, filaments: 0x0066aa, glow: 0x00aaff, background: 0x000011, accent: 0x00ff88, bright: 0xffffff },
-  primordial: { nodes: 0x00ff66, filaments: 0x008844, glow: 0x00ff44, background: 0x001100, accent: 0xaaff00, bright: 0xffffff },
-  reionization: { nodes: 0xffff00, filaments: 0xff8800, glow: 0xffaa44, background: 0x111100, accent: 0xff6600, bright: 0xffffff },
+const COLOR_SCHEMES: Record<
+  string,
+  {
+    nodes: number;
+    filaments: number;
+    glow: number;
+    background: number;
+    accent: number;
+    bright: number;
+  }
+> = {
+  deepSpace: {
+    nodes: 0xffaa00,
+    filaments: 0x4488ff,
+    glow: 0x00aaff,
+    background: 0x000022,
+    accent: 0xff6600,
+    bright: 0xffffff,
+  },
+  darkMatter: {
+    nodes: 0x8800ff,
+    filaments: 0x4400aa,
+    glow: 0xaa00ff,
+    background: 0x110022,
+    accent: 0xff00ff,
+    bright: 0xffccff,
+  },
+  hotGas: {
+    nodes: 0xff3300,
+    filaments: 0xff6600,
+    glow: 0xffaa00,
+    background: 0x110000,
+    accent: 0xffcc00,
+    bright: 0xffffff,
+  },
+  coldDark: {
+    nodes: 0x00ffff,
+    filaments: 0x0066aa,
+    glow: 0x00aaff,
+    background: 0x000011,
+    accent: 0x00ff88,
+    bright: 0xffffff,
+  },
+  primordial: {
+    nodes: 0x00ff66,
+    filaments: 0x008844,
+    glow: 0x00ff44,
+    background: 0x001100,
+    accent: 0xaaff00,
+    bright: 0xffffff,
+  },
+  reionization: {
+    nodes: 0xffff00,
+    filaments: 0xff8800,
+    glow: 0xffaa44,
+    background: 0x111100,
+    accent: 0xff6600,
+    bright: 0xffffff,
+  },
 };
 
 interface GalaxyNode {
@@ -46,12 +97,21 @@ interface CosmicWebConfig extends VisualizationConfig {
 }
 
 export class CosmicWebVisualization implements Visualization {
-  id = 'cosmicWeb';
-  name = 'Cosmic Web';
-  author = 'Vizec';
-  description = 'Large-scale universe structure with glowing galaxy nodes connected by filaments';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "cosmicWeb",
+    name: "Cosmic Web",
+    author: "Vizec",
+    description: "Large-scale universe structure with glowing galaxy nodes connected by filaments",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -76,7 +136,7 @@ export class CosmicWebVisualization implements Visualization {
 
   private config: CosmicWebConfig = {
     sensitivity: 1.0,
-    colorScheme: 'deepSpace',
+    colorScheme: "deepSpace",
     nodeCount: 80,
     connectionDistance: 40,
     nodeSize: 1.0,
@@ -165,7 +225,7 @@ export class CosmicWebVisualization implements Visualization {
     this.glowMeshes = [];
   }
 
-  private createBackgroundNodes(colors: typeof COLOR_SCHEMES['deepSpace']): void {
+  private createBackgroundNodes(colors: (typeof COLOR_SCHEMES)["deepSpace"]): void {
     if (!this.scene) return;
 
     const count = 500;
@@ -180,14 +240,14 @@ export class CosmicWebVisualization implements Visualization {
       positions.push(
         radius * Math.sin(phi) * Math.cos(theta),
         radius * Math.sin(phi) * Math.sin(theta),
-        radius * Math.cos(phi)
+        radius * Math.cos(phi),
       );
       sizes.push(0.3 + Math.random() * 1);
     }
 
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -223,7 +283,7 @@ export class CosmicWebVisualization implements Visualization {
     this.scene.add(this.backgroundNodes);
   }
 
-  private createNodes(colors: typeof COLOR_SCHEMES['deepSpace']): void {
+  private createNodes(colors: (typeof COLOR_SCHEMES)["deepSpace"]): void {
     if (!this.scene) return;
 
     const { nodeCount, connectionDistance } = this.config;
@@ -231,10 +291,7 @@ export class CosmicWebVisualization implements Visualization {
 
     // Generate nodes with cosmic web-like clustering
     // Use a lattice with noise for web-like structure
-    const gridSize = Math.ceil(Math.pow(nodeCount, 1/3));
-    const spacing = 120 / gridSize;
 
-    let index = 0;
     for (let i = 0; i < nodeCount; i++) {
       // Random position with clustering tendency
       let x: number, y: number, z: number;
@@ -263,7 +320,7 @@ export class CosmicWebVisualization implements Visualization {
         velocity: new THREE.Vector3(
           (Math.random() - 0.5) * 0.1,
           (Math.random() - 0.5) * 0.1,
-          (Math.random() - 0.5) * 0.1
+          (Math.random() - 0.5) * 0.1,
         ),
         mass,
         brightness: 0.5 + Math.random() * 0.5,
@@ -346,7 +403,7 @@ export class CosmicWebVisualization implements Visualization {
     this.scene.add(this.nodeMesh);
   }
 
-  private updateNodeGeometry(colors: typeof COLOR_SCHEMES['deepSpace']): void {
+  private updateNodeGeometry(_colors: (typeof COLOR_SCHEMES)["deepSpace"]): void {
     if (!this.nodeGeometry) return;
 
     const positions: number[] = [];
@@ -364,13 +421,13 @@ export class CosmicWebVisualization implements Visualization {
       pulses.push(pulse);
     }
 
-    this.nodeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.nodeGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-    this.nodeGeometry.setAttribute('brightness', new THREE.Float32BufferAttribute(brightnesses, 1));
-    this.nodeGeometry.setAttribute('pulse', new THREE.Float32BufferAttribute(pulses, 1));
+    this.nodeGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.nodeGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    this.nodeGeometry.setAttribute("brightness", new THREE.Float32BufferAttribute(brightnesses, 1));
+    this.nodeGeometry.setAttribute("pulse", new THREE.Float32BufferAttribute(pulses, 1));
   }
 
-  private createFilaments(colors: typeof COLOR_SCHEMES['deepSpace']): void {
+  private createFilaments(colors: (typeof COLOR_SCHEMES)["deepSpace"]): void {
     if (!this.scene) return;
 
     this.filaments = [];
@@ -378,9 +435,10 @@ export class CosmicWebVisualization implements Visualization {
     // Create filaments between connected nodes
     for (let i = 0; i < this.nodes.length; i++) {
       for (const j of this.nodes[i].connections) {
-        if (j > i) { // Avoid duplicates
+        if (j > i) {
+          // Avoid duplicates
           const dist = this.nodes[i].position.distanceTo(this.nodes[j].position);
-          const strength = 1 - (dist / this.config.connectionDistance);
+          const strength = 1 - dist / this.config.connectionDistance;
 
           this.filaments.push({
             startIndex: i,
@@ -452,11 +510,11 @@ export class CosmicWebVisualization implements Visualization {
       alphas.push(alpha, alpha);
     }
 
-    this.filamentGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.filamentGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(alphas, 1));
+    this.filamentGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.filamentGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
   }
 
-  private createNodeGlows(colors: typeof COLOR_SCHEMES['deepSpace']): void {
+  private createNodeGlows(colors: (typeof COLOR_SCHEMES)["deepSpace"]): void {
     if (!this.scene) return;
 
     this.glowMeshes = [];
@@ -467,7 +525,8 @@ export class CosmicWebVisualization implements Visualization {
     for (let i = 0; i < this.nodes.length; i++) {
       const node = this.nodes[i];
 
-      if (node.mass > 1.2) { // Only larger nodes get glows
+      if (node.mass > 1.2) {
+        // Only larger nodes get glows
         const glowMaterial = new THREE.ShaderMaterial({
           uniforms: {
             glowColor: { value: new THREE.Color(colors.glow) },
@@ -514,7 +573,7 @@ export class CosmicWebVisualization implements Visualization {
     if (!this.scene || !this.camera || !this.rendererThree) return;
 
     const { bass, mid, treble, volume, frequencyData } = audioData;
-    const { sensitivity, pulseIntensity, rotation, filamentOpacity } = this.config;
+    const { sensitivity, rotation, filamentOpacity } = this.config;
 
     this.time += deltaTime;
 
@@ -533,7 +592,15 @@ export class CosmicWebVisualization implements Visualization {
     const colors = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.deepSpace;
 
     // Update nodes
-    this.updateNodes(deltaTime, bassBoost, midBoost, trebleBoost, volumeBoost, frequencyData, colors);
+    this.updateNodes(
+      deltaTime,
+      bassBoost,
+      midBoost,
+      trebleBoost,
+      volumeBoost,
+      frequencyData,
+      colors,
+    );
 
     // Update filaments
     this.updateFilaments(bassBoost);
@@ -577,7 +644,7 @@ export class CosmicWebVisualization implements Visualization {
     trebleBoost: number,
     volumeBoost: number,
     frequencyData: Uint8Array,
-    colors: typeof COLOR_SCHEMES['deepSpace']
+    colors: (typeof COLOR_SCHEMES)["deepSpace"],
   ): void {
     if (!this.nodeGeometry) return;
 
@@ -597,9 +664,6 @@ export class CosmicWebVisualization implements Visualization {
       node.position.x += node.velocity.x * deltaTime * 10;
       node.position.y += node.velocity.y * deltaTime * 10;
       node.position.z += node.velocity.z * deltaTime * 10;
-
-      // Pulse effect on bass
-      const pulseFactor = 1 + bassBoost * 0.3 * Math.sin(this.time * node.pulseSpeed + node.pulsePhase);
 
       // Keep nodes within bounds with soft boundary
       const maxDist = 80;
@@ -634,8 +698,8 @@ export class CosmicWebVisualization implements Visualization {
       alphas.push(alpha, alpha);
     }
 
-    this.filamentGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.filamentGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(alphas, 1));
+    this.filamentGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.filamentGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
   }
 
   private updateGlowMeshes(bassBoost: number, volumeBoost: number): void {
@@ -647,7 +711,8 @@ export class CosmicWebVisualization implements Visualization {
       glowMesh.position.copy(node.position);
 
       // Scale pulse
-      const pulseFactor = 1 + bassBoost * 0.5 + Math.sin(this.time * node.pulseSpeed + node.pulsePhase) * 0.2;
+      const pulseFactor =
+        1 + bassBoost * 0.5 + Math.sin(this.time * node.pulseSpeed + node.pulsePhase) * 0.2;
       glowMesh.scale.setScalar(node.baseSize * 3 * this.config.nodeSize * pulseFactor);
 
       // Update intensity
@@ -669,12 +734,12 @@ export class CosmicWebVisualization implements Visualization {
 
   updateConfig(config: Partial<VisualizationConfig>): void {
     const needsRecreate =
-      (config as CosmicWebConfig).colorScheme !== undefined &&
-      (config as CosmicWebConfig).colorScheme !== this.config.colorScheme ||
-      (config as CosmicWebConfig).nodeCount !== undefined &&
-      (config as CosmicWebConfig).nodeCount !== this.config.nodeCount ||
-      (config as CosmicWebConfig).connectionDistance !== undefined &&
-      (config as CosmicWebConfig).connectionDistance !== this.config.connectionDistance;
+      ((config as CosmicWebConfig).colorScheme !== undefined &&
+        (config as CosmicWebConfig).colorScheme !== this.config.colorScheme) ||
+      ((config as CosmicWebConfig).nodeCount !== undefined &&
+        (config as CosmicWebConfig).nodeCount !== this.config.nodeCount) ||
+      ((config as CosmicWebConfig).connectionDistance !== undefined &&
+        (config as CosmicWebConfig).connectionDistance !== this.config.connectionDistance);
 
     this.config = { ...this.config, ...config } as CosmicWebConfig;
 
@@ -708,26 +773,68 @@ export class CosmicWebVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Audio Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'deepSpace', label: 'Deep Space' },
-          { value: 'darkMatter', label: 'Dark Matter' },
-          { value: 'hotGas', label: 'Hot Gas' },
-          { value: 'coldDark', label: 'Cold Dark' },
-          { value: 'primordial', label: 'Primordial' },
-          { value: 'reionization', label: 'Reionization' },
-        ],
-        default: 'deepSpace',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Audio Sensitivity",
       },
-      nodeCount: { type: 'number', min: 30, max: 150, step: 10, default: 80, label: 'Galaxy Count' },
-      connectionDistance: { type: 'number', min: 20, max: 60, step: 5, default: 40, label: 'Connection Distance' },
-      nodeSize: { type: 'number', min: 0.5, max: 2, step: 0.1, default: 1.0, label: 'Node Size' },
-      filamentOpacity: { type: 'number', min: 0.2, max: 1.5, step: 0.1, default: 1.0, label: 'Filament Opacity' },
-      pulseIntensity: { type: 'number', min: 0.2, max: 2, step: 0.1, default: 1.0, label: 'Pulse Intensity' },
-      rotation: { type: 'number', min: 0, max: 2, step: 0.1, default: 1.0, label: 'Rotation Speed' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "deepSpace", label: "Deep Space" },
+          { value: "darkMatter", label: "Dark Matter" },
+          { value: "hotGas", label: "Hot Gas" },
+          { value: "coldDark", label: "Cold Dark" },
+          { value: "primordial", label: "Primordial" },
+          { value: "reionization", label: "Reionization" },
+        ],
+        default: "deepSpace",
+        label: "Color Scheme",
+      },
+      nodeCount: {
+        type: "number",
+        min: 30,
+        max: 150,
+        step: 10,
+        default: 80,
+        label: "Galaxy Count",
+      },
+      connectionDistance: {
+        type: "number",
+        min: 20,
+        max: 60,
+        step: 5,
+        default: 40,
+        label: "Connection Distance",
+      },
+      nodeSize: { type: "number", min: 0.5, max: 2, step: 0.1, default: 1.0, label: "Node Size" },
+      filamentOpacity: {
+        type: "number",
+        min: 0.2,
+        max: 1.5,
+        step: 0.1,
+        default: 1.0,
+        label: "Filament Opacity",
+      },
+      pulseIntensity: {
+        type: "number",
+        min: 0.2,
+        max: 2,
+        step: 0.1,
+        default: 1.0,
+        label: "Pulse Intensity",
+      },
+      rotation: {
+        type: "number",
+        min: 0,
+        max: 2,
+        step: 0.1,
+        default: 1.0,
+        label: "Rotation Speed",
+      },
     };
   }
 }

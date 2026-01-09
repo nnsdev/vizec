@@ -1,19 +1,70 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
-const COLOR_SCHEMES: Record<string, {
-  stars: string;
-  streaks: string;
-  glow: string;
-  center: string;
-  accent: string;
-  ambient: string;
-}> = {
-  hyperspace: { stars: '#ffffff', streaks: '#aaccff', glow: '#4488ff', center: '#ffffff', accent: '#00aaff', ambient: '#001133' },
-  warpCore: { stars: '#ffcc00', streaks: '#ff8800', glow: '#ff4400', center: '#ffffff', accent: '#ffaa00', ambient: '#331100' },
-  quantum: { stars: '#ff00ff', streaks: '#aa00ff', glow: '#6600ff', center: '#ffffff', accent: '#ff00aa', ambient: '#220033' },
-  emerald: { stars: '#00ff88', streaks: '#00ffaa', glow: '#00ff44', center: '#ffffff', accent: '#88ffaa', ambient: '#002211' },
-  crimson: { stars: '#ff4444', streaks: '#ff0066', glow: '#ff0000', center: '#ffffff', accent: '#ff6688', ambient: '#220000' },
-  arctic: { stars: '#ffffff', streaks: '#88ddff', glow: '#00ccff', center: '#ffffff', accent: '#aaeeff', ambient: '#001122' },
+const COLOR_SCHEMES: Record<
+  string,
+  {
+    stars: string;
+    streaks: string;
+    glow: string;
+    center: string;
+    accent: string;
+    ambient: string;
+  }
+> = {
+  hyperspace: {
+    stars: "#ffffff",
+    streaks: "#aaccff",
+    glow: "#4488ff",
+    center: "#ffffff",
+    accent: "#00aaff",
+    ambient: "#001133",
+  },
+  warpCore: {
+    stars: "#ffcc00",
+    streaks: "#ff8800",
+    glow: "#ff4400",
+    center: "#ffffff",
+    accent: "#ffaa00",
+    ambient: "#331100",
+  },
+  quantum: {
+    stars: "#ff00ff",
+    streaks: "#aa00ff",
+    glow: "#6600ff",
+    center: "#ffffff",
+    accent: "#ff00aa",
+    ambient: "#220033",
+  },
+  emerald: {
+    stars: "#00ff88",
+    streaks: "#00ffaa",
+    glow: "#00ff44",
+    center: "#ffffff",
+    accent: "#88ffaa",
+    ambient: "#002211",
+  },
+  crimson: {
+    stars: "#ff4444",
+    streaks: "#ff0066",
+    glow: "#ff0000",
+    center: "#ffffff",
+    accent: "#ff6688",
+    ambient: "#220000",
+  },
+  arctic: {
+    stars: "#ffffff",
+    streaks: "#88ddff",
+    glow: "#00ccff",
+    center: "#ffffff",
+    accent: "#aaeeff",
+    ambient: "#001122",
+  },
 };
 
 interface WarpStar {
@@ -39,12 +90,21 @@ interface StarfieldWarpConfig extends VisualizationConfig {
 }
 
 export class StarfieldWarpVisualization implements Visualization {
-  id = 'starfieldWarp';
-  name = 'Starfield Warp';
-  author = 'Vizec';
-  description = 'Classic hyperspace/warp speed effect with stars streaking past from center';
-  renderer = 'canvas2d' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "starfieldWarp",
+    name: "Starfield Warp",
+    author: "Vizec",
+    description: "Classic hyperspace/warp speed effect with stars streaking past from center",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -53,7 +113,7 @@ export class StarfieldWarpVisualization implements Visualization {
 
   private config: StarfieldWarpConfig = {
     sensitivity: 1.0,
-    colorScheme: 'hyperspace',
+    colorScheme: "hyperspace",
     starCount: 600,
     baseSpeed: 2,
     maxSpeed: 20,
@@ -73,15 +133,15 @@ export class StarfieldWarpVisualization implements Visualization {
   private time = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -136,8 +196,9 @@ export class StarfieldWarpVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { bass, mid, treble, volume, frequencyData } = audioData;
-    const { sensitivity, colorScheme, baseSpeed, maxSpeed, streakLength, centerGlow, starSize } = this.config;
+    const { bass, mid, treble, volume } = audioData;
+    const { sensitivity, colorScheme, baseSpeed, maxSpeed, streakLength, centerGlow, starSize } =
+      this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.hyperspace;
 
     this.time += deltaTime;
@@ -174,7 +235,16 @@ export class StarfieldWarpVisualization implements Visualization {
     this.drawCenterGlow(centerX, centerY, colors, centerGlow, bassBoost, volumeBoost);
 
     // Update and draw stars
-    this.updateAndDrawStars(centerX, centerY, colors, deltaTime, streakLength, starSize, bassBoost, trebleBoost);
+    this.updateAndDrawStars(
+      centerX,
+      centerY,
+      colors,
+      deltaTime,
+      streakLength,
+      starSize,
+      bassBoost,
+      trebleBoost,
+    );
 
     // Draw speed lines effect on high bass
     if (bassBoost > 0.5) {
@@ -188,10 +258,10 @@ export class StarfieldWarpVisualization implements Visualization {
   private drawCenterGlow(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['hyperspace'],
+    colors: (typeof COLOR_SCHEMES)["hyperspace"],
     intensity: number,
     bassBoost: number,
-    volumeBoost: number
+    volumeBoost: number,
   ): void {
     if (!this.ctx) return;
 
@@ -200,13 +270,17 @@ export class StarfieldWarpVisualization implements Visualization {
 
     // Outer glow
     const outerGradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, pulseSize * 3
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      pulseSize * 3,
     );
-    outerGradient.addColorStop(0, colors.center + '40');
-    outerGradient.addColorStop(0.3, colors.glow + '20');
-    outerGradient.addColorStop(0.7, colors.accent + '10');
-    outerGradient.addColorStop(1, 'transparent');
+    outerGradient.addColorStop(0, colors.center + "40");
+    outerGradient.addColorStop(0.3, colors.glow + "20");
+    outerGradient.addColorStop(0.7, colors.accent + "10");
+    outerGradient.addColorStop(1, "transparent");
 
     this.ctx.globalAlpha = intensity * (0.5 + volumeBoost * 0.5) * 0.7;
     this.ctx.fillStyle = outerGradient;
@@ -216,12 +290,16 @@ export class StarfieldWarpVisualization implements Visualization {
 
     // Core glow
     const coreGradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, pulseSize
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      pulseSize,
     );
-    coreGradient.addColorStop(0, colors.center + '80');
-    coreGradient.addColorStop(0.5, colors.glow + '40');
-    coreGradient.addColorStop(1, 'transparent');
+    coreGradient.addColorStop(0, colors.center + "80");
+    coreGradient.addColorStop(0.5, colors.glow + "40");
+    coreGradient.addColorStop(1, "transparent");
 
     this.ctx.globalAlpha = intensity * (0.6 + bassBoost * 0.4) * 0.7;
     this.ctx.fillStyle = coreGradient;
@@ -235,12 +313,12 @@ export class StarfieldWarpVisualization implements Visualization {
   private updateAndDrawStars(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['hyperspace'],
+    colors: (typeof COLOR_SCHEMES)["hyperspace"],
     deltaTime: number,
     streakLength: number,
     starSizeMultiplier: number,
     bassBoost: number,
-    trebleBoost: number
+    trebleBoost: number,
   ): void {
     if (!this.ctx) return;
 
@@ -273,8 +351,12 @@ export class StarfieldWarpVisualization implements Visualization {
 
       // Skip if off screen
       const margin = 100;
-      if (screenX < -margin || screenX > this.width + margin ||
-          screenY < -margin || screenY > this.height + margin) {
+      if (
+        screenX < -margin ||
+        screenX > this.width + margin ||
+        screenY < -margin ||
+        screenY > this.height + margin
+      ) {
         continue;
       }
 
@@ -299,18 +381,20 @@ export class StarfieldWarpVisualization implements Visualization {
       // Long streak effect
       if (streakMultiplier > 0.5 && depthFactor > 0.2) {
         const streakGradient = this.ctx.createLinearGradient(
-          prevScreenX, prevScreenY,
-          screenX, screenY
+          prevScreenX,
+          prevScreenY,
+          screenX,
+          screenY,
         );
-        streakGradient.addColorStop(0, 'transparent');
-        streakGradient.addColorStop(0.3, starColor + '44');
-        streakGradient.addColorStop(0.7, starColor + 'aa');
+        streakGradient.addColorStop(0, "transparent");
+        streakGradient.addColorStop(0.3, starColor + "44");
+        streakGradient.addColorStop(0.7, starColor + "aa");
         streakGradient.addColorStop(1, starColor);
 
         this.ctx.globalAlpha = alpha * 0.7;
         this.ctx.strokeStyle = streakGradient;
         this.ctx.lineWidth = size * 0.5;
-        this.ctx.lineCap = 'round';
+        this.ctx.lineCap = "round";
         this.ctx.beginPath();
         this.ctx.moveTo(prevScreenX, prevScreenY);
         this.ctx.lineTo(screenX, screenY);
@@ -327,12 +411,16 @@ export class StarfieldWarpVisualization implements Visualization {
       // Glow for close stars
       if (depthFactor > 0.6) {
         const glowGradient = this.ctx.createRadialGradient(
-          screenX, screenY, 0,
-          screenX, screenY, size * 3
+          screenX,
+          screenY,
+          0,
+          screenX,
+          screenY,
+          size * 3,
         );
-        glowGradient.addColorStop(0, starColor + '66');
-        glowGradient.addColorStop(0.5, starColor + '22');
-        glowGradient.addColorStop(1, 'transparent');
+        glowGradient.addColorStop(0, starColor + "66");
+        glowGradient.addColorStop(0.5, starColor + "22");
+        glowGradient.addColorStop(1, "transparent");
 
         this.ctx.globalAlpha = depthFactor * 0.5 * 0.7;
         this.ctx.fillStyle = glowGradient;
@@ -348,8 +436,8 @@ export class StarfieldWarpVisualization implements Visualization {
   private drawSpeedLines(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['hyperspace'],
-    bassBoost: number
+    colors: (typeof COLOR_SCHEMES)["hyperspace"],
+    bassBoost: number,
   ): void {
     if (!this.ctx) return;
 
@@ -369,10 +457,10 @@ export class StarfieldWarpVisualization implements Visualization {
       const endY = centerY + Math.sin(angle) * (startDist + length);
 
       const gradient = this.ctx.createLinearGradient(startX, startY, endX, endY);
-      gradient.addColorStop(0, 'transparent');
-      gradient.addColorStop(0.3, colors.streaks + '44');
-      gradient.addColorStop(0.7, colors.streaks + '88');
-      gradient.addColorStop(1, colors.streaks + '22');
+      gradient.addColorStop(0, "transparent");
+      gradient.addColorStop(0.3, colors.streaks + "44");
+      gradient.addColorStop(0.7, colors.streaks + "88");
+      gradient.addColorStop(1, colors.streaks + "22");
 
       this.ctx.strokeStyle = gradient;
       this.ctx.lineWidth = 1 + Math.random() * 2;
@@ -388,8 +476,8 @@ export class StarfieldWarpVisualization implements Visualization {
   private drawAmbientRings(
     centerX: number,
     centerY: number,
-    colors: typeof COLOR_SCHEMES['hyperspace'],
-    midBoost: number
+    colors: (typeof COLOR_SCHEMES)["hyperspace"],
+    midBoost: number,
   ): void {
     if (!this.ctx) return;
 
@@ -424,8 +512,10 @@ export class StarfieldWarpVisualization implements Visualization {
     const oldStarCount = this.config.starCount;
     this.config = { ...this.config, ...config } as StarfieldWarpConfig;
 
-    if ((config as StarfieldWarpConfig).starCount !== undefined &&
-        (config as StarfieldWarpConfig).starCount !== oldStarCount) {
+    if (
+      (config as StarfieldWarpConfig).starCount !== undefined &&
+      (config as StarfieldWarpConfig).starCount !== oldStarCount
+    ) {
       this.initStars();
     }
   }
@@ -441,26 +531,47 @@ export class StarfieldWarpVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Audio Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'hyperspace', label: 'Hyperspace' },
-          { value: 'warpCore', label: 'Warp Core' },
-          { value: 'quantum', label: 'Quantum' },
-          { value: 'emerald', label: 'Emerald' },
-          { value: 'crimson', label: 'Crimson' },
-          { value: 'arctic', label: 'Arctic' },
-        ],
-        default: 'hyperspace',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Audio Sensitivity",
       },
-      starCount: { type: 'number', min: 200, max: 1000, step: 100, default: 600, label: 'Star Count' },
-      baseSpeed: { type: 'number', min: 0.5, max: 5, step: 0.5, default: 2, label: 'Base Speed' },
-      maxSpeed: { type: 'number', min: 5, max: 40, step: 5, default: 20, label: 'Max Speed' },
-      streakLength: { type: 'number', min: 0.2, max: 2, step: 0.1, default: 1.0, label: 'Streak Length' },
-      centerGlow: { type: 'number', min: 0, max: 2, step: 0.1, default: 1.0, label: 'Center Glow' },
-      starSize: { type: 'number', min: 0.5, max: 2, step: 0.1, default: 1.0, label: 'Star Size' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "hyperspace", label: "Hyperspace" },
+          { value: "warpCore", label: "Warp Core" },
+          { value: "quantum", label: "Quantum" },
+          { value: "emerald", label: "Emerald" },
+          { value: "crimson", label: "Crimson" },
+          { value: "arctic", label: "Arctic" },
+        ],
+        default: "hyperspace",
+        label: "Color Scheme",
+      },
+      starCount: {
+        type: "number",
+        min: 200,
+        max: 1000,
+        step: 100,
+        default: 600,
+        label: "Star Count",
+      },
+      baseSpeed: { type: "number", min: 0.5, max: 5, step: 0.5, default: 2, label: "Base Speed" },
+      maxSpeed: { type: "number", min: 5, max: 40, step: 5, default: 20, label: "Max Speed" },
+      streakLength: {
+        type: "number",
+        min: 0.2,
+        max: 2,
+        step: 0.1,
+        default: 1.0,
+        label: "Streak Length",
+      },
+      centerGlow: { type: "number", min: 0, max: 2, step: 0.1, default: 1.0, label: "Center Glow" },
+      starSize: { type: "number", min: 0.5, max: 2, step: 0.1, default: 1.0, label: "Star Size" },
     };
   }
 }

@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; background: number }> = {
   cyanMagenta: { primary: 0x00ffff, secondary: 0xff00ff, background: 0x000000 },
@@ -19,12 +25,21 @@ const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; backgr
 };
 
 export class AudioMeshVisualization implements Visualization {
-  id = 'audioMesh';
-  name = 'Audio Mesh';
-  author = 'Vizec';
-  description = 'A grid mesh that deforms like water based on audio';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "audioMesh",
+    name: "Audio Mesh",
+    author: "Vizec",
+    description: "A grid mesh that deforms like water based on audio",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -33,10 +48,10 @@ export class AudioMeshVisualization implements Visualization {
   private mesh: THREE.Mesh | null = null;
   private geometry: THREE.PlaneGeometry | null = null;
   private originalPositions: Float32Array | null = null;
-  
+
   private config: VisualizationConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     gridSize: 64,
     waveSpeed: 2,
     waveHeight: 15,
@@ -61,8 +76,8 @@ export class AudioMeshVisualization implements Visualization {
     this.camera.lookAt(0, 0, 0);
 
     // Create renderer with transparency
-    this.rendererThree = new THREE.WebGLRenderer({ 
-      antialias: true, 
+    this.rendererThree = new THREE.WebGLRenderer({
+      antialias: true,
       alpha: true,
     });
     this.rendererThree.setSize(width, height);
@@ -123,9 +138,17 @@ export class AudioMeshVisualization implements Visualization {
   }
 
   render(audioData: AudioData, deltaTime: number): void {
-    if (!this.scene || !this.camera || !this.rendererThree || !this.mesh || !this.geometry || !this.originalPositions) return;
+    if (
+      !this.scene ||
+      !this.camera ||
+      !this.rendererThree ||
+      !this.mesh ||
+      !this.geometry ||
+      !this.originalPositions
+    )
+      return;
 
-    const { bass, mid, treble, volume, frequencyData } = audioData;
+    const { bass, mid, volume, frequencyData } = audioData;
     const { sensitivity, waveSpeed, waveHeight } = this.config;
 
     this.time += deltaTime * waveSpeed;
@@ -142,8 +165,7 @@ export class AudioMeshVisualization implements Visualization {
 
       // Get grid position
       const gridX = i % gridSize;
-      const gridZ = Math.floor(i / gridSize);
-      
+
       // Map to frequency data
       const freqIndex = Math.floor((gridX / gridSize) * frequencyData.length * 0.5);
       const freqValue = frequencyData[freqIndex] / 255;
@@ -151,14 +173,15 @@ export class AudioMeshVisualization implements Visualization {
       // Create wave pattern
       const distance = Math.sqrt(x * x + z * z);
       const wave1 = Math.sin(distance * 0.1 - this.time * 2) * bass * sensitivity;
-      const wave2 = Math.sin(x * 0.2 + this.time) * Math.cos(z * 0.2 + this.time) * mid * sensitivity;
-      
+      const wave2 =
+        Math.sin(x * 0.2 + this.time) * Math.cos(z * 0.2 + this.time) * mid * sensitivity;
+
       // Frequency-based displacement
       const freqWave = freqValue * sensitivity * waveHeight;
-      
+
       // Combine all effects
       const displacement = (wave1 * 5 + wave2 * 3 + freqWave) * (0.5 + volume);
-      
+
       positions[i3 + 1] = this.originalPositions[i3 + 1] + displacement;
     }
 
@@ -171,7 +194,7 @@ export class AudioMeshVisualization implements Visualization {
     // Camera movement based on audio
     const targetY = 40 + bass * sensitivity * 10;
     this.camera.position.y += (targetY - this.camera.position.y) * 0.05;
-    
+
     const targetZ = 50 - volume * sensitivity * 10;
     this.camera.position.z += (targetZ - this.camera.position.z) * 0.05;
 
@@ -198,15 +221,16 @@ export class AudioMeshVisualization implements Visualization {
     const oldColorScheme = this.config.colorScheme;
     const oldGridSize = this.config.gridSize;
     const oldWireframe = this.config.wireframe;
-    
+
     this.config = { ...this.config, ...config };
-    
+
     // Recreate mesh if relevant settings changed
-    if (this.scene && (
-      config.colorScheme !== oldColorScheme ||
-      config.gridSize !== oldGridSize ||
-      config.wireframe !== oldWireframe
-    )) {
+    if (
+      this.scene &&
+      (config.colorScheme !== oldColorScheme ||
+        config.gridSize !== oldGridSize ||
+        config.wireframe !== oldWireframe)
+    ) {
       this.createMesh();
     }
   }
@@ -237,32 +261,39 @@ export class AudioMeshVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      gridSize: { type: 'number', min: 16, max: 128, step: 16, default: 64, label: 'Grid Detail' },
-      waveSpeed: { type: 'number', min: 0.5, max: 5, step: 0.5, default: 2, label: 'Wave Speed' },
-      waveHeight: { type: 'number', min: 5, max: 30, step: 1, default: 15, label: 'Wave Height' },
-      wireframe: { type: 'boolean', default: true, label: 'Wireframe Mode' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      gridSize: { type: "number", min: 16, max: 128, step: 16, default: 64, label: "Grid Detail" },
+      waveSpeed: { type: "number", min: 0.5, max: 5, step: 0.5, default: 2, label: "Wave Speed" },
+      waveHeight: { type: "number", min: 5, max: 30, step: 1, default: 15, label: "Wave Height" },
+      wireframe: { type: "boolean", default: true, label: "Wireframe Mode" },
     };
   }
 }

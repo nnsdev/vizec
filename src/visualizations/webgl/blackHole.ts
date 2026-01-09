@@ -1,19 +1,64 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
-const COLOR_SCHEMES: Record<string, {
-  diskInner: number;
-  diskOuter: number;
-  glow: number;
-  stars: number;
-  lensing: number;
-}> = {
-  interstellar: { diskInner: 0xffffcc, diskOuter: 0xff4400, glow: 0xff6600, stars: 0xffffff, lensing: 0xffaa00 },
-  cosmic: { diskInner: 0x00ffff, diskOuter: 0x0066ff, glow: 0x0088ff, stars: 0xaaccff, lensing: 0x00ccff },
-  inferno: { diskInner: 0xffffff, diskOuter: 0xff0000, glow: 0xff3300, stars: 0xffcccc, lensing: 0xff6600 },
-  void: { diskInner: 0xff00ff, diskOuter: 0x4400aa, glow: 0x8800ff, stars: 0xddccff, lensing: 0xaa00ff },
-  ice: { diskInner: 0xffffff, diskOuter: 0x00bfff, glow: 0x00ddff, stars: 0xe0ffff, lensing: 0x87ceeb },
-  golden: { diskInner: 0xffffff, diskOuter: 0xffd700, glow: 0xffaa00, stars: 0xffffee, lensing: 0xffcc00 },
+const COLOR_SCHEMES: Record<
+  string,
+  {
+    diskInner: number;
+    diskOuter: number;
+    glow: number;
+    stars: number;
+    lensing: number;
+  }
+> = {
+  interstellar: {
+    diskInner: 0xffffcc,
+    diskOuter: 0xff4400,
+    glow: 0xff6600,
+    stars: 0xffffff,
+    lensing: 0xffaa00,
+  },
+  cosmic: {
+    diskInner: 0x00ffff,
+    diskOuter: 0x0066ff,
+    glow: 0x0088ff,
+    stars: 0xaaccff,
+    lensing: 0x00ccff,
+  },
+  inferno: {
+    diskInner: 0xffffff,
+    diskOuter: 0xff0000,
+    glow: 0xff3300,
+    stars: 0xffcccc,
+    lensing: 0xff6600,
+  },
+  void: {
+    diskInner: 0xff00ff,
+    diskOuter: 0x4400aa,
+    glow: 0x8800ff,
+    stars: 0xddccff,
+    lensing: 0xaa00ff,
+  },
+  ice: {
+    diskInner: 0xffffff,
+    diskOuter: 0x00bfff,
+    glow: 0x00ddff,
+    stars: 0xe0ffff,
+    lensing: 0x87ceeb,
+  },
+  golden: {
+    diskInner: 0xffffff,
+    diskOuter: 0xffd700,
+    glow: 0xffaa00,
+    stars: 0xffffee,
+    lensing: 0xffcc00,
+  },
 };
 
 interface AccretionParticle {
@@ -59,12 +104,20 @@ interface BlackHoleConfig extends VisualizationConfig {
 }
 
 export class BlackHoleVisualization implements Visualization {
-  id = 'blackHole';
-  name = 'Black Hole';
-  author = 'Vizec';
-  description = 'Cinematic black hole with accretion disk, gravitational lensing, and particle streams';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "blackHole",
+    name: "Black Hole",
+    author: "Vizec",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -102,7 +155,7 @@ export class BlackHoleVisualization implements Visualization {
     sensitivity: 1.0,
     holeSize: 8,
     diskIntensity: 1.0,
-    colorScheme: 'interstellar',
+    colorScheme: "interstellar",
     particleCount: 3000,
     lensing: 1.0,
     starCount: 2000,
@@ -197,7 +250,7 @@ export class BlackHoleVisualization implements Visualization {
     });
   }
 
-  private createStarfield(count: number, colors: typeof COLOR_SCHEMES['interstellar']): void {
+  private createStarfield(count: number, colors: (typeof COLOR_SCHEMES)["interstellar"]): void {
     if (!this.scene) return;
 
     this.stars = [];
@@ -238,9 +291,9 @@ export class BlackHoleVisualization implements Visualization {
     }
 
     this.starGeometry = new THREE.BufferGeometry();
-    this.starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.starGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-    this.starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
+    this.starGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.starGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    this.starGeometry.setAttribute("color", new THREE.Float32BufferAttribute(starColors, 3));
 
     const starMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -287,7 +340,11 @@ export class BlackHoleVisualization implements Visualization {
     this.scene.add(this.starField);
   }
 
-  private createAccretionDisk(count: number, holeSize: number, colors: typeof COLOR_SCHEMES['interstellar']): void {
+  private createAccretionDisk(
+    count: number,
+    holeSize: number,
+    colors: (typeof COLOR_SCHEMES)["interstellar"],
+  ): void {
     if (!this.scene) return;
 
     this.accretionParticles = [];
@@ -406,13 +463,13 @@ export class BlackHoleVisualization implements Visualization {
       alphas.push(p.life);
     }
 
-    this.accretionGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.accretionGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-    this.accretionGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    this.accretionGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(alphas, 1));
+    this.accretionGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.accretionGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    this.accretionGeometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    this.accretionGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
   }
 
-  private createDiskGlow(holeSize: number, colors: typeof COLOR_SCHEMES['interstellar']): void {
+  private createDiskGlow(holeSize: number, colors: (typeof COLOR_SCHEMES)["interstellar"]): void {
     if (!this.scene) return;
 
     const glowGeometry = new THREE.RingGeometry(holeSize * 1.3, holeSize * 6, 64, 1);
@@ -484,11 +541,17 @@ export class BlackHoleVisualization implements Visualization {
     this.diskGlowBottom.rotation.x = Math.PI / 2;
     this.diskGlowBottom.position.y = -0.1;
     this.diskGlowBottom.renderOrder = 5;
-    ((this.diskGlowBottom.material as THREE.ShaderMaterial).uniforms.glowIntensity as THREE.IUniform).value = 0.7;
+    (
+      (this.diskGlowBottom.material as THREE.ShaderMaterial).uniforms
+        .glowIntensity as THREE.IUniform
+    ).value = 0.7;
     this.scene.add(this.diskGlowBottom);
   }
 
-  private createLensingRing(holeSize: number, colors: typeof COLOR_SCHEMES['interstellar']): void {
+  private createLensingRing(
+    holeSize: number,
+    colors: (typeof COLOR_SCHEMES)["interstellar"],
+  ): void {
     if (!this.scene) return;
 
     // Main photon ring - the bright lensing effect
@@ -579,7 +642,10 @@ export class BlackHoleVisualization implements Visualization {
     this.scene.add(this.lensingRingOuter);
   }
 
-  private createEventHorizon(holeSize: number, colors: typeof COLOR_SCHEMES['interstellar']): void {
+  private createEventHorizon(
+    holeSize: number,
+    colors: (typeof COLOR_SCHEMES)["interstellar"],
+  ): void {
     if (!this.scene) return;
 
     // The actual black hole - pure black sphere
@@ -634,7 +700,10 @@ export class BlackHoleVisualization implements Visualization {
     this.scene.add(this.eventHorizonGlow);
   }
 
-  private createInfallingParticles(holeSize: number, colors: typeof COLOR_SCHEMES['interstellar']): void {
+  private createInfallingParticles(
+    holeSize: number,
+    colors: (typeof COLOR_SCHEMES)["interstellar"],
+  ): void {
     if (!this.scene) return;
 
     this.infallingParticles = [];
@@ -692,17 +761,16 @@ export class BlackHoleVisualization implements Visualization {
     this.scene.add(this.infallingPoints);
   }
 
-  private spawnInfallingParticle(holeSize: number, colors: typeof COLOR_SCHEMES['interstellar']): void {
+  private spawnInfallingParticle(
+    holeSize: number,
+    _colors: (typeof COLOR_SCHEMES)["interstellar"],
+  ): void {
     const angle = Math.random() * Math.PI * 2;
     const startRadius = holeSize * 4 + Math.random() * holeSize * 2;
     const y = (Math.random() - 0.5) * 3;
 
     this.infallingParticles.push({
-      position: new THREE.Vector3(
-        Math.cos(angle) * startRadius,
-        y,
-        Math.sin(angle) * startRadius
-      ),
+      position: new THREE.Vector3(Math.cos(angle) * startRadius, y, Math.sin(angle) * startRadius),
       velocity: new THREE.Vector3(),
       angle,
       radius: startRadius,
@@ -725,9 +793,9 @@ export class BlackHoleVisualization implements Visualization {
       alphas.push(p.life);
     }
 
-    this.infallingGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    this.infallingGeometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-    this.infallingGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(alphas, 1));
+    this.infallingGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.infallingGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+    this.infallingGeometry.setAttribute("alpha", new THREE.Float32BufferAttribute(alphas, 1));
   }
 
   render(audioData: AudioData, deltaTime: number): void {
@@ -762,14 +830,21 @@ export class BlackHoleVisualization implements Visualization {
       const mat = this.eventHorizonGlow.material as THREE.ShaderMaterial;
       mat.uniforms.viewVector.value = new THREE.Vector3().subVectors(
         this.camera.position,
-        this.eventHorizonGlow.position
+        this.eventHorizonGlow.position,
       );
       mat.uniforms.intensity.value = 0.3 + bassBoost * 0.5;
       this.eventHorizonGlow.scale.setScalar(1.0 + bassBoost * 0.08);
     }
 
     // Update accretion disk
-    this.updateAccretionDisk(deltaTime, bassBoost, midBoost, trebleBoost, volumeBoost, rotationSpeed);
+    this.updateAccretionDisk(
+      deltaTime,
+      bassBoost,
+      midBoost,
+      trebleBoost,
+      volumeBoost,
+      rotationSpeed,
+    );
 
     // Update disk glow
     if (this.diskGlowTop) {
@@ -817,7 +892,7 @@ export class BlackHoleVisualization implements Visualization {
     midBoost: number,
     trebleBoost: number,
     volumeBoost: number,
-    rotationSpeed: number
+    rotationSpeed: number,
   ): void {
     if (!this.accretionDisk || !this.accretionGeometry) return;
 
@@ -844,7 +919,8 @@ export class BlackHoleVisualization implements Visualization {
       p.position.z = Math.sin(p.angle) * p.radius;
 
       // Vertical bobbing
-      p.position.y = Math.sin(p.angle * 3 + this.time) * (0.5 + (p.radius / (this.config.holeSize * 5)) * 2);
+      p.position.y =
+        Math.sin(p.angle * 3 + this.time) * (0.5 + (p.radius / (this.config.holeSize * 5)) * 2);
 
       // Update life/alpha based on position and volume
       const t = (p.radius - innerRadius) / (this.config.holeSize * 3.5);
@@ -864,7 +940,7 @@ export class BlackHoleVisualization implements Visualization {
     bassBoost: number,
     trebleBoost: number,
     holeSize: number,
-    colors: typeof COLOR_SCHEMES['interstellar']
+    colors: (typeof COLOR_SCHEMES)["interstellar"],
   ): void {
     if (!this.infallingGeometry) return;
 
@@ -908,7 +984,7 @@ export class BlackHoleVisualization implements Visualization {
     deltaTime: number,
     trebleBoost: number,
     bassBoost: number,
-    holeSize: number
+    holeSize: number,
   ): void {
     if (!this.starGeometry || !this.starField) return;
 
@@ -930,12 +1006,13 @@ export class BlackHoleVisualization implements Visualization {
 
       if (dist < lensingRadius * 2) {
         const dir = star.originalPosition.clone().normalize();
-        const lensFactor = Math.pow(1 - Math.min(dist / (lensingRadius * 2), 1), 2) * lensingStrength;
+        const lensFactor =
+          Math.pow(1 - Math.min(dist / (lensingRadius * 2), 1), 2) * lensingStrength;
 
         // Warp outward (simulating light bending around the hole)
-        const warpedPos = star.originalPosition.clone().add(
-          dir.multiplyScalar(lensFactor * holeSize * 2)
-        );
+        const warpedPos = star.originalPosition
+          .clone()
+          .add(dir.multiplyScalar(lensFactor * holeSize * 2));
 
         // Rotate slightly around the hole
         const warpAngle = lensFactor * 0.3 * Math.sin(this.time * 0.5);
@@ -973,14 +1050,14 @@ export class BlackHoleVisualization implements Visualization {
 
   updateConfig(config: Partial<VisualizationConfig>): void {
     const needsRecreate =
-      (config as BlackHoleConfig).colorScheme !== undefined &&
-      (config as BlackHoleConfig).colorScheme !== this.config.colorScheme ||
-      (config as BlackHoleConfig).holeSize !== undefined &&
-      (config as BlackHoleConfig).holeSize !== this.config.holeSize ||
-      (config as BlackHoleConfig).particleCount !== undefined &&
-      (config as BlackHoleConfig).particleCount !== this.config.particleCount ||
-      (config as BlackHoleConfig).starCount !== undefined &&
-      (config as BlackHoleConfig).starCount !== this.config.starCount;
+      ((config as BlackHoleConfig).colorScheme !== undefined &&
+        (config as BlackHoleConfig).colorScheme !== this.config.colorScheme) ||
+      ((config as BlackHoleConfig).holeSize !== undefined &&
+        (config as BlackHoleConfig).holeSize !== this.config.holeSize) ||
+      ((config as BlackHoleConfig).particleCount !== undefined &&
+        (config as BlackHoleConfig).particleCount !== this.config.particleCount) ||
+      ((config as BlackHoleConfig).starCount !== undefined &&
+        (config as BlackHoleConfig).starCount !== this.config.starCount);
 
     this.config = { ...this.config, ...config } as BlackHoleConfig;
 
@@ -1021,26 +1098,68 @@ export class BlackHoleVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Audio Sensitivity' },
-      holeSize: { type: 'number', min: 4, max: 15, step: 1, default: 8, label: 'Black Hole Size' },
-      diskIntensity: { type: 'number', min: 0.2, max: 2, step: 0.1, default: 1.0, label: 'Disk Intensity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'interstellar', label: 'Interstellar' },
-          { value: 'cosmic', label: 'Cosmic Blue' },
-          { value: 'inferno', label: 'Inferno' },
-          { value: 'void', label: 'Void Purple' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'interstellar',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Audio Sensitivity",
       },
-      particleCount: { type: 'number', min: 1000, max: 8000, step: 500, default: 3000, label: 'Particle Count' },
-      lensing: { type: 'number', min: 0, max: 2, step: 0.1, default: 1.0, label: 'Lensing Intensity' },
-      starCount: { type: 'number', min: 500, max: 5000, step: 250, default: 2000, label: 'Star Count' },
-      rotationSpeed: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Rotation Speed' },
+      holeSize: { type: "number", min: 4, max: 15, step: 1, default: 8, label: "Black Hole Size" },
+      diskIntensity: {
+        type: "number",
+        min: 0.2,
+        max: 2,
+        step: 0.1,
+        default: 1.0,
+        label: "Disk Intensity",
+      },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "interstellar", label: "Interstellar" },
+          { value: "cosmic", label: "Cosmic Blue" },
+          { value: "inferno", label: "Inferno" },
+          { value: "void", label: "Void Purple" },
+          { value: "ice", label: "Ice" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "interstellar",
+        label: "Color Scheme",
+      },
+      particleCount: {
+        type: "number",
+        min: 1000,
+        max: 8000,
+        step: 500,
+        default: 3000,
+        label: "Particle Count",
+      },
+      lensing: {
+        type: "number",
+        min: 0,
+        max: 2,
+        step: 0.1,
+        default: 1.0,
+        label: "Lensing Intensity",
+      },
+      starCount: {
+        type: "number",
+        min: 500,
+        max: 5000,
+        step: 250,
+        default: 2000,
+        label: "Star Count",
+      },
+      rotationSpeed: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Rotation Speed",
+      },
     };
   }
 }

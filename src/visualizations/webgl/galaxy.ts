@@ -1,5 +1,11 @@
-import * as THREE from 'three';
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import * as THREE from "three";
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; glow: number }> = {
   cyanMagenta: { primary: 0x00ffff, secondary: 0xff00ff, glow: 0x00ffff },
@@ -27,12 +33,21 @@ interface GalaxyConfig extends VisualizationConfig {
 }
 
 export class GalaxyVisualization implements Visualization {
-  id = 'galaxy';
-  name = 'Galaxy';
-  author = 'Vizec';
-  description = 'Spiral galaxy made of particles with audio-reactive rotation and brightness';
-  renderer = 'threejs' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "galaxy",
+    name: "Galaxy",
+    author: "Vizec",
+    description: "Spiral galaxy made of particles with audio-reactive rotation and brightness",
+    renderer: "threejs",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -46,7 +61,7 @@ export class GalaxyVisualization implements Visualization {
 
   private config: GalaxyConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     starCount: 15000,
     armCount: 4,
     rotationSpeed: 0.3,
@@ -144,7 +159,7 @@ export class GalaxyVisualization implements Visualization {
       const starColor = new THREE.Color().lerpColors(
         glowColor,
         mixFactor < 0.5 ? primaryColor : secondaryColor,
-        mixFactor
+        mixFactor,
       );
       starColors[i3] = starColor.r;
       starColors[i3 + 1] = starColor.g;
@@ -156,9 +171,9 @@ export class GalaxyVisualization implements Visualization {
       this.originalSizes[i] = size;
     }
 
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.geometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-    this.geometry.setAttribute('size', new THREE.BufferAttribute(this.starSizes, 1));
+    this.geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    this.geometry.setAttribute("color", new THREE.BufferAttribute(starColors, 3));
+    this.geometry.setAttribute("size", new THREE.BufferAttribute(this.starSizes, 1));
 
     // Create custom shader material for stars
     const starMaterial = new THREE.ShaderMaterial({
@@ -205,17 +220,17 @@ export class GalaxyVisualization implements Visualization {
   }
 
   private createStarTexture(): THREE.Texture {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = 64;
     canvas.height = 64;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext("2d")!;
 
     // Create radial gradient for soft star
     const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
-    gradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.3)');
-    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+    gradient.addColorStop(0.3, "rgba(255, 255, 255, 0.8)");
+    gradient.addColorStop(0.6, "rgba(255, 255, 255, 0.3)");
+    gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 64, 64);
@@ -228,7 +243,7 @@ export class GalaxyVisualization implements Visualization {
     if (!this.scene || !this.camera || !this.rendererThree || !this.stars || !this.geometry) return;
     if (!this.starSizes || !this.originalSizes) return;
 
-    const { bass, mid, treble, volume, frequencyData } = audioData;
+    const { bass, volume, frequencyData } = audioData;
     const { sensitivity, rotationSpeed } = this.config;
 
     this.time += deltaTime;
@@ -302,12 +317,13 @@ export class GalaxyVisualization implements Visualization {
     this.config = { ...this.config, ...config } as GalaxyConfig;
 
     // Recreate galaxy if relevant settings changed
-    if (this.scene && (
-      this.config.colorScheme !== oldColorScheme ||
-      this.config.starCount !== oldStarCount ||
-      this.config.armCount !== oldArmCount ||
-      this.config.spread !== oldSpread
-    )) {
+    if (
+      this.scene &&
+      (this.config.colorScheme !== oldColorScheme ||
+        this.config.starCount !== oldStarCount ||
+        this.config.armCount !== oldArmCount ||
+        this.config.spread !== oldSpread)
+    ) {
       this.createGalaxy();
     }
   }
@@ -345,32 +361,53 @@ export class GalaxyVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      starCount: { type: 'number', min: 5000, max: 30000, step: 1000, default: 15000, label: 'Star Count' },
-      armCount: { type: 'number', min: 2, max: 8, step: 1, default: 4, label: 'Spiral Arms' },
-      rotationSpeed: { type: 'number', min: 0, max: 2, step: 0.1, default: 0.3, label: 'Rotation Speed' },
-      spread: { type: 'number', min: 15, max: 50, step: 5, default: 30, label: 'Galaxy Spread' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      starCount: {
+        type: "number",
+        min: 5000,
+        max: 30000,
+        step: 1000,
+        default: 15000,
+        label: "Star Count",
+      },
+      armCount: { type: "number", min: 2, max: 8, step: 1, default: 4, label: "Spiral Arms" },
+      rotationSpeed: {
+        type: "number",
+        min: 0,
+        max: 2,
+        step: 0.1,
+        default: 0.3,
+        label: "Rotation Speed",
+      },
+      spread: { type: "number", min: 15, max: 50, step: 5, default: 30, label: "Galaxy Spread" },
     };
   }
 }

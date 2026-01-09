@@ -1,4 +1,4 @@
-import { AudioData } from '../../shared/types';
+import { AudioData } from "../../shared/types";
 
 export class AudioAnalyzer {
   private audioContext: AudioContext | null = null;
@@ -7,38 +7,38 @@ export class AudioAnalyzer {
   private gainNode: GainNode | null = null;
   private frequencyData: Uint8Array = new Uint8Array(0);
   private timeDomainData: Uint8Array = new Uint8Array(0);
-  
-  private sensitivity = 4.0;  // Sensitivity multiplier
-  private smoothing = 0.5;    // Lower smoothing for more responsiveness to music
-  private gain = 15.0;        // High audio gain multiplier
-  private noiseGate = 5;      // Lower noise gate to catch more audio
+
+  private sensitivity = 4.0; // Sensitivity multiplier
+  private smoothing = 0.5; // Lower smoothing for more responsiveness to music
+  private gain = 15.0; // High audio gain multiplier
+  private noiseGate = 5; // Lower noise gate to catch more audio
 
   async connect(stream: MediaStream): Promise<void> {
     // Create audio context
     this.audioContext = new AudioContext();
-    
+
     // Create gain node to amplify the signal (loopback audio is often quiet)
     this.gainNode = this.audioContext.createGain();
     this.gainNode.gain.value = this.gain;
-    
+
     // Create analyser node
     this.analyser = this.audioContext.createAnalyser();
     this.analyser.fftSize = 2048;
     this.analyser.smoothingTimeConstant = this.smoothing;
-    this.analyser.minDecibels = -100;  // Very sensitive to quiet sounds
-    this.analyser.maxDecibels = -10;   // Wide dynamic range
-    
+    this.analyser.minDecibels = -100; // Very sensitive to quiet sounds
+    this.analyser.maxDecibels = -10; // Wide dynamic range
+
     // Connect stream -> gain -> analyser
     this.source = this.audioContext.createMediaStreamSource(stream);
     this.source.connect(this.gainNode);
     this.gainNode.connect(this.analyser);
-    
+
     // Initialize data arrays
     const bufferLength = this.analyser.frequencyBinCount;
     this.frequencyData = new Uint8Array(bufferLength);
     this.timeDomainData = new Uint8Array(bufferLength);
-    
-    console.log('AudioAnalyzer connected with gain:', this.gain);
+
+    console.log("AudioAnalyzer connected with gain:", this.gain);
   }
 
   disconnect(): void {
@@ -46,17 +46,17 @@ export class AudioAnalyzer {
       this.source.disconnect();
       this.source = null;
     }
-    
+
     if (this.gainNode) {
       this.gainNode.disconnect();
       this.gainNode = null;
     }
-    
+
     if (this.audioContext) {
       this.audioContext.close();
       this.audioContext = null;
     }
-    
+
     this.analyser = null;
   }
 
@@ -99,7 +99,8 @@ export class AudioAnalyzer {
     for (let i = 0; i < this.frequencyData.length; i++) {
       if (this.frequencyData[i] > this.noiseGate) {
         // Scale remaining values to use full 0-255 range
-        const scaledValue = ((this.frequencyData[i] - this.noiseGate) / (255 - this.noiseGate)) * 255;
+        const scaledValue =
+          ((this.frequencyData[i] - this.noiseGate) / (255 - this.noiseGate)) * 255;
         gatedFrequencyData[i] = Math.min(255, scaledValue);
       } else {
         gatedFrequencyData[i] = 0;
@@ -108,7 +109,7 @@ export class AudioAnalyzer {
 
     // Calculate frequency bands using gated data
     const bufferLength = gatedFrequencyData.length;
-    
+
     // Bass: 0-250Hz (roughly first 1/8 of spectrum)
     const bassEnd = Math.floor(bufferLength / 8);
     let bassSum = 0;

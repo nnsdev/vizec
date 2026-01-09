@@ -1,29 +1,44 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; glow: string }> = {
-  cyanMagenta: { primary: '#00ffff', secondary: '#ff00ff', glow: '#00ffff' },
-  darkTechno: { primary: '#4a00e0', secondary: '#8e2de2', glow: '#4a00e0' },
-  neon: { primary: '#39ff14', secondary: '#ff073a', glow: '#39ff14' },
-  fire: { primary: '#ff4500', secondary: '#ffd700', glow: '#ff4500' },
-  ice: { primary: '#00bfff', secondary: '#e0ffff', glow: '#00bfff' },
-  acid: { primary: '#adff2f', secondary: '#00ff00', glow: '#adff2f' },
-  monochrome: { primary: '#ffffff', secondary: '#888888', glow: '#ffffff' },
-  purpleHaze: { primary: '#8b00ff', secondary: '#ff1493', glow: '#9400d3' },
-  sunset: { primary: '#ff6b6b', secondary: '#feca57', glow: '#ff9f43' },
-  ocean: { primary: '#0077be', secondary: '#00d4aa', glow: '#00b4d8' },
-  toxic: { primary: '#00ff41', secondary: '#0aff0a', glow: '#39ff14' },
-  bloodMoon: { primary: '#8b0000', secondary: '#ff4500', glow: '#dc143c' },
-  synthwave: { primary: '#ff00ff', secondary: '#00ffff', glow: '#ff00aa' },
-  golden: { primary: '#ffd700', secondary: '#ff8c00', glow: '#ffb347' },
+  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", glow: "#00ffff" },
+  darkTechno: { primary: "#4a00e0", secondary: "#8e2de2", glow: "#4a00e0" },
+  neon: { primary: "#39ff14", secondary: "#ff073a", glow: "#39ff14" },
+  fire: { primary: "#ff4500", secondary: "#ffd700", glow: "#ff4500" },
+  ice: { primary: "#00bfff", secondary: "#e0ffff", glow: "#00bfff" },
+  acid: { primary: "#adff2f", secondary: "#00ff00", glow: "#adff2f" },
+  monochrome: { primary: "#ffffff", secondary: "#888888", glow: "#ffffff" },
+  purpleHaze: { primary: "#8b00ff", secondary: "#ff1493", glow: "#9400d3" },
+  sunset: { primary: "#ff6b6b", secondary: "#feca57", glow: "#ff9f43" },
+  ocean: { primary: "#0077be", secondary: "#00d4aa", glow: "#00b4d8" },
+  toxic: { primary: "#00ff41", secondary: "#0aff0a", glow: "#39ff14" },
+  bloodMoon: { primary: "#8b0000", secondary: "#ff4500", glow: "#dc143c" },
+  synthwave: { primary: "#ff00ff", secondary: "#00ffff", glow: "#ff00aa" },
+  golden: { primary: "#ffd700", secondary: "#ff8c00", glow: "#ffb347" },
 };
 
 export class SpectrumCircleVisualization implements Visualization {
-  id = 'spectrumCircle';
-  name = 'Spectrum Circle';
-  author = 'Vizec';
-  description = 'Frequency bars arranged in a circle like a sun';
-  renderer = 'canvas2d' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "spectrumCircle",
+    name: "Spectrum Circle",
+    author: "Vizec",
+    description: "Frequency bars arranged in a circle like a sun",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -31,7 +46,7 @@ export class SpectrumCircleVisualization implements Visualization {
   private height = 0;
   private config: VisualizationConfig = {
     sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
+    colorScheme: "cyanMagenta",
     barCount: 180,
     innerRadius: 100,
     barWidth: 3,
@@ -44,29 +59,30 @@ export class SpectrumCircleVisualization implements Visualization {
   private smoothedData: number[] = [];
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || window.innerHeight;
     this.resize(width, height);
 
-    this.smoothedData = new Array(this.config.barCount).fill(0);
+    this.smoothedData = Array.from({ length: this.config.barCount }, () => 0);
   }
 
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
     const { frequencyData, bass, volume } = audioData;
-    const { sensitivity, colorScheme, barCount, innerRadius, barWidth, glow, mirror, rotate } = this.config;
+    const { sensitivity, colorScheme, barCount, innerRadius, barWidth, glow, mirror, rotate } =
+      this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
 
     // Clear canvas
@@ -116,7 +132,7 @@ export class SpectrumCircleVisualization implements Visualization {
         centerX + Math.cos(angle) * innerRadius,
         centerY + Math.sin(angle) * innerRadius,
         centerX + Math.cos(angle) * (innerRadius + barLength),
-        centerY + Math.sin(angle) * (innerRadius + barLength)
+        centerY + Math.sin(angle) * (innerRadius + barLength),
       );
       gradient.addColorStop(0, colors.primary);
       gradient.addColorStop(1, colors.secondary);
@@ -126,16 +142,31 @@ export class SpectrumCircleVisualization implements Visualization {
 
       // Draw mirrored bar
       if (mirror) {
-        this.drawBar(centerX, centerY, mirrorAngle, innerRadius, barLength, barWidth + value * 2, gradient);
+        this.drawBar(
+          centerX,
+          centerY,
+          mirrorAngle,
+          innerRadius,
+          barLength,
+          barWidth + value * 2,
+          gradient,
+        );
       }
     }
 
     // Draw center circle
     const centerRadius = innerRadius * 0.3 + bass * sensitivity * 30;
-    const centerGradient = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerRadius);
-    centerGradient.addColorStop(0, colors.primary + '80');
-    centerGradient.addColorStop(0.5, colors.secondary + '40');
-    centerGradient.addColorStop(1, 'transparent');
+    const centerGradient = this.ctx.createRadialGradient(
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      centerRadius,
+    );
+    centerGradient.addColorStop(0, colors.primary + "80");
+    centerGradient.addColorStop(0.5, colors.secondary + "40");
+    centerGradient.addColorStop(1, "transparent");
 
     this.ctx.fillStyle = centerGradient;
     this.ctx.beginPath();
@@ -143,7 +174,7 @@ export class SpectrumCircleVisualization implements Visualization {
     this.ctx.fill();
 
     // Draw inner ring
-    this.ctx.strokeStyle = colors.primary + '60';
+    this.ctx.strokeStyle = colors.primary + "60";
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, innerRadius - 5, 0, Math.PI * 2);
@@ -154,7 +185,15 @@ export class SpectrumCircleVisualization implements Visualization {
     this.ctx.globalAlpha = 1.0;
   }
 
-  private drawBar(cx: number, cy: number, angle: number, innerR: number, length: number, width: number, style: CanvasGradient): void {
+  private drawBar(
+    cx: number,
+    cy: number,
+    angle: number,
+    innerR: number,
+    length: number,
+    width: number,
+    style: CanvasGradient,
+  ): void {
     if (!this.ctx || length < 1) return;
 
     const x1 = cx + Math.cos(angle) * innerR;
@@ -164,7 +203,7 @@ export class SpectrumCircleVisualization implements Visualization {
 
     this.ctx.strokeStyle = style;
     this.ctx.lineWidth = width;
-    this.ctx.lineCap = 'round';
+    this.ctx.lineCap = "round";
     this.ctx.beginPath();
     this.ctx.moveTo(x1, y1);
     this.ctx.lineTo(x2, y2);
@@ -184,7 +223,7 @@ export class SpectrumCircleVisualization implements Visualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     this.config = { ...this.config, ...config };
     if (config.barCount && config.barCount !== this.smoothedData.length) {
-      this.smoothedData = new Array(config.barCount).fill(0);
+      this.smoothedData = Array.from({ length: config.barCount }, () => 0);
     }
   }
 
@@ -199,33 +238,47 @@ export class SpectrumCircleVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      barCount: { type: 'number', min: 60, max: 360, step: 30, default: 180, label: 'Bar Count' },
-      innerRadius: { type: 'number', min: 50, max: 200, step: 10, default: 100, label: 'Inner Radius' },
-      glow: { type: 'boolean', default: true, label: 'Glow Effect' },
-      mirror: { type: 'boolean', default: true, label: 'Mirror Mode' },
-      rotate: { type: 'boolean', default: true, label: 'Auto Rotate' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      barCount: { type: "number", min: 60, max: 360, step: 30, default: 180, label: "Bar Count" },
+      innerRadius: {
+        type: "number",
+        min: 50,
+        max: 200,
+        step: 10,
+        default: 100,
+        label: "Inner Radius",
+      },
+      glow: { type: "boolean", default: true, label: "Glow Effect" },
+      mirror: { type: "boolean", default: true, label: "Mirror Mode" },
+      rotate: { type: "boolean", default: true, label: "Auto Rotate" },
     };
   }
 }

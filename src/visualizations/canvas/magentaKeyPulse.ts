@@ -1,10 +1,16 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 const COLOR_SCHEMES: Record<string, { primary: string; accent: string; glow: string }> = {
-  neon: { primary: '#ff00ff', accent: '#00ffff', glow: '#ff00aa' },
-  cyber: { primary: '#ff66cc', accent: '#66ffff', glow: '#ff66aa' },
-  sunset: { primary: '#ff6b6b', accent: '#ffd700', glow: '#ff9f43' },
-  aurora: { primary: '#8b00ff', accent: '#00ffcc', glow: '#8b00ff' },
+  neon: { primary: "#ff00ff", accent: "#00ffff", glow: "#ff00aa" },
+  cyber: { primary: "#ff66cc", accent: "#66ffff", glow: "#ff66aa" },
+  sunset: { primary: "#ff6b6b", accent: "#ffd700", glow: "#ff9f43" },
+  aurora: { primary: "#8b00ff", accent: "#00ffcc", glow: "#8b00ff" },
 };
 
 interface Pulse {
@@ -28,12 +34,21 @@ interface MagentaKeyPulseConfig extends VisualizationConfig {
 }
 
 export class MagentaKeyPulseVisualization implements Visualization {
-  id = 'magentaKeyPulse';
-  name = 'Magenta Key Pulse';
-  author = 'Vizec';
-  description = 'Color-keyed magenta bursts that expand and fade with bass hits.';
-  renderer: 'canvas2d' = 'canvas2d';
-  transitionType: 'crossfade' = 'crossfade';
+  static readonly meta: VisualizationMeta = {
+    id: "magentaKeyPulse",
+    name: "Magenta Key Pulse",
+    author: "Vizec",
+    description: "Color-keyed magenta bursts that expand and fade with bass hits",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -43,7 +58,7 @@ export class MagentaKeyPulseVisualization implements Visualization {
   private lastPulseTime = 0;
   private config: MagentaKeyPulseConfig = {
     sensitivity: 1,
-    colorScheme: 'neon',
+    colorScheme: "neon",
     pulseRate: 4,
     expansionSpeed: 120,
     fadeSpeed: 0.03,
@@ -52,15 +67,15 @@ export class MagentaKeyPulseVisualization implements Visualization {
   };
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -74,7 +89,7 @@ export class MagentaKeyPulseVisualization implements Visualization {
     if (!this.ctx) return;
 
     const { volume, bass } = audioData;
-    const { sensitivity, pulseRate, burstCount, expansionSpeed, fadeSpeed, glow, colorScheme } = this.config;
+    const { pulseRate, burstCount, expansionSpeed, fadeSpeed, glow, colorScheme } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.neon;
 
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -91,7 +106,7 @@ export class MagentaKeyPulseVisualization implements Visualization {
       }
     }
 
-    this.ctx.globalCompositeOperation = 'lighter';
+    this.ctx.globalCompositeOperation = "lighter";
 
     const deltaSeconds = deltaTime || 0.016;
 
@@ -108,10 +123,13 @@ export class MagentaKeyPulseVisualization implements Visualization {
       this.drawPulse(pulse, glow);
     }
 
-    this.ctx.globalCompositeOperation = 'source-over';
+    this.ctx.globalCompositeOperation = "source-over";
   }
 
-  private spawnPulse(colors: { primary: string; accent: string; glow: string }, bassBoost: number): void {
+  private spawnPulse(
+    colors: { primary: string; accent: string; glow: string },
+    bassBoost: number,
+  ): void {
     if (!this.ctx) return;
 
     const x = Math.random() * this.width;
@@ -140,7 +158,7 @@ export class MagentaKeyPulseVisualization implements Visualization {
       pulse.radius * 0.2,
       pulse.x,
       pulse.y,
-      pulse.radius
+      pulse.radius,
     );
     gradient.addColorStop(0, this.hexToRgba(pulse.color, pulse.alpha * 0.6));
     gradient.addColorStop(0.7, this.hexToRgba(pulse.color, pulse.alpha * 0.2));
@@ -192,46 +210,49 @@ export class MagentaKeyPulseVisualization implements Visualization {
   getConfigSchema(): ConfigSchema {
     return {
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'neon',
-        options: Object.keys(COLOR_SCHEMES).map((key) => ({ value: key, label: key.charAt(0).toUpperCase() + key.slice(1) })),
+        type: "select",
+        label: "Color Scheme",
+        default: "neon",
+        options: Object.keys(COLOR_SCHEMES).map((key) => ({
+          value: key,
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+        })),
       },
       pulseRate: {
-        type: 'number',
-        label: 'Pulse Rate',
+        type: "number",
+        label: "Pulse Rate",
         default: 4,
         min: 1,
         max: 12,
         step: 1,
       },
       burstCount: {
-        type: 'number',
-        label: 'Bursts per Pulse',
+        type: "number",
+        label: "Bursts per Pulse",
         default: 3,
         min: 1,
         max: 6,
         step: 1,
       },
       expansionSpeed: {
-        type: 'number',
-        label: 'Expansion Speed',
+        type: "number",
+        label: "Expansion Speed",
         default: 120,
         min: 40,
         max: 240,
         step: 10,
       },
       fadeSpeed: {
-        type: 'number',
-        label: 'Fade Speed',
+        type: "number",
+        label: "Fade Speed",
         default: 0.03,
         min: 0.01,
         max: 0.08,
         step: 0.01,
       },
       glow: {
-        type: 'number',
-        label: 'Glow Strength',
+        type: "number",
+        label: "Glow Strength",
         default: 0.8,
         min: 0,
         max: 1,

@@ -53,13 +53,13 @@ Renderer Process (src/renderer/)
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `src/shared/types.ts` | All shared TypeScript interfaces and IPC channel names |
-| `src/visualizations/registry.ts` | Visualization metadata registry (main process) |
-| `src/visualizations/index.ts` | Factory function + exports (renderer process) |
-| `src/renderer/visualizer/engine.ts` | Render loop, transitions, rotation logic |
-| `src/renderer/shared/audioAnalyzer.ts` | FFT analysis with noise gating |
+| File                                   | Purpose                                                |
+| -------------------------------------- | ------------------------------------------------------ |
+| `src/shared/types.ts`                  | All shared TypeScript interfaces and IPC channel names |
+| `src/visualizations/registry.ts`       | Visualization metadata registry (main process)         |
+| `src/visualizations/index.ts`          | Factory function + exports (renderer process)          |
+| `src/renderer/visualizer/engine.ts`    | Render loop, transitions, rotation logic               |
+| `src/renderer/shared/audioAnalyzer.ts` | FFT analysis with noise gating                         |
 
 ## Adding a New Visualization
 
@@ -69,12 +69,13 @@ Renderer Process (src/renderer/)
    - `src/visualizations/p5/` - p5.js
 
 2. Implement the `Visualization` interface from `src/shared/types.ts`:
+
    ```typescript
    interface Visualization {
      id: string;
      name: string;
-     renderer: 'canvas2d' | 'webgl' | 'p5' | 'threejs';
-     transitionType: 'crossfade' | 'cut' | 'zoom';
+     renderer: "canvas2d" | "webgl" | "p5" | "threejs";
+     transitionType: "crossfade" | "cut" | "zoom";
      init(container: HTMLElement, config: VisualizationConfig): void;
      render(audioData: AudioData, deltaTime: number): void;
      resize(width: number, height: number): void;
@@ -94,12 +95,12 @@ Renderer Process (src/renderer/)
 
 ```typescript
 interface AudioData {
-  frequencyData: Uint8Array;   // FFT bins (gated, scaled 0-255)
-  timeDomainData: Uint8Array;  // Raw waveform
-  volume: number;              // 0-1 overall level
-  bass: number;                // 0-1 low frequency energy
-  mid: number;                 // 0-1 mid frequency energy
-  treble: number;              // 0-1 high frequency energy
+  frequencyData: Uint8Array; // FFT bins (gated, scaled 0-255)
+  timeDomainData: Uint8Array; // Raw waveform
+  volume: number; // 0-1 overall level
+  bass: number; // 0-1 low frequency energy
+  mid: number; // 0-1 mid frequency energy
+  treble: number; // 0-1 high frequency energy
 }
 ```
 

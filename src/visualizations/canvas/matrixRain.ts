@@ -1,4 +1,10 @@
-import { Visualization, AudioData, VisualizationConfig, ConfigSchema } from '../types';
+import {
+  AudioData,
+  ConfigSchema,
+  Visualization,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../types";
 
 interface Drop {
   x: number;
@@ -10,32 +16,41 @@ interface Drop {
 }
 
 const COLOR_SCHEMES: Record<string, { primary: string; glow: string }> = {
-  cyanMagenta: { primary: '#00ffff', glow: '#00ffff' },
-  darkTechno: { primary: '#8e2de2', glow: '#8e2de2' },
-  neon: { primary: '#39ff14', glow: '#39ff14' },
-  fire: { primary: '#ff4500', glow: '#ff4500' },
-  ice: { primary: '#00bfff', glow: '#00bfff' },
-  acid: { primary: '#00ff00', glow: '#00ff00' },
-  monochrome: { primary: '#ffffff', glow: '#ffffff' },
-  purpleHaze: { primary: '#8b00ff', glow: '#9400d3' },
-  sunset: { primary: '#ff6b6b', glow: '#ff9f43' },
-  ocean: { primary: '#0077be', glow: '#00b4d8' },
-  toxic: { primary: '#00ff41', glow: '#39ff14' },
-  bloodMoon: { primary: '#dc143c', glow: '#8b0000' },
-  synthwave: { primary: '#ff00ff', glow: '#ff00aa' },
-  golden: { primary: '#ffd700', glow: '#ffb347' },
+  cyanMagenta: { primary: "#00ffff", glow: "#00ffff" },
+  darkTechno: { primary: "#8e2de2", glow: "#8e2de2" },
+  neon: { primary: "#39ff14", glow: "#39ff14" },
+  fire: { primary: "#ff4500", glow: "#ff4500" },
+  ice: { primary: "#00bfff", glow: "#00bfff" },
+  acid: { primary: "#00ff00", glow: "#00ff00" },
+  monochrome: { primary: "#ffffff", glow: "#ffffff" },
+  purpleHaze: { primary: "#8b00ff", glow: "#9400d3" },
+  sunset: { primary: "#ff6b6b", glow: "#ff9f43" },
+  ocean: { primary: "#0077be", glow: "#00b4d8" },
+  toxic: { primary: "#00ff41", glow: "#39ff14" },
+  bloodMoon: { primary: "#dc143c", glow: "#8b0000" },
+  synthwave: { primary: "#ff00ff", glow: "#ff00aa" },
+  golden: { primary: "#ffd700", glow: "#ffb347" },
 };
 
 // Characters for the matrix effect
-const MATRIX_CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const MATRIX_CHARS =
+  "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 export class MatrixRainVisualization implements Visualization {
-  id = 'matrixRain';
-  name = 'Matrix Rain';
-  author = 'Vizec';
-  description = 'Falling code like The Matrix, reactive to audio';
-  renderer = 'canvas2d' as const;
-  transitionType = 'crossfade' as const;
+  static readonly meta: VisualizationMeta = {
+    id: "matrixRain",
+    name: "Matrix Rain",
+    author: "Vizec",
+    renderer: "canvas2d",
+    transitionType: "crossfade",
+  };
+
+  readonly id = (this.constructor as any).meta.id;
+  readonly name = (this.constructor as any).meta.name;
+  readonly author = (this.constructor as any).meta.author;
+  readonly description = (this.constructor as any).meta.description;
+  readonly renderer = (this.constructor as any).meta.renderer;
+  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -43,7 +58,7 @@ export class MatrixRainVisualization implements Visualization {
   private height = 0;
   private config: VisualizationConfig = {
     sensitivity: 1.0,
-    colorScheme: 'neon',
+    colorScheme: "neon",
     fontSize: 16,
     density: 0.95,
     baseSpeed: 3,
@@ -54,15 +69,15 @@ export class MatrixRainVisualization implements Visualization {
   private columns = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    this.canvas = document.createElement("canvas");
+    this.canvas.style.position = "absolute";
+    this.canvas.style.top = "0";
+    this.canvas.style.left = "0";
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext('2d');
+    this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -85,10 +100,9 @@ export class MatrixRainVisualization implements Visualization {
   }
 
   private createDrop(x: number): Drop {
-    const { fontSize } = this.config;
     const length = 5 + Math.floor(Math.random() * 20);
     const chars: string[] = [];
-    
+
     for (let i = 0; i < length; i++) {
       chars.push(MATRIX_CHARS[Math.floor(Math.random() * MATRIX_CHARS.length)]);
     }
@@ -110,8 +124,8 @@ export class MatrixRainVisualization implements Visualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { bass, mid, volume, frequencyData } = audioData;
-    const { sensitivity, colorScheme, fontSize, baseSpeed, trailLength } = this.config;
+    const { bass, volume, frequencyData } = audioData;
+    const { sensitivity, colorScheme, fontSize, baseSpeed } = this.config;
     const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.neon;
 
     // Clear canvas for transparent background
@@ -119,7 +133,7 @@ export class MatrixRainVisualization implements Visualization {
 
     // Set font
     this.ctx.font = `${fontSize}px monospace`;
-    this.ctx.textAlign = 'center';
+    this.ctx.textAlign = "center";
 
     // Speed multiplier based on audio
     const speedMultiplier = 1 + bass * sensitivity * 2 + volume;
@@ -151,7 +165,7 @@ export class MatrixRainVisualization implements Visualization {
       // Draw characters
       for (let j = 0; j < drop.length; j++) {
         const charY = drop.y - j * fontSize;
-        
+
         if (charY < -fontSize || charY > this.height + fontSize) continue;
 
         // Calculate opacity (head is brightest)
@@ -164,7 +178,7 @@ export class MatrixRainVisualization implements Visualization {
 
         // Head character is white/bright
         if (j === 0) {
-          this.ctx.fillStyle = '#ffffff';
+          this.ctx.fillStyle = "#ffffff";
           this.ctx.shadowBlur = 10 + freqValue * 10;
           this.ctx.shadowColor = colors.glow;
         } else {
@@ -226,32 +240,46 @@ export class MatrixRainVisualization implements Visualization {
 
   getConfigSchema(): ConfigSchema {
     return {
-      sensitivity: { type: 'number', min: 0.1, max: 3, step: 0.1, default: 1.0, label: 'Sensitivity' },
-      colorScheme: {
-        type: 'select',
-        options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'darkTechno', label: 'Dark Techno' },
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'acid', label: 'Acid' },
-          { value: 'monochrome', label: 'Monochrome' },
-          { value: 'purpleHaze', label: 'Purple Haze' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'toxic', label: 'Toxic' },
-          { value: 'bloodMoon', label: 'Blood Moon' },
-          { value: 'synthwave', label: 'Synthwave' },
-          { value: 'golden', label: 'Golden' },
-        ],
-        default: 'cyanMagenta',
-        label: 'Color Scheme',
+      sensitivity: {
+        type: "number",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        default: 1.0,
+        label: "Sensitivity",
       },
-      fontSize: { type: 'number', min: 10, max: 24, step: 2, default: 16, label: 'Font Size' },
-      density: { type: 'number', min: 0.5, max: 1, step: 0.05, default: 0.95, label: 'Density' },
-      baseSpeed: { type: 'number', min: 1, max: 6, step: 0.5, default: 3, label: 'Base Speed' },
-      trailLength: { type: 'number', min: 0.8, max: 0.98, step: 0.02, default: 0.92, label: 'Trail Length' },
+      colorScheme: {
+        type: "select",
+        options: [
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "darkTechno", label: "Dark Techno" },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "acid", label: "Acid" },
+          { value: "monochrome", label: "Monochrome" },
+          { value: "purpleHaze", label: "Purple Haze" },
+          { value: "sunset", label: "Sunset" },
+          { value: "ocean", label: "Ocean" },
+          { value: "toxic", label: "Toxic" },
+          { value: "bloodMoon", label: "Blood Moon" },
+          { value: "synthwave", label: "Synthwave" },
+          { value: "golden", label: "Golden" },
+        ],
+        default: "cyanMagenta",
+        label: "Color Scheme",
+      },
+      fontSize: { type: "number", min: 10, max: 24, step: 2, default: 16, label: "Font Size" },
+      density: { type: "number", min: 0.5, max: 1, step: 0.05, default: 0.95, label: "Density" },
+      baseSpeed: { type: "number", min: 1, max: 6, step: 0.5, default: 3, label: "Base Speed" },
+      trailLength: {
+        type: "number",
+        min: 0.8,
+        max: 0.98,
+        step: 0.02,
+        default: 0.92,
+        label: "Trail Length",
+      },
     };
   }
 }
