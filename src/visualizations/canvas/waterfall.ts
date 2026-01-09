@@ -1,10 +1,10 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 // Color schemes - using gradient arrays for spectrograms
 const COLOR_SCHEMES: Record<string, string[]> = {
@@ -153,7 +153,7 @@ interface WaterfallConfig extends VisualizationConfig {
   colorScheme: string;
 }
 
-export class WaterfallVisualization implements Visualization {
+export class WaterfallVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "waterfall",
     name: "Waterfall",
@@ -162,13 +162,6 @@ export class WaterfallVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -267,11 +260,12 @@ export class WaterfallVisualization implements Visualization {
 
       for (let x = 0; x < resolution; x++) {
         const value = rowData[x] * ageFade;
-        if (value < 0.01) continue; // Skip very dark pixels
+        if (value < 0.05) continue; // Skip very dark pixels
 
         const color = this.getColor(value, colors);
         this.ctx.fillStyle = color;
-        this.ctx.globalAlpha = 0.7 + value * 0.3;
+        // More transparent for darker values, more opaque for bright
+        this.ctx.globalAlpha = 0.3 + value * 0.5;
         this.ctx.fillRect(x * colWidth, yPos, colWidth + 1, rowHeight);
       }
     }

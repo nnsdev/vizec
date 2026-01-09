@@ -1,30 +1,17 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_GRID,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
-const COLOR_SCHEMES: Record<string, { grid: string; horizon: string; sun: string; glow: string }> =
-  {
-    cyanMagenta: { grid: "#00ffff", horizon: "#ff00ff", sun: "#ff00ff", glow: "#00ffff" },
-    darkTechno: { grid: "#4a00e0", horizon: "#8e2de2", sun: "#8e2de2", glow: "#4a00e0" },
-    neon: { grid: "#39ff14", horizon: "#ff073a", sun: "#ffff00", glow: "#39ff14" },
-    fire: { grid: "#ff4500", horizon: "#ffd700", sun: "#ff8c00", glow: "#ff4500" },
-    ice: { grid: "#00bfff", horizon: "#e0ffff", sun: "#ffffff", glow: "#00bfff" },
-    acid: { grid: "#adff2f", horizon: "#00ff00", sun: "#ffff00", glow: "#adff2f" },
-    monochrome: { grid: "#ffffff", horizon: "#888888", sun: "#ffffff", glow: "#ffffff" },
-    purpleHaze: { grid: "#8b00ff", horizon: "#ff1493", sun: "#9400d3", glow: "#8b00ff" },
-    sunset: { grid: "#ff6b6b", horizon: "#feca57", sun: "#ff9f43", glow: "#ff6b6b" },
-    ocean: { grid: "#0077be", horizon: "#00d4aa", sun: "#00b4d8", glow: "#0077be" },
-    toxic: { grid: "#00ff41", horizon: "#0aff0a", sun: "#39ff14", glow: "#00ff41" },
-    bloodMoon: { grid: "#8b0000", horizon: "#ff4500", sun: "#dc143c", glow: "#8b0000" },
-    synthwave: { grid: "#ff00ff", horizon: "#00ffff", sun: "#ff00aa", glow: "#ff00ff" },
-    golden: { grid: "#ffd700", horizon: "#ff8c00", sun: "#ffb347", glow: "#ffd700" },
-  };
-
-export class NeonGridVisualization implements Visualization {
+export class NeonGridVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "neonGrid",
     name: "Neon Grid",
@@ -33,13 +20,6 @@ export class NeonGridVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -89,7 +69,7 @@ export class NeonGridVisualization implements Visualization {
 
     const { bass, volume, frequencyData } = audioData;
     const { sensitivity, colorScheme, gridSpeed, gridLines, showSun, showMountains } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_GRID, colorScheme);
 
     // Clear canvas
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -294,22 +274,7 @@ export class NeonGridVisualization implements Visualization {
       },
       colorScheme: {
         type: "select",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "purpleHaze", label: "Purple Haze" },
-          { value: "sunset", label: "Sunset" },
-          { value: "ocean", label: "Ocean" },
-          { value: "toxic", label: "Toxic" },
-          { value: "bloodMoon", label: "Blood Moon" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "golden", label: "Golden" },
-        ],
+        options: COLOR_SCHEME_OPTIONS,
         default: "cyanMagenta",
         label: "Color Scheme",
       },

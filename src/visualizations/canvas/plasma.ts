@@ -1,10 +1,10 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 // Color schemes for plasma effect
 const COLOR_SCHEMES: Record<string, { colors: [number, number, number][] }> = {
@@ -128,7 +128,7 @@ interface PlasmaConfig extends VisualizationConfig {
   intensity: number;
 }
 
-export class PlasmaVisualization implements Visualization {
+export class PlasmaVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "plasma",
     name: "Plasma",
@@ -137,13 +137,6 @@ export class PlasmaVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;

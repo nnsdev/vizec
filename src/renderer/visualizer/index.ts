@@ -11,33 +11,7 @@ if (!container) {
 // Register visualizations with the main process immediately
 visualizationManager.registerWithMainProcess();
 
-// Pass the manager's create method to the engine if needed,
-// or update the engine to use the manager directly.
-// For now, let's inject the factory function into the engine
-// (assuming we might need to modify Engine to accept a factory or update its import)
-// But wait, Engine imports createVisualization from ../../visualizations/index.
-// We should probably redirect that import or modify Engine.
-// A cleaner approach is to modify Engine to accept a factory or specific instance creation logic.
-// However, since we are replacing the global factory, let's just make Engine import from here or pass it in.
-
-// Let's modify the global window.vizecAPI to handle some of this if needed,
-// but actually the Engine is what calls createVisualization.
-// I'll assume for a moment I can modify Engine or that Engine imports 'createVisualization' which we can swap.
-
-// Actually, checking the Engine code (which I pruned but recall), it likely imports 'createVisualization'.
-// I should verify where Engine gets createVisualization from.
-// It was: import { createVisualization } from '../../visualizations';
-
-// To avoid changing Engine too much, I can update src/visualizations/index.ts
-// to export a dummy, OR I can change Engine to use the manager.
-// Changing Engine is better architecture.
-
-// Let's initialize the engine with the manager.
 const engine = new VisualizationEngine(container);
-
-// MONKEY PATCH / DEPENDENCY INJECTION
-// Since I haven't modified Engine yet, I need to ensure it uses the new manager.
-// I will modify src/renderer/visualizer/engine.ts in the next step to use visualizationManager.
 
 // Handle window resize
 window.addEventListener("resize", () => {

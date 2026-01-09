@@ -1,17 +1,16 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
-
-const COLOR_SCHEMES: Record<string, { primary: string; accent: string; glow: string }> = {
-  neon: { primary: "#ff00ff", accent: "#00ffff", glow: "#ff00aa" },
-  cyber: { primary: "#ff66cc", accent: "#66ffff", glow: "#ff66aa" },
-  sunset: { primary: "#ff6b6b", accent: "#ffd700", glow: "#ff9f43" },
-  aurora: { primary: "#8b00ff", accent: "#00ffcc", glow: "#8b00ff" },
-};
+import { BaseVisualization } from "../base";
+import {
+  ColorSchemeId,
+  COLOR_SCHEMES_STRING_ACCENT,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface Pulse {
   x: number;
@@ -33,7 +32,7 @@ interface MagentaKeyPulseConfig extends VisualizationConfig {
   burstCount: number;
 }
 
-export class MagentaKeyPulseVisualization implements Visualization {
+export class MagentaKeyPulseVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "magentaKeyPulse",
     name: "Magenta Key Pulse",
@@ -43,13 +42,6 @@ export class MagentaKeyPulseVisualization implements Visualization {
     transitionType: "crossfade",
   };
 
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
-
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
@@ -58,7 +50,7 @@ export class MagentaKeyPulseVisualization implements Visualization {
   private lastPulseTime = 0;
   private config: MagentaKeyPulseConfig = {
     sensitivity: 1,
-    colorScheme: "neon",
+    colorScheme: "synthwave",
     pulseRate: 4,
     expansionSpeed: 120,
     fadeSpeed: 0.03,
@@ -90,15 +82,19 @@ export class MagentaKeyPulseVisualization implements Visualization {
 
     const { volume, bass } = audioData;
     const { pulseRate, burstCount, expansionSpeed, fadeSpeed, glow, colorScheme } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.neon;
+    const colors = getColorScheme(
+      COLOR_SCHEMES_STRING_ACCENT,
+      colorScheme as ColorSchemeId,
+      "synthwave",
+    );
 
     this.ctx.clearRect(0, 0, this.width, this.height);
 
     const now = performance.now();
     const readiness = 1000 / (pulseRate + volume * 6);
-    const bassBoost = Math.min(1, bass + volume * 0.5);
+    const bassBoost = Math.min(1, (bass + volume * 0.5) * this.config.sensitivity);
 
-    if (now - this.lastPulseTime > readiness && bassBoost > 0.25) {
+    if (now - this.lastPulseTime > readiness && bassBoost > 0.15) {
       this.lastPulseTime = now;
       const bursts = Math.ceil(burstCount * (0.5 + bassBoost * 0.5));
       for (let i = 0; i < bursts; i += 1) {
@@ -112,8 +108,8 @@ export class MagentaKeyPulseVisualization implements Visualization {
 
     for (let i = this.pulses.length - 1; i >= 0; i -= 1) {
       const pulse = this.pulses[i];
-      pulse.radius += expansionSpeed * bassBoost * deltaSeconds;
-      pulse.alpha -= fadeSpeed * deltaSeconds * (1 + volume);
+      pulse.radius += expansionSpeed * Math.max(0.5, bassBoost) * deltaSeconds;
+      pulse.alpha -= fadeSpeed * deltaSeconds;
 
       if (pulse.alpha <= 0 || pulse.radius > pulse.maxRadius) {
         this.pulses.splice(i, 1);
@@ -160,17 +156,17 @@ export class MagentaKeyPulseVisualization implements Visualization {
       pulse.y,
       pulse.radius,
     );
-    gradient.addColorStop(0, this.hexToRgba(pulse.color, pulse.alpha * 0.6));
-    gradient.addColorStop(0.7, this.hexToRgba(pulse.color, pulse.alpha * 0.2));
-    gradient.addColorStop(1, this.hexToRgba(pulse.glowColor, 0));
+    gradient.addColorStop(0, this.hexToRgba(pulse.color, pulse.alpha * 0.9));
+    gradient.addColorStop(0.6, this.hexToRgba(pulse.color, pulse.alpha * 0.5));
+    gradient.addColorStop(1, this.hexToRgba(pulse.glowColor, pulse.alpha * 0.1));
 
     this.ctx.fillStyle = gradient;
     this.ctx.beginPath();
     this.ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
     this.ctx.fill();
 
-    this.ctx.lineWidth = 2 + glow * 3;
-    this.ctx.strokeStyle = this.hexToRgba(pulse.color, pulse.alpha * 0.5);
+    this.ctx.lineWidth = 2 + glow * 4;
+    this.ctx.strokeStyle = this.hexToRgba(pulse.color, pulse.alpha * 0.7);
     this.ctx.stroke();
   }
 
@@ -212,11 +208,8 @@ export class MagentaKeyPulseVisualization implements Visualization {
       colorScheme: {
         type: "select",
         label: "Color Scheme",
-        default: "neon",
-        options: Object.keys(COLOR_SCHEMES).map((key) => ({
-          value: key,
-          label: key.charAt(0).toUpperCase() + key.slice(1),
-        })),
+        default: "synthwave",
+        options: COLOR_SCHEME_OPTIONS,
       },
       pulseRate: {
         type: "number",

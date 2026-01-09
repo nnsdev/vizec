@@ -23,11 +23,6 @@ export function createVisualizerWindow(): BrowserWindow {
   // Open DevTools for debugging (uncomment when needed)
   // window.webContents.openDevTools({ mode: 'detach' });
 
-  // Prevent the window from being closed accidentally
-  window.on("close", (_e) => {
-    // Allow close
-  });
-
   // Forward console logs to terminal
   window.webContents.on("console-message", (_event, level, message, _line, _sourceId) => {
     const type = level === 0 ? "INFO" : level === 1 ? "WARN" : "ERROR";

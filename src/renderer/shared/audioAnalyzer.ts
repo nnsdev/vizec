@@ -109,38 +109,13 @@ export class AudioAnalyzer {
 
     // Calculate frequency bands using gated data
     const bufferLength = gatedFrequencyData.length;
-
-    // Bass: 0-250Hz (roughly first 1/8 of spectrum)
     const bassEnd = Math.floor(bufferLength / 8);
-    let bassSum = 0;
-    for (let i = 0; i < bassEnd; i++) {
-      bassSum += gatedFrequencyData[i];
-    }
-    const bass = (bassSum / bassEnd / 255) * this.sensitivity;
-
-    // Mid: 250-2000Hz (roughly 1/8 to 1/2 of spectrum)
-    const midStart = bassEnd;
     const midEnd = Math.floor(bufferLength / 2);
-    let midSum = 0;
-    for (let i = midStart; i < midEnd; i++) {
-      midSum += gatedFrequencyData[i];
-    }
-    const mid = (midSum / (midEnd - midStart) / 255) * this.sensitivity;
 
-    // Treble: 2000Hz+ (upper half of spectrum)
-    const trebleStart = midEnd;
-    let trebleSum = 0;
-    for (let i = trebleStart; i < bufferLength; i++) {
-      trebleSum += gatedFrequencyData[i];
-    }
-    const treble = (trebleSum / (bufferLength - trebleStart) / 255) * this.sensitivity;
-
-    // Overall volume
-    let volumeSum = 0;
-    for (let i = 0; i < bufferLength; i++) {
-      volumeSum += gatedFrequencyData[i];
-    }
-    const volume = (volumeSum / bufferLength / 255) * this.sensitivity;
+    const bass = this.calculateBandEnergy(gatedFrequencyData, 0, bassEnd);
+    const mid = this.calculateBandEnergy(gatedFrequencyData, bassEnd, midEnd);
+    const treble = this.calculateBandEnergy(gatedFrequencyData, midEnd, bufferLength);
+    const volume = this.calculateBandEnergy(gatedFrequencyData, 0, bufferLength);
 
     return {
       frequencyData: gatedFrequencyData,
@@ -154,5 +129,13 @@ export class AudioAnalyzer {
 
   isConnected(): boolean {
     return this.audioContext !== null && this.analyser !== null;
+  }
+
+  private calculateBandEnergy(data: Uint8Array, start: number, end: number): number {
+    let sum = 0;
+    for (let i = start; i < end; i++) {
+      sum += data[i];
+    }
+    return (sum / (end - start) / 255) * this.sensitivity;
   }
 }

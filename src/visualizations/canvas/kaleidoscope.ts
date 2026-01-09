@@ -1,27 +1,15 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
-
-const COLOR_SCHEMES: Record<string, { colors: string[] }> = {
-  cyanMagenta: { colors: ["#00ffff", "#ff00ff", "#8000ff", "#00ff80"] },
-  darkTechno: { colors: ["#4a00e0", "#8e2de2", "#1a1a2e", "#6b21a8"] },
-  neon: { colors: ["#39ff14", "#ff073a", "#ffff00", "#ff6600"] },
-  fire: { colors: ["#ff4500", "#ffd700", "#ff8c00", "#ff0000"] },
-  ice: { colors: ["#00bfff", "#e0ffff", "#1e90ff", "#87ceeb"] },
-  acid: { colors: ["#adff2f", "#00ff00", "#7fff00", "#32cd32"] },
-  monochrome: { colors: ["#ffffff", "#cccccc", "#999999", "#666666"] },
-  purpleHaze: { colors: ["#8b00ff", "#ff1493", "#9400d3", "#ba55d3"] },
-  sunset: { colors: ["#ff6b6b", "#feca57", "#ff9f43", "#ee5a24"] },
-  ocean: { colors: ["#0077be", "#00d4aa", "#00b4d8", "#48cae4"] },
-  toxic: { colors: ["#00ff41", "#0aff0a", "#39ff14", "#7cfc00"] },
-  bloodMoon: { colors: ["#8b0000", "#ff4500", "#dc143c", "#b22222"] },
-  synthwave: { colors: ["#ff00ff", "#00ffff", "#ff00aa", "#aa00ff"] },
-  golden: { colors: ["#ffd700", "#ff8c00", "#ffb347", "#daa520"] },
-};
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_ARRAY,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface Shape {
   type: "line" | "arc" | "triangle";
@@ -33,7 +21,7 @@ interface Shape {
   speed: number;
 }
 
-export class KaleidoscopeVisualization implements Visualization {
+export class KaleidoscopeVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "kaleidoscope",
     name: "Kaleidoscope",
@@ -42,13 +30,6 @@ export class KaleidoscopeVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -88,7 +69,7 @@ export class KaleidoscopeVisualization implements Visualization {
 
   private initShapes(): void {
     const { shapeCount, colorScheme, complexity } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme]?.colors || COLOR_SCHEMES.cyanMagenta.colors;
+    const colors = getColorScheme(COLOR_SCHEMES_ARRAY, colorScheme).colors;
 
     this.shapes = [];
     for (let i = 0; i < shapeCount * complexity; i++) {
@@ -110,7 +91,7 @@ export class KaleidoscopeVisualization implements Visualization {
 
     const { bass, mid, frequencyData } = audioData;
     const { sensitivity, colorScheme, segments, rotationSpeed } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme]?.colors || COLOR_SCHEMES.cyanMagenta.colors;
+    const colors = getColorScheme(COLOR_SCHEMES_ARRAY, colorScheme).colors;
 
     this.time += deltaTime;
 
@@ -287,22 +268,7 @@ export class KaleidoscopeVisualization implements Visualization {
       },
       colorScheme: {
         type: "select",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "purpleHaze", label: "Purple Haze" },
-          { value: "sunset", label: "Sunset" },
-          { value: "ocean", label: "Ocean" },
-          { value: "toxic", label: "Toxic" },
-          { value: "bloodMoon", label: "Blood Moon" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "golden", label: "Golden" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
         default: "cyanMagenta",
         label: "Color Scheme",
       },

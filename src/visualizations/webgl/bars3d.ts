@@ -2,27 +2,15 @@ import * as THREE from "three";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
-
-const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; glow: number }> = {
-  cyanMagenta: { primary: 0x00ffff, secondary: 0xff00ff, glow: 0x00ffff },
-  darkTechno: { primary: 0x4a00e0, secondary: 0x8e2de2, glow: 0x8000ff },
-  neon: { primary: 0x39ff14, secondary: 0xff073a, glow: 0xffff00 },
-  fire: { primary: 0xff4500, secondary: 0xffd700, glow: 0xff6600 },
-  ice: { primary: 0x00bfff, secondary: 0xe0ffff, glow: 0x87ceeb },
-  acid: { primary: 0xadff2f, secondary: 0x00ff00, glow: 0x00ff00 },
-  monochrome: { primary: 0xffffff, secondary: 0x888888, glow: 0xffffff },
-  purpleHaze: { primary: 0x8b00ff, secondary: 0xff1493, glow: 0x9400d3 },
-  sunset: { primary: 0xff6b6b, secondary: 0xfeca57, glow: 0xff9f43 },
-  ocean: { primary: 0x0077be, secondary: 0x00d4aa, glow: 0x00b4d8 },
-  toxic: { primary: 0x00ff41, secondary: 0x0aff0a, glow: 0x39ff14 },
-  bloodMoon: { primary: 0x8b0000, secondary: 0xff4500, glow: 0xdc143c },
-  synthwave: { primary: 0xff00ff, secondary: 0x00ffff, glow: 0xff00aa },
-  golden: { primary: 0xffd700, secondary: 0xff8c00, glow: 0xffb347 },
-};
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_HEX,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface Bars3DConfig extends VisualizationConfig {
   barCount: number;
@@ -32,7 +20,7 @@ interface Bars3DConfig extends VisualizationConfig {
   twist: number;
 }
 
-export class Bars3DVisualization implements Visualization {
+export class Bars3DVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "bars3d",
     name: "3D Bars",
@@ -41,13 +29,6 @@ export class Bars3DVisualization implements Visualization {
     renderer: "threejs",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -102,7 +83,7 @@ export class Bars3DVisualization implements Visualization {
     if (!this.scene) return;
 
     const { barCount, radius, colorScheme } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_HEX, colorScheme);
 
     // Remove existing bars
     if (this.barGroup) {
@@ -288,22 +269,7 @@ export class Bars3DVisualization implements Visualization {
       },
       colorScheme: {
         type: "select",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "purpleHaze", label: "Purple Haze" },
-          { value: "sunset", label: "Sunset" },
-          { value: "ocean", label: "Ocean" },
-          { value: "toxic", label: "Toxic" },
-          { value: "bloodMoon", label: "Blood Moon" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "golden", label: "Golden" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
         default: "cyanMagenta",
         label: "Color Scheme",
       },

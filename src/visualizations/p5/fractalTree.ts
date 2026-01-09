@@ -2,10 +2,10 @@ import p5 from "p5";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 interface FractalTreeConfig extends VisualizationConfig {
   depth: number;
@@ -27,7 +27,7 @@ const COLOR_SCHEMES: Record<string, { trunk: string; branch: string; leaf: strin
     ice: { trunk: "#1e3a5f", branch: "#4682b4", leaf: "#e0ffff", glow: "#87ceeb" },
   };
 
-export class FractalTreeVisualization implements Visualization {
+export class FractalTreeVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "fractalTree",
     name: "Fractal Tree",
@@ -36,13 +36,6 @@ export class FractalTreeVisualization implements Visualization {
     renderer: "p5",
     transitionType: "zoom",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;

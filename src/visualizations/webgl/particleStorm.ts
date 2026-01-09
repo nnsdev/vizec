@@ -2,10 +2,10 @@ import * as THREE from "three";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 interface ParticleStormConfig extends VisualizationConfig {
   particleCount: number;
@@ -22,7 +22,7 @@ const COLOR_PALETTES: Record<string, number[]> = {
   ice: [0x00bfff, 0x87ceeb, 0xffffff],
 };
 
-export class ParticleStormVisualization implements Visualization {
+export class ParticleStormVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "particleStorm",
     name: "Particle Storm",
@@ -31,13 +31,6 @@ export class ParticleStormVisualization implements Visualization {
     renderer: "threejs",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;

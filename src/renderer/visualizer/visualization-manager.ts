@@ -5,9 +5,13 @@ import { Visualization, VisualizationMeta } from "../../shared/types";
 // @ts-ignore
 import visualizationModules from "../../visualizations/**/*.ts";
 
+interface VisualizationEntry {
+  ctor: new () => Visualization;
+  meta: VisualizationMeta;
+}
+
 export class VisualizationManager {
-  private visualizations: Map<string, { new (): Visualization; meta: VisualizationMeta }> =
-    new Map();
+  private visualizations: Map<string, VisualizationEntry> = new Map();
 
   constructor() {
     this.discoverVisualizations();
@@ -36,8 +40,8 @@ export class VisualizationManager {
             if (meta && meta.id && meta.name) {
               // Store the constructor and metadata
               this.visualizations.set(meta.id, {
-                new: exportedItem,
-                meta: meta,
+                ctor: exportedItem,
+                meta,
               });
               console.log(`Registered visualization: ${meta.name} (${meta.id})`);
             }
@@ -67,9 +71,7 @@ export class VisualizationManager {
     }
 
     try {
-      // Instantiate the class
-      // @ts-ignore
-      return new entry.new();
+      return new entry.ctor();
     } catch (error) {
       console.error(`Failed to instantiate visualization ${id}:`, error);
       return null;

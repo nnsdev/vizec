@@ -1,10 +1,15 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_GLITCH,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface GlitchSpectrumConfig extends VisualizationConfig {
   barCount: number;
@@ -13,15 +18,7 @@ interface GlitchSpectrumConfig extends VisualizationConfig {
   mirror: boolean;
 }
 
-const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; glitch: string }> = {
-  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", glitch: "#ffffff" },
-  darkTechno: { primary: "#1a1a2e", secondary: "#4a00e0", glitch: "#00ffff" },
-  neon: { primary: "#39ff14", secondary: "#ff073a", glitch: "#ffff00" },
-  monochrome: { primary: "#ffffff", secondary: "#808080", glitch: "#000000" },
-  acid: { primary: "#00ff00", secondary: "#ffff00", glitch: "#ff0080" },
-};
-
-export class GlitchSpectrumVisualization implements Visualization {
+export class GlitchSpectrumVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "glitchSpectrum",
     name: "Glitch Spectrum",
@@ -30,13 +27,6 @@ export class GlitchSpectrumVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -83,7 +73,7 @@ export class GlitchSpectrumVisualization implements Visualization {
 
     const { frequencyData, bass } = audioData;
     const { barCount, glitchIntensity, mirror, sensitivity, colorScheme } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_GLITCH, colorScheme);
 
     const now = performance.now();
 
@@ -296,13 +286,7 @@ export class GlitchSpectrumVisualization implements Visualization {
         type: "select",
         label: "Color Scheme",
         default: "cyanMagenta",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "acid", label: "Acid" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
       },
       glitchIntensity: {
         type: "number",

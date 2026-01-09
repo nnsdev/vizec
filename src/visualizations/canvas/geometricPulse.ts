@@ -1,28 +1,15 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
-
-// Color schemes
-const COLOR_SCHEMES: Record<string, { start: string; end: string; glow: string }> = {
-  cyanMagenta: { start: "#00ffff", end: "#ff00ff", glow: "#00ffff" },
-  darkTechno: { start: "#1a1a2e", end: "#4a00e0", glow: "#8000ff" },
-  neon: { start: "#39ff14", end: "#ff073a", glow: "#ffff00" },
-  fire: { start: "#ff4500", end: "#ffd700", glow: "#ff6600" },
-  ice: { start: "#00bfff", end: "#e0ffff", glow: "#87ceeb" },
-  acid: { start: "#00ff00", end: "#ffff00", glow: "#00ff00" },
-  monochrome: { start: "#ffffff", end: "#808080", glow: "#ffffff" },
-  purpleHaze: { start: "#8b00ff", end: "#ff1493", glow: "#9400d3" },
-  sunset: { start: "#ff6b6b", end: "#feca57", glow: "#ff9f43" },
-  ocean: { start: "#0077be", end: "#00d4aa", glow: "#00b4d8" },
-  toxic: { start: "#00ff41", end: "#0aff0a", glow: "#39ff14" },
-  bloodMoon: { start: "#8b0000", end: "#ff4500", glow: "#dc143c" },
-  synthwave: { start: "#ff00ff", end: "#00ffff", glow: "#ff00aa" },
-  golden: { start: "#ffd700", end: "#ff8c00", glow: "#ffb347" },
-};
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_GRADIENT,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 type ShapeType = "triangle" | "square" | "pentagon" | "hexagon";
 
@@ -39,7 +26,7 @@ interface Layer {
   rotationDirection: number;
 }
 
-export class GeometricPulseVisualization implements Visualization {
+export class GeometricPulseVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "geometricPulse",
     name: "Geometric Pulse",
@@ -48,13 +35,6 @@ export class GeometricPulseVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -166,7 +146,7 @@ export class GeometricPulseVisualization implements Visualization {
 
     const { frequencyData, bass, mid, volume } = audioData;
     const { rotationSpeed, pulseIntensity, colorScheme, sensitivity } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
     // Update time
     this.time += deltaTime;
@@ -364,22 +344,7 @@ export class GeometricPulseVisualization implements Visualization {
         type: "select",
         label: "Color Scheme",
         default: "cyanMagenta",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "purpleHaze", label: "Purple Haze" },
-          { value: "sunset", label: "Sunset" },
-          { value: "ocean", label: "Ocean" },
-          { value: "toxic", label: "Toxic" },
-          { value: "bloodMoon", label: "Blood Moon" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "golden", label: "Golden" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
       },
       rotationSpeed: {
         type: "number",

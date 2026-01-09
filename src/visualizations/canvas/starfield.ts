@@ -1,10 +1,15 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_ACCENT,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface Star {
   x: number;
@@ -16,24 +21,7 @@ interface Star {
   color: string;
 }
 
-const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; accent: string }> = {
-  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", accent: "#ffffff" },
-  darkTechno: { primary: "#4a00e0", secondary: "#8e2de2", accent: "#ffffff" },
-  neon: { primary: "#39ff14", secondary: "#ff073a", accent: "#ffff00" },
-  fire: { primary: "#ff4500", secondary: "#ffd700", accent: "#ffffff" },
-  ice: { primary: "#00bfff", secondary: "#e0ffff", accent: "#ffffff" },
-  acid: { primary: "#adff2f", secondary: "#00ff00", accent: "#ffffff" },
-  monochrome: { primary: "#ffffff", secondary: "#aaaaaa", accent: "#ffffff" },
-  purpleHaze: { primary: "#8b00ff", secondary: "#ff1493", accent: "#9400d3" },
-  sunset: { primary: "#ff6b6b", secondary: "#feca57", accent: "#ff9f43" },
-  ocean: { primary: "#0077be", secondary: "#00d4aa", accent: "#00b4d8" },
-  toxic: { primary: "#00ff41", secondary: "#0aff0a", accent: "#39ff14" },
-  bloodMoon: { primary: "#8b0000", secondary: "#ff4500", accent: "#dc143c" },
-  synthwave: { primary: "#ff00ff", secondary: "#00ffff", accent: "#ff00aa" },
-  golden: { primary: "#ffd700", secondary: "#ff8c00", accent: "#ffb347" },
-};
-
-export class StarfieldVisualization implements Visualization {
+export class StarfieldVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "starfield",
     name: "Starfield",
@@ -41,13 +29,6 @@ export class StarfieldVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -85,7 +66,7 @@ export class StarfieldVisualization implements Visualization {
 
   private initStars(): void {
     const { starCount, colorScheme, colorfulStars } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_ACCENT, colorScheme);
 
     this.stars = [];
     for (let i = 0; i < starCount; i++) {
@@ -120,7 +101,7 @@ export class StarfieldVisualization implements Visualization {
 
     const { bass, mid, volume } = audioData;
     const { sensitivity, baseSpeed, colorScheme } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_ACCENT, colorScheme);
 
     // Clear canvas for transparent background
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -262,22 +243,7 @@ export class StarfieldVisualization implements Visualization {
       },
       colorScheme: {
         type: "select",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "purpleHaze", label: "Purple Haze" },
-          { value: "sunset", label: "Sunset" },
-          { value: "ocean", label: "Ocean" },
-          { value: "toxic", label: "Toxic" },
-          { value: "bloodMoon", label: "Blood Moon" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "golden", label: "Golden" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
         default: "cyanMagenta",
         label: "Color Scheme",
       },

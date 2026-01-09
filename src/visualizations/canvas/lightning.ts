@@ -1,28 +1,15 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
-
-// Color schemes
-const COLOR_SCHEMES: Record<string, { start: string; end: string; glow: string }> = {
-  cyanMagenta: { start: "#00ffff", end: "#ff00ff", glow: "#00ffff" },
-  darkTechno: { start: "#1a1a2e", end: "#4a00e0", glow: "#8000ff" },
-  neon: { start: "#39ff14", end: "#ff073a", glow: "#ffff00" },
-  fire: { start: "#ff4500", end: "#ffd700", glow: "#ff6600" },
-  ice: { start: "#00bfff", end: "#e0ffff", glow: "#87ceeb" },
-  acid: { start: "#00ff00", end: "#ffff00", glow: "#00ff00" },
-  monochrome: { start: "#ffffff", end: "#808080", glow: "#ffffff" },
-  purpleHaze: { start: "#8b00ff", end: "#ff1493", glow: "#9400d3" },
-  sunset: { start: "#ff6b6b", end: "#feca57", glow: "#ff9f43" },
-  ocean: { start: "#0077be", end: "#00d4aa", glow: "#00b4d8" },
-  toxic: { start: "#00ff41", end: "#0aff0a", glow: "#39ff14" },
-  bloodMoon: { start: "#8b0000", end: "#ff4500", glow: "#dc143c" },
-  synthwave: { start: "#ff00ff", end: "#00ffff", glow: "#ff00aa" },
-  golden: { start: "#ffd700", end: "#ff8c00", glow: "#ffb347" },
-};
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_GRADIENT,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface LightningBolt {
   points: { x: number; y: number }[];
@@ -48,7 +35,7 @@ interface LightningConfig extends VisualizationConfig {
   fadeSpeed: number;
 }
 
-export class LightningVisualization implements Visualization {
+export class LightningVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "lightning",
     name: "Lightning",
@@ -57,13 +44,6 @@ export class LightningVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -103,9 +83,11 @@ export class LightningVisualization implements Visualization {
   }
 
   private initArcs(): void {
-    // Create ambient electric arcs around the edges
+    // Create ambient electric arcs around the edges - reaching toward center
     this.arcs = [];
-    const arcCount = 8;
+    const arcCount = 12;
+    const maxReach = Math.min(this.width, this.height) * 0.4; // Reach 40% into screen
+
     for (let i = 0; i < arcCount; i++) {
       const edge = Math.floor(Math.random() * 4);
       let x1: number, y1: number, x2: number, y2: number;
@@ -114,26 +96,26 @@ export class LightningVisualization implements Visualization {
         // top
         x1 = Math.random() * this.width;
         y1 = 0;
-        x2 = x1 + (Math.random() - 0.5) * 200;
-        y2 = Math.random() * 100 + 50;
+        x2 = x1 + (Math.random() - 0.5) * 300;
+        y2 = Math.random() * maxReach + 100;
       } else if (edge === 1) {
         // bottom
         x1 = Math.random() * this.width;
         y1 = this.height;
-        x2 = x1 + (Math.random() - 0.5) * 200;
-        y2 = this.height - Math.random() * 100 - 50;
+        x2 = x1 + (Math.random() - 0.5) * 300;
+        y2 = this.height - Math.random() * maxReach - 100;
       } else if (edge === 2) {
         // left
         x1 = 0;
         y1 = Math.random() * this.height;
-        x2 = Math.random() * 100 + 50;
-        y2 = y1 + (Math.random() - 0.5) * 200;
+        x2 = Math.random() * maxReach + 100;
+        y2 = y1 + (Math.random() - 0.5) * 300;
       } else {
         // right
         x1 = this.width;
         y1 = Math.random() * this.height;
-        x2 = this.width - Math.random() * 100 - 50;
-        y2 = y1 + (Math.random() - 0.5) * 200;
+        x2 = this.width - Math.random() * maxReach - 100;
+        y2 = y1 + (Math.random() - 0.5) * 300;
       }
 
       this.arcs.push({
@@ -267,7 +249,7 @@ export class LightningVisualization implements Visualization {
     const { bass, mid, treble, volume } = audioData;
     void treble; // Used in drawCenterEnergy
     const { boltCount, fadeSpeed, sensitivity, colorScheme } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
     this.time += deltaTime * 0.001;
     this.ambientTimer += deltaTime;
@@ -335,10 +317,9 @@ export class LightningVisualization implements Visualization {
       this.drawBolt(bolt, colors, bolt.isAmbient ? 0.5 : 1);
     }
 
-    // Draw crackling energy in center based on volume
-    if (volume * sensitivity > 0.3) {
-      this.drawCenterEnergy(colors, volume * sensitivity, mid, treble);
-    }
+    // Draw crackling energy in center - always visible with base level
+    const energyLevel = Math.max(0.3, volume * sensitivity);
+    this.drawCenterEnergy(colors, energyLevel, mid, treble);
 
     // Limit max bolts for performance
     while (this.bolts.length > 30) {
@@ -354,10 +335,10 @@ export class LightningVisualization implements Visualization {
     if (!this.ctx) return;
 
     for (const arc of this.arcs) {
-      const intensity = 0.2 + mid * 0.5 + treble * 0.3;
+      const intensity = 0.5 + mid * 0.3 + treble * 0.2;
       const flicker = Math.sin(this.time * arc.speed + arc.offset) * 0.5 + 0.5;
 
-      if (flicker < 0.3) continue; // Flicker off sometimes
+      if (flicker < 0.2) continue; // Flicker off sometimes
 
       // Generate jagged path between arc endpoints
       const points: { x: number; y: number }[] = [];
@@ -366,7 +347,7 @@ export class LightningVisualization implements Visualization {
         const t = i / segments;
         const baseX = arc.x1 + (arc.x2 - arc.x1) * t;
         const baseY = arc.y1 + (arc.y2 - arc.y1) * t;
-        const jitter = (Math.random() - 0.5) * 20 * intensity;
+        const jitter = (Math.random() - 0.5) * 30 * intensity;
         points.push({
           x: baseX + jitter,
           y: baseY + jitter,
@@ -374,18 +355,18 @@ export class LightningVisualization implements Visualization {
       }
 
       // Draw glow
-      this.ctx.shadowBlur = 15;
+      this.ctx.shadowBlur = 20;
       this.ctx.shadowColor = colors.glow;
       this.ctx.strokeStyle = colors.glow;
-      this.ctx.lineWidth = 3;
-      this.ctx.globalAlpha = intensity * flicker * 0.4;
+      this.ctx.lineWidth = 4;
+      this.ctx.globalAlpha = intensity * flicker * 0.6;
       this.drawPath(points);
 
       // Draw main arc
-      this.ctx.shadowBlur = 5;
+      this.ctx.shadowBlur = 8;
       this.ctx.strokeStyle = colors.start;
-      this.ctx.lineWidth = 1.5;
-      this.ctx.globalAlpha = intensity * flicker * 0.6;
+      this.ctx.lineWidth = 2;
+      this.ctx.globalAlpha = intensity * flicker * 0.8;
       this.drawPath(points);
 
       this.ctx.shadowBlur = 0;
@@ -403,32 +384,49 @@ export class LightningVisualization implements Visualization {
 
     const centerX = this.width / 2;
     const centerY = this.height / 2;
-    const radius = 50 + volume * 100;
-    const boltCount = Math.floor(3 + mid * 5);
+    const radius = 80 + volume * 150;
+    const boltCount = Math.floor(5 + mid * 6);
 
     for (let i = 0; i < boltCount; i++) {
       const angle = (i / boltCount) * Math.PI * 2 + this.time * 2;
-      const length = radius * (0.5 + treble * 0.5);
+      const length = radius * (0.6 + treble * 0.4);
 
       const points: { x: number; y: number }[] = [];
-      const segments = 6;
+      const segments = 8;
       for (let j = 0; j <= segments; j++) {
         const t = j / segments;
         const dist = t * length;
-        const jitter = (Math.random() - 0.5) * 30 * volume;
+        const jitter = (Math.random() - 0.5) * 40 * volume;
         points.push({
           x: centerX + Math.cos(angle) * dist + jitter,
           y: centerY + Math.sin(angle) * dist + jitter,
         });
       }
 
-      this.ctx.shadowBlur = 10;
+      this.ctx.shadowBlur = 15;
       this.ctx.shadowColor = colors.glow;
       this.ctx.strokeStyle = colors.end;
-      this.ctx.lineWidth = 2;
-      this.ctx.globalAlpha = volume * 0.6;
+      this.ctx.lineWidth = 2.5;
+      this.ctx.globalAlpha = 0.4 + volume * 0.4;
       this.drawPath(points);
     }
+
+    // Draw center orb
+    const orbSize = 20 + volume * 30;
+    this.ctx.shadowBlur = 25;
+    this.ctx.shadowColor = colors.glow;
+    this.ctx.fillStyle = colors.start;
+    this.ctx.globalAlpha = 0.3 + volume * 0.3;
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, orbSize, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Inner bright core
+    this.ctx.fillStyle = "#ffffff";
+    this.ctx.globalAlpha = 0.2 + volume * 0.4;
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, orbSize * 0.4, 0, Math.PI * 2);
+    this.ctx.fill();
 
     this.ctx.shadowBlur = 0;
     this.ctx.globalAlpha = 1;
@@ -491,22 +489,7 @@ export class LightningVisualization implements Visualization {
         type: "select",
         label: "Color Scheme",
         default: "cyanMagenta",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "purpleHaze", label: "Purple Haze" },
-          { value: "sunset", label: "Sunset" },
-          { value: "ocean", label: "Ocean" },
-          { value: "toxic", label: "Toxic" },
-          { value: "bloodMoon", label: "Blood Moon" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "golden", label: "Golden" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
       },
     };
   }

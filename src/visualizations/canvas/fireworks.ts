@@ -1,10 +1,15 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_ARRAY,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface Particle {
   x: number;
@@ -27,24 +32,7 @@ interface Firework {
   exploded: boolean;
 }
 
-const COLOR_SCHEMES: Record<string, { colors: string[] }> = {
-  cyanMagenta: { colors: ["#00ffff", "#ff00ff", "#8000ff", "#ffffff", "#00ff80"] },
-  darkTechno: { colors: ["#4a00e0", "#8e2de2", "#6b21a8", "#9333ea", "#a855f7"] },
-  neon: { colors: ["#39ff14", "#ff073a", "#ffff00", "#ff6600", "#00ffff"] },
-  fire: { colors: ["#ff4500", "#ffd700", "#ff8c00", "#ff0000", "#ffff00"] },
-  ice: { colors: ["#00bfff", "#e0ffff", "#1e90ff", "#87ceeb", "#ffffff"] },
-  acid: { colors: ["#adff2f", "#00ff00", "#7fff00", "#32cd32", "#00fa9a"] },
-  monochrome: { colors: ["#ffffff", "#cccccc", "#999999", "#666666", "#ffffff"] },
-  purpleHaze: { colors: ["#8b00ff", "#ff1493", "#9400d3", "#ba55d3", "#da70d6"] },
-  sunset: { colors: ["#ff6b6b", "#feca57", "#ff9f43", "#ee5a24", "#f8b500"] },
-  ocean: { colors: ["#0077be", "#00d4aa", "#00b4d8", "#48cae4", "#90e0ef"] },
-  toxic: { colors: ["#00ff41", "#0aff0a", "#39ff14", "#7cfc00", "#adff2f"] },
-  bloodMoon: { colors: ["#8b0000", "#ff4500", "#dc143c", "#b22222", "#cd5c5c"] },
-  synthwave: { colors: ["#ff00ff", "#00ffff", "#ff00aa", "#aa00ff", "#ff69b4"] },
-  golden: { colors: ["#ffd700", "#ff8c00", "#ffb347", "#daa520", "#f4a460"] },
-};
-
-export class FireworksVisualization implements Visualization {
+export class FireworksVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "fireworks",
     name: "Fireworks",
@@ -53,13 +41,6 @@ export class FireworksVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -98,7 +79,7 @@ export class FireworksVisualization implements Visualization {
 
   private launchFirework(): void {
     const { colorScheme } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme]?.colors || COLOR_SCHEMES.cyanMagenta.colors;
+    const colors = getColorScheme(COLOR_SCHEMES_ARRAY, colorScheme).colors;
 
     this.fireworks.push({
       x: Math.random() * this.width * 0.8 + this.width * 0.1,
@@ -112,7 +93,7 @@ export class FireworksVisualization implements Visualization {
 
   private explode(firework: Firework): void {
     const { particleCount, colorScheme } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme]?.colors || COLOR_SCHEMES.cyanMagenta.colors;
+    const colors = getColorScheme(COLOR_SCHEMES_ARRAY, colorScheme).colors;
 
     // Main explosion
     for (let i = 0; i < particleCount; i++) {
@@ -316,22 +297,7 @@ export class FireworksVisualization implements Visualization {
       },
       colorScheme: {
         type: "select",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "purpleHaze", label: "Purple Haze" },
-          { value: "sunset", label: "Sunset" },
-          { value: "ocean", label: "Ocean" },
-          { value: "toxic", label: "Toxic" },
-          { value: "bloodMoon", label: "Blood Moon" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "golden", label: "Golden" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
         default: "cyanMagenta",
         label: "Color Scheme",
       },

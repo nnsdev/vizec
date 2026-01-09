@@ -2,10 +2,15 @@ import p5 from "p5";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_ACCENT,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface SpiralWaveformConfig extends VisualizationConfig {
   spiralTightness: number;
@@ -15,17 +20,6 @@ interface SpiralWaveformConfig extends VisualizationConfig {
   rotationSpeed: number;
 }
 
-const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; accent: string }> = {
-  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", accent: "#ffffff" },
-  darkTechno: { primary: "#4a00e0", secondary: "#8000ff", accent: "#1a1a2e" },
-  neon: { primary: "#39ff14", secondary: "#ff073a", accent: "#ffff00" },
-  monochrome: { primary: "#ffffff", secondary: "#808080", accent: "#404040" },
-  acid: { primary: "#00ff00", secondary: "#ffff00", accent: "#88ff00" },
-  fire: { primary: "#ff4500", secondary: "#ffd700", accent: "#ff6600" },
-  ice: { primary: "#00bfff", secondary: "#e0ffff", accent: "#87ceeb" },
-  synthwave: { primary: "#ff00ff", secondary: "#00ffff", accent: "#ff00aa" },
-};
-
 interface SpiralPoint {
   angle: number;
   radius: number;
@@ -33,7 +27,7 @@ interface SpiralPoint {
   age: number;
 }
 
-export class SpiralWaveformVisualization implements Visualization {
+export class SpiralWaveformVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "spiralWaveform",
     name: "Spiral Waveform",
@@ -42,13 +36,6 @@ export class SpiralWaveformVisualization implements Visualization {
     renderer: "p5",
     transitionType: "zoom",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;
@@ -98,7 +85,7 @@ export class SpiralWaveformVisualization implements Visualization {
       rotationSpeed,
       sensitivity,
     } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_ACCENT, colorScheme);
 
     // Clear with transparent background
     p.clear();
@@ -274,16 +261,7 @@ export class SpiralWaveformVisualization implements Visualization {
         type: "select",
         label: "Color Scheme",
         default: "cyanMagenta",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "acid", label: "Acid" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "synthwave", label: "Synthwave" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
       },
       trailLength: {
         type: "number",

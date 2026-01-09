@@ -2,17 +2,16 @@ import * as THREE from "three";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
-
-const COLOR_SCHEMES: Record<string, { primary: number; accent: number; glow: number }> = {
-  aurora: { primary: 0x9df1ff, accent: 0xff6be3, glow: 0x00ffea },
-  neon: { primary: 0xff00ff, accent: 0x00ffff, glow: 0xff00bb },
-  ember: { primary: 0xffb347, accent: 0xff1e56, glow: 0xff7c4d },
-  zenith: { primary: 0x4aa4ff, accent: 0x9dfffb, glow: 0x8c4dff },
-};
+import { BaseVisualization } from "../base";
+import {
+  ColorSchemeId,
+  COLOR_SCHEMES_HEX_ACCENT,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface AdditiveFieldConfig extends VisualizationConfig {
   colorScheme: string;
@@ -23,7 +22,7 @@ interface AdditiveFieldConfig extends VisualizationConfig {
   noiseScale: number;
 }
 
-export class AdditiveFieldVisualization implements Visualization {
+export class AdditiveFieldVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "additiveField",
     name: "Additive Field",
@@ -34,13 +33,6 @@ export class AdditiveFieldVisualization implements Visualization {
     transitionType: "crossfade",
   };
 
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
-
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
   private camera: THREE.PerspectiveCamera | null = null;
@@ -50,7 +42,7 @@ export class AdditiveFieldVisualization implements Visualization {
   private velocities: Float32Array | null = null;
   private config: AdditiveFieldConfig = {
     sensitivity: 1,
-    colorScheme: "aurora",
+    colorScheme: "synthwave",
     particleCount: 3600,
     spread: 140,
     lift: 0.6,
@@ -93,7 +85,11 @@ export class AdditiveFieldVisualization implements Visualization {
       this.geometry?.dispose();
     }
 
-    const colors = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.aurora;
+    const colors = getColorScheme(
+      COLOR_SCHEMES_HEX_ACCENT,
+      this.config.colorScheme as ColorSchemeId,
+      "synthwave",
+    );
     const { particleCount, spread } = this.config;
 
     this.geometry = new THREE.BufferGeometry();
@@ -239,11 +235,8 @@ export class AdditiveFieldVisualization implements Visualization {
       colorScheme: {
         type: "select",
         label: "Color Scheme",
-        default: "aurora",
-        options: Object.keys(COLOR_SCHEMES).map((key) => ({
-          value: key,
-          label: key.charAt(0).toUpperCase() + key.slice(1),
-        })),
+        default: "synthwave",
+        options: COLOR_SCHEME_OPTIONS,
       },
       particleCount: {
         type: "number",

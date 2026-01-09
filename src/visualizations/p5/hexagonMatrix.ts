@@ -2,10 +2,10 @@ import p5 from "p5";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 interface HexagonMatrixConfig extends VisualizationConfig {
   hexSize: number;
@@ -75,7 +75,7 @@ class HexCell {
   }
 }
 
-export class HexagonMatrixVisualization implements Visualization {
+export class HexagonMatrixVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "hexagonMatrix",
     name: "Hexagon Matrix",
@@ -83,13 +83,6 @@ export class HexagonMatrixVisualization implements Visualization {
     renderer: "p5",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private sketch: p5 | null = null;

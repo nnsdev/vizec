@@ -1,24 +1,15 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
-
-// Color schemes matching the project pattern
-const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; glow: string }> = {
-  cyanMagenta: { primary: "#00ffff", secondary: "#ff00ff", glow: "#00ffff" },
-  darkTechno: { primary: "#4a00e0", secondary: "#8000ff", glow: "#8000ff" },
-  neon: { primary: "#39ff14", secondary: "#ff073a", glow: "#ffff00" },
-  fire: { primary: "#ff4500", secondary: "#ffd700", glow: "#ff6600" },
-  ice: { primary: "#00bfff", secondary: "#e0ffff", glow: "#87ceeb" },
-  acid: { primary: "#00ff00", secondary: "#ffff00", glow: "#00ff00" },
-  monochrome: { primary: "#ffffff", secondary: "#808080", glow: "#ffffff" },
-  synthwave: { primary: "#ff00ff", secondary: "#00ffff", glow: "#ff00aa" },
-  ocean: { primary: "#0077be", secondary: "#00d4aa", glow: "#00b4d8" },
-  sunset: { primary: "#ff6b6b", secondary: "#feca57", glow: "#ff9f43" },
-};
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_STRING,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface Ring {
   radius: number;
@@ -36,7 +27,7 @@ interface WaveformRingsConfig extends VisualizationConfig {
   fadeRate: number;
 }
 
-export class WaveformRingsVisualization implements Visualization {
+export class WaveformRingsVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "waveformRings",
     name: "Waveform Rings",
@@ -45,13 +36,6 @@ export class WaveformRingsVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -98,7 +82,7 @@ export class WaveformRingsVisualization implements Visualization {
     const { timeDomainData, bass, volume } = audioData;
     const { ringCount, expansionSpeed, colorScheme, lineWidth, fadeRate, sensitivity } =
       this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_STRING, colorScheme);
 
     // Clear canvas with transparency
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -304,18 +288,7 @@ export class WaveformRingsVisualization implements Visualization {
         type: "select",
         label: "Color Scheme",
         default: "cyanMagenta",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "ocean", label: "Ocean" },
-          { value: "sunset", label: "Sunset" },
-        ],
+        options: [...COLOR_SCHEME_OPTIONS],
       },
       lineWidth: {
         type: "number",

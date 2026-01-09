@@ -2,10 +2,10 @@ import * as THREE from "three";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 const COLOR_SCHEMES: Record<
   string,
@@ -96,7 +96,7 @@ interface WormholeConfig extends VisualizationConfig {
   spiralTightness: number;
 }
 
-export class WormholeVisualization implements Visualization {
+export class WormholeVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "wormhole",
     name: "Wormhole",
@@ -105,13 +105,6 @@ export class WormholeVisualization implements Visualization {
     renderer: "threejs",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;

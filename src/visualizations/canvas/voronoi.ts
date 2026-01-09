@@ -1,10 +1,10 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 // Color schemes for voronoi cells
 const COLOR_SCHEMES: Record<
@@ -97,7 +97,7 @@ interface VoronoiConfig extends VisualizationConfig {
   speed: number;
 }
 
-export class VoronoiVisualization implements Visualization {
+export class VoronoiVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "voronoi",
     name: "Voronoi",
@@ -106,13 +106,6 @@ export class VoronoiVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;

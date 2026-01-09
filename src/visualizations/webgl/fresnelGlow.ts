@@ -2,10 +2,16 @@ import * as THREE from "three";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
+import {
+  ColorSchemeId,
+  COLOR_SCHEMES_HEX_ACCENT,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
 interface FresnelGlowConfig extends VisualizationConfig {
   colorScheme: string;
@@ -17,13 +23,7 @@ interface FresnelGlowConfig extends VisualizationConfig {
   audioSensitivity: number;
 }
 
-const COLOR_SCHEMES: Record<string, { base: number; edge: number; glow: number }> = {
-  aurora: { base: 0x5af2ff, edge: 0xff6be3, glow: 0xffffff },
-  eclipse: { base: 0x1c2238, edge: 0x8c34ff, glow: 0x00b7ff },
-  ember: { base: 0xffb347, edge: 0xff1e56, glow: 0xff7c4d },
-};
-
-export class FresnelGlowVisualization implements Visualization {
+export class FresnelGlowVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "fresnelGlow",
     name: "Fresnel Pulse",
@@ -32,13 +32,6 @@ export class FresnelGlowVisualization implements Visualization {
     renderer: "threejs",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -50,7 +43,7 @@ export class FresnelGlowVisualization implements Visualization {
 
   private config: FresnelGlowConfig = {
     sensitivity: 1,
-    colorScheme: "aurora",
+    colorScheme: "synthwave",
     baseColor: 0x5af2ff,
     edgeColor: 0xff6be3,
     fresnelPower: 2.5,
@@ -90,7 +83,12 @@ export class FresnelGlowVisualization implements Visualization {
   private createGeometry(): void {
     if (!this.scene) return;
 
-    const colors = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.aurora;
+    const scheme = getColorScheme(
+      COLOR_SCHEMES_HEX_ACCENT,
+      this.config.colorScheme as ColorSchemeId,
+      "synthwave",
+    );
+    const colors = { base: scheme.primary, edge: scheme.accent, glow: scheme.glow };
     this.config.baseColor = colors.base;
     this.config.edgeColor = colors.edge;
 
@@ -197,9 +195,13 @@ export class FresnelGlowVisualization implements Visualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     this.config = { ...this.config, ...config } as FresnelGlowConfig;
     if (this.sphere && this.uniforms) {
-      const colors = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.aurora;
-      this.uniforms.baseColor.value.set(colors.base);
-      this.uniforms.edgeColor.value.set(colors.edge);
+      const scheme = getColorScheme(
+        COLOR_SCHEMES_HEX_ACCENT,
+        this.config.colorScheme as ColorSchemeId,
+        "synthwave",
+      );
+      this.uniforms.baseColor.value.set(scheme.primary);
+      this.uniforms.edgeColor.value.set(scheme.accent);
     }
   }
 
@@ -227,12 +229,8 @@ export class FresnelGlowVisualization implements Visualization {
       colorScheme: {
         type: "select",
         label: "Color Scheme",
-        default: "aurora",
-        options: [
-          { value: "aurora", label: "Aurora" },
-          { value: "eclipse", label: "Eclipse" },
-          { value: "ember", label: "Ember" },
-        ],
+        default: "synthwave",
+        options: COLOR_SCHEME_OPTIONS,
       },
       fresnelPower: {
         type: "number",

@@ -1,10 +1,10 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 interface PulseRing {
   x: number;
@@ -30,7 +30,7 @@ const COLOR_SCHEMES: Record<string, { center: string; edge: string; halo: string
   sunset: { center: "#ff5f6d", edge: "#ffc371", halo: "#ff9e9a" },
 };
 
-export class MagentaPulseVisualization implements Visualization {
+export class MagentaPulseVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "magentaPulse",
     name: "Magenta Pulse",
@@ -39,13 +39,6 @@ export class MagentaPulseVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -89,8 +82,9 @@ export class MagentaPulseVisualization implements Visualization {
     this.ctx.clearRect(0, 0, this.width, this.height);
     this.ctx.globalCompositeOperation = "lighter";
 
-    const shouldPulse = (bass + treble) * 0.5 > this.config.burstThreshold;
-    if (shouldPulse && this.elapsedSincePulse > 0.08) {
+    const audioLevel = (bass + treble) * 0.5 * this.config.sensitivity;
+    const shouldPulse = audioLevel > this.config.burstThreshold;
+    if (shouldPulse && this.elapsedSincePulse > 0.06) {
       this.spawnPulse(volume, treble);
       this.elapsedSincePulse = 0;
     }
@@ -99,7 +93,7 @@ export class MagentaPulseVisualization implements Visualization {
 
     for (const pulse of this.pulses) {
       pulse.radius += this.config.pulseSpeed * deltaTime;
-      pulse.alpha -= 0.5 * this.config.sensitivity * deltaTime;
+      pulse.alpha -= 0.4 * deltaTime;
       if (pulse.radius >= pulse.maxRadius || pulse.alpha <= 0) {
         continue;
       }
@@ -112,9 +106,9 @@ export class MagentaPulseVisualization implements Visualization {
         pulse.y,
         pulse.radius,
       );
-      gradient.addColorStop(0, this.applyAlpha(colors.center, pulse.alpha * 0.6));
-      gradient.addColorStop(0.35, this.applyAlpha(colors.halo, pulse.alpha * 0.35));
-      gradient.addColorStop(1, this.applyAlpha(colors.edge, pulse.alpha * 0.08));
+      gradient.addColorStop(0, this.applyAlpha(colors.center, pulse.alpha * 0.9));
+      gradient.addColorStop(0.35, this.applyAlpha(colors.halo, pulse.alpha * 0.6));
+      gradient.addColorStop(1, this.applyAlpha(colors.edge, pulse.alpha * 0.2));
 
       this.ctx.beginPath();
       this.ctx.fillStyle = gradient;

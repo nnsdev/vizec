@@ -2,10 +2,10 @@ import * as THREE from "three";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 interface SpectrumTunnelConfig extends VisualizationConfig {
   ringCount: number;
@@ -22,7 +22,7 @@ const COLOR_PALETTES: Record<string, number[]> = {
   sunset: [0xff6600, 0xff0066, 0xffcc00],
 };
 
-export class SpectrumTunnelVisualization implements Visualization {
+export class SpectrumTunnelVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "spectrumTunnel",
     name: "Spectrum Tunnel",
@@ -31,13 +31,6 @@ export class SpectrumTunnelVisualization implements Visualization {
     renderer: "webgl",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;

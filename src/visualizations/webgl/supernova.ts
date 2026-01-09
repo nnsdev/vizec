@@ -2,10 +2,10 @@ import * as THREE from "three";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 interface SupernovaConfig extends VisualizationConfig {
   particleCount: number;
@@ -66,7 +66,7 @@ interface NebulaCloud {
   position: THREE.Vector3;
 }
 
-export class SupernovaVisualization implements Visualization {
+export class SupernovaVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "supernova",
     name: "Supernova",
@@ -74,13 +74,6 @@ export class SupernovaVisualization implements Visualization {
     renderer: "threejs",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;

@@ -2,29 +2,17 @@ import * as THREE from "three";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
+import {
+  COLOR_SCHEMES_HEX_BACKGROUND,
+  COLOR_SCHEME_OPTIONS,
+  getColorScheme,
+} from "../shared/colorSchemes";
 
-const COLOR_SCHEMES: Record<string, { primary: number; secondary: number; background: number }> = {
-  cyanMagenta: { primary: 0x00ffff, secondary: 0xff00ff, background: 0x000000 },
-  darkTechno: { primary: 0x4a00e0, secondary: 0x8e2de2, background: 0x0a0a0f },
-  neon: { primary: 0x39ff14, secondary: 0xff073a, background: 0x000000 },
-  fire: { primary: 0xff4500, secondary: 0xffd700, background: 0x000000 },
-  ice: { primary: 0x00bfff, secondary: 0xe0ffff, background: 0x000510 },
-  acid: { primary: 0xadff2f, secondary: 0x00ff00, background: 0x000000 },
-  monochrome: { primary: 0xffffff, secondary: 0x888888, background: 0x000000 },
-  purpleHaze: { primary: 0x8b00ff, secondary: 0xff1493, background: 0x000000 },
-  sunset: { primary: 0xff6b6b, secondary: 0xfeca57, background: 0x000000 },
-  ocean: { primary: 0x0077be, secondary: 0x00d4aa, background: 0x000000 },
-  toxic: { primary: 0x00ff41, secondary: 0x0aff0a, background: 0x000000 },
-  bloodMoon: { primary: 0x8b0000, secondary: 0xff4500, background: 0x000000 },
-  synthwave: { primary: 0xff00ff, secondary: 0x00ffff, background: 0x000000 },
-  golden: { primary: 0xffd700, secondary: 0xff8c00, background: 0x000000 },
-};
-
-export class AudioMeshVisualization implements Visualization {
+export class AudioMeshVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "audioMesh",
     name: "Audio Mesh",
@@ -33,13 +21,6 @@ export class AudioMeshVisualization implements Visualization {
     renderer: "threejs",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private container: HTMLElement | null = null;
   private scene: THREE.Scene | null = null;
@@ -93,7 +74,7 @@ export class AudioMeshVisualization implements Visualization {
     if (!this.scene) return;
 
     const { gridSize, colorScheme, wireframe } = this.config;
-    const colors = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.cyanMagenta;
+    const colors = getColorScheme(COLOR_SCHEMES_HEX_BACKGROUND, colorScheme);
 
     // Remove existing mesh
     if (this.mesh) {
@@ -271,22 +252,7 @@ export class AudioMeshVisualization implements Visualization {
       },
       colorScheme: {
         type: "select",
-        options: [
-          { value: "cyanMagenta", label: "Cyan/Magenta" },
-          { value: "darkTechno", label: "Dark Techno" },
-          { value: "neon", label: "Neon" },
-          { value: "fire", label: "Fire" },
-          { value: "ice", label: "Ice" },
-          { value: "acid", label: "Acid" },
-          { value: "monochrome", label: "Monochrome" },
-          { value: "purpleHaze", label: "Purple Haze" },
-          { value: "sunset", label: "Sunset" },
-          { value: "ocean", label: "Ocean" },
-          { value: "toxic", label: "Toxic" },
-          { value: "bloodMoon", label: "Blood Moon" },
-          { value: "synthwave", label: "Synthwave" },
-          { value: "golden", label: "Golden" },
-        ],
+        options: COLOR_SCHEME_OPTIONS,
         default: "cyanMagenta",
         label: "Color Scheme",
       },

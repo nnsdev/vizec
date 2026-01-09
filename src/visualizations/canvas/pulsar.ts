@@ -1,10 +1,10 @@
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 const COLOR_SCHEMES: Record<
   string,
@@ -97,7 +97,7 @@ interface PulsarConfig extends VisualizationConfig {
   starCount: number;
 }
 
-export class PulsarVisualization implements Visualization {
+export class PulsarVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "pulsar",
     name: "Pulsar",
@@ -106,13 +106,6 @@ export class PulsarVisualization implements Visualization {
     renderer: "canvas2d",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;

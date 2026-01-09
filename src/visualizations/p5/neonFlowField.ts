@@ -2,10 +2,10 @@ import p5 from "p5";
 import {
   AudioData,
   ConfigSchema,
-  Visualization,
   VisualizationConfig,
   VisualizationMeta,
 } from "../types";
+import { BaseVisualization } from "../base";
 
 interface NeonFlowFieldConfig extends VisualizationConfig {
   particleCount: number;
@@ -27,7 +27,7 @@ const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; tertia
   plasma: { primary: "#ff0080", secondary: "#00ff80", tertiary: "#8000ff" },
 };
 
-export class NeonFlowFieldVisualization implements Visualization {
+export class NeonFlowFieldVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "neonFlowField",
     name: "Neon Flow Fields",
@@ -35,13 +35,6 @@ export class NeonFlowFieldVisualization implements Visualization {
     renderer: "p5",
     transitionType: "crossfade",
   };
-
-  readonly id = (this.constructor as any).meta.id;
-  readonly name = (this.constructor as any).meta.name;
-  readonly author = (this.constructor as any).meta.author;
-  readonly description = (this.constructor as any).meta.description;
-  readonly renderer = (this.constructor as any).meta.renderer;
-  readonly transitionType = (this.constructor as any).meta.transitionType;
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;
