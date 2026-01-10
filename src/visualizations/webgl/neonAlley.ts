@@ -1,16 +1,17 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 import {
   AudioData,
   ConfigSchema,
   VisualizationConfig,
   VisualizationMeta,
-} from "../types";
-import { BaseVisualization } from "../base";
+} from '../types';
+import { BaseVisualization } from '../base';
 import {
   COLOR_SCHEMES_STRING_ACCENT,
   COLOR_SCHEME_OPTIONS,
   getColorScheme,
-} from "../shared/colorSchemes";
+} from '../shared/colorSchemes';
+import { SIGN_WORDS } from '../shared/words';
 
 interface NeonAlleyConfig extends VisualizationConfig {
   signCount: number;
@@ -31,23 +32,14 @@ interface SignData {
   freqIndex: number; // 0-255 mapped index
 }
 
-// Cyberpunk/City strings
-const SIGNS = [
-  "BAR", "OPEN", "24h", "HOTEL", "RAMEN", "EXIT", 
-  "SYSTEM", "DATA", "VOID", "ERROR", "NEON", 
-  "MUSIC", "BASS", "TECH", "ZONE", "LANE",
-  "東京", "入口", "出口", "酒", "バー", "ラーメン", 
-  "システム", "データ", "電脳", "未来", "音楽"
-];
-
 export class NeonAlleyVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
-    id: "neonAlley",
-    name: "Neon Alley",
-    author: "Vizec",
-    description: "Floating neon signs zooming past in a dark void",
-    renderer: "threejs",
-    transitionType: "crossfade",
+    id: 'neonAlley',
+    name: 'Neon Alley',
+    author: 'Vizec',
+    description: 'Floating neon signs zooming past in a dark void',
+    renderer: 'threejs',
+    transitionType: 'crossfade',
   };
 
   private scene: THREE.Scene | null = null;
@@ -55,10 +47,10 @@ export class NeonAlleyVisualization extends BaseVisualization {
   private rendererThree: THREE.WebGLRenderer | null = null;
   private signGroup: THREE.Group | null = null;
   private signs: SignData[] = [];
-  
+
   private config: NeonAlleyConfig = {
     sensitivity: 1.0,
-    colorScheme: "neon", // Default to neon for this one
+    colorScheme: 'neon', // Default to neon for this one
     signCount: 30,
     speed: 1.0,
     tunnelRadius: 15,
@@ -73,7 +65,7 @@ export class NeonAlleyVisualization extends BaseVisualization {
     const height = container.clientHeight || window.innerHeight;
 
     this.scene = new THREE.Scene();
-    
+
     // Fog for depth fading
     this.scene.fog = new THREE.FogExp2(0x000000, 0.03);
 
@@ -92,15 +84,19 @@ export class NeonAlleyVisualization extends BaseVisualization {
     this.createSigns();
   }
 
-  private createSignTexture(text: string, color: string, isVertical: boolean): THREE.Texture {
-    const canvas = document.createElement("canvas");
+  private createSignTexture(
+    text: string,
+    color: string,
+    isVertical: boolean,
+  ): THREE.Texture {
+    const canvas = document.createElement('canvas');
     // High res for crisp text
     const w = isVertical ? 64 : 256;
     const h = isVertical ? 256 : 64;
     canvas.width = w;
     canvas.height = h;
-    
-    const ctx = canvas.getContext("2d");
+
+    const ctx = canvas.getContext('2d');
     if (!ctx) return new THREE.CanvasTexture(canvas);
 
     // Transparent background
@@ -109,7 +105,7 @@ export class NeonAlleyVisualization extends BaseVisualization {
     // Glow
     ctx.shadowBlur = 10;
     ctx.shadowColor = color;
-    
+
     // Border
     ctx.strokeStyle = color;
     ctx.lineWidth = 4;
@@ -117,13 +113,13 @@ export class NeonAlleyVisualization extends BaseVisualization {
 
     // Text
     ctx.fillStyle = color;
-    ctx.font = isVertical ? "bold 40px Arial" : "bold 40px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.font = isVertical ? 'bold 40px Arial' : 'bold 40px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
     if (isVertical) {
       // Draw characters vertically
-      const chars = text.split("");
+      const chars = text.split('');
       const step = (h - 20) / (chars.length + 1);
       chars.forEach((char, i) => {
         ctx.fillText(char, w / 2, 20 + step * (i + 1));
@@ -138,10 +134,10 @@ export class NeonAlleyVisualization extends BaseVisualization {
 
   private createSigns(): void {
     if (!this.scene) return;
-    
+
     if (this.signGroup) {
       this.scene.remove(this.signGroup);
-      this.signs.forEach(s => {
+      this.signs.forEach((s) => {
         s.mesh.geometry.dispose();
         s.material.map?.dispose();
         s.material.dispose();
@@ -155,18 +151,18 @@ export class NeonAlleyVisualization extends BaseVisualization {
 
     for (let i = 0; i < signCount; i++) {
       const isVertical = Math.random() > 0.5;
-      const text = SIGNS[Math.floor(Math.random() * SIGNS.length)];
-      
+      const text = SIGN_WORDS[Math.floor(Math.random() * SIGN_WORDS.length)];
+
       // Alternate colors
       const color = Math.random() > 0.5 ? colors.primary : colors.accent;
-      
+
       const texture = this.createSignTexture(text, color, isVertical);
-      
+
       const geometry = new THREE.PlaneGeometry(
         isVertical ? 1 : 4,
-        isVertical ? 4 : 1
+        isVertical ? 4 : 1,
       );
-      
+
       const material = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
@@ -181,17 +177,17 @@ export class NeonAlleyVisualization extends BaseVisualization {
       const angle = Math.random() * Math.PI * 2;
       // Radius varies slightly
       const r = tunnelRadius * (0.8 + Math.random() * 0.4);
-      
+
       const x = Math.cos(angle) * r;
       const y = Math.sin(angle) * r;
-      
+
       // Start at random Z depth
       const startZ = -Math.random() * 100;
 
       mesh.position.set(x, y, startZ);
-      
+
       // Rotate to face inward/camera somewhat
-      mesh.lookAt(0, 0, startZ + 10); 
+      mesh.lookAt(0, 0, startZ + 10);
       // Add some random tilt
       mesh.rotation.z += (Math.random() - 0.5) * 0.5;
 
@@ -204,9 +200,9 @@ export class NeonAlleyVisualization extends BaseVisualization {
         flickerSpeed: 5 + Math.random() * 20,
         text,
         isVertical,
-        freqIndex: Math.floor(Math.random() * 100) // Random audio channel
+        freqIndex: Math.floor(Math.random() * 100), // Random audio channel
       });
-      
+
       this.signGroup.add(mesh);
     }
 
@@ -214,7 +210,8 @@ export class NeonAlleyVisualization extends BaseVisualization {
   }
 
   render(audioData: AudioData, deltaTime: number): void {
-    if (!this.scene || !this.camera || !this.rendererThree || !this.signGroup) return;
+    if (!this.scene || !this.camera || !this.rendererThree || !this.signGroup)
+      return;
 
     this.time += deltaTime;
     const { frequencyData, volume, treble } = audioData;
@@ -223,7 +220,7 @@ export class NeonAlleyVisualization extends BaseVisualization {
     // Move signs
     const moveSpeed = 20 * speed * (1 + volume * sensitivity * 0.5); // Music boosts speed
 
-    this.signs.forEach(s => {
+    this.signs.forEach((s) => {
       // Move towards camera (positive Z)
       s.mesh.position.z += moveSpeed * s.speedOffset * deltaTime;
 
@@ -241,25 +238,26 @@ export class NeonAlleyVisualization extends BaseVisualization {
       // Flicker effect (bad neon connection style)
       // Driven by Treble or random + high freq
       const flicker = Math.sin(this.time * s.flickerSpeed) > 0.8 ? 0.2 : 1.0;
-      
+
       // If loud, stabilize flicker (fully lit)
       const stability = normalized > 0.5 ? 1.0 : flicker;
-      
+
       // Base opacity
-      let opacity = 0.3 + (normalized * 0.7);
-      
+      let opacity = 0.3 + normalized * 0.7;
+
       // Apply flicker to opacity
       opacity *= stability;
-      
+
       s.material.opacity = Math.min(1, Math.max(0.1, opacity));
-      
+
       // Scale pulse
-      const scale = 1 + (normalized * 0.2);
+      const scale = 1 + normalized * 0.2;
       s.mesh.scale.setScalar(scale);
     });
 
     // Camera sway
-    this.camera.rotation.z = Math.sin(this.time * 0.2) * 0.05 * (1 + treble * sensitivity);
+    this.camera.rotation.z =
+      Math.sin(this.time * 0.2) * 0.05 * (1 + treble * sensitivity);
 
     this.rendererThree.render(this.scene, this.camera);
   }
@@ -275,18 +273,21 @@ export class NeonAlleyVisualization extends BaseVisualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     const oldScheme = this.config.colorScheme;
     const oldCount = this.config.signCount;
-    
+
     this.config = { ...this.config, ...config } as NeonAlleyConfig;
-    
-    if (this.config.colorScheme !== oldScheme || this.config.signCount !== oldCount) {
-        this.createSigns();
+
+    if (
+      this.config.colorScheme !== oldScheme ||
+      this.config.signCount !== oldCount
+    ) {
+      this.createSigns();
     }
   }
 
   destroy(): void {
     if (this.signGroup) {
       this.scene?.remove(this.signGroup);
-      this.signs.forEach(s => {
+      this.signs.forEach((s) => {
         s.mesh.geometry.dispose();
         s.material.map?.dispose();
         s.material.dispose();
@@ -299,38 +300,41 @@ export class NeonAlleyVisualization extends BaseVisualization {
   getConfigSchema(): ConfigSchema {
     return {
       sensitivity: {
-        type: "number",
-        label: "Sensitivity",
+        type: 'number',
+        label: 'Sensitivity',
         default: 1.0,
         min: 0.1,
         max: 3.0,
         step: 0.1,
       },
       colorScheme: {
-        type: "select",
-        label: "Color Scheme",
-        default: "neon",
-        options: COLOR_SCHEME_OPTIONS.map((o) => ({ label: o.label, value: o.value })),
+        type: 'select',
+        label: 'Color Scheme',
+        default: 'neon',
+        options: COLOR_SCHEME_OPTIONS.map((o) => ({
+          label: o.label,
+          value: o.value,
+        })),
       },
       signCount: {
-        type: "number",
-        label: "Sign Count",
+        type: 'number',
+        label: 'Sign Count',
         default: 30,
         min: 10,
         max: 100,
         step: 5,
       },
       speed: {
-        type: "number",
-        label: "Speed",
+        type: 'number',
+        label: 'Speed',
         default: 1.0,
         min: 0.1,
         max: 3.0,
         step: 0.1,
       },
       tunnelRadius: {
-        type: "number",
-        label: "Tunnel Width",
+        type: 'number',
+        label: 'Tunnel Width',
         default: 15,
         min: 5,
         max: 30,
