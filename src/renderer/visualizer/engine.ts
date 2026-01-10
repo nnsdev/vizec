@@ -82,6 +82,11 @@ export class VisualizationEngine {
   private transitionContainer: HTMLElement | null = null;
   private isTransitioning = false;
 
+  // Preloading for smooth transitions
+  private preloadedViz: Visualization | null = null;
+  private preloadedVizId: string | null = null;
+  private preloadContainer: HTMLElement | null = null;
+
   constructor(container: HTMLElement) {
     this.container = container;
     this.audioAnalyzer = new AudioAnalyzer();
@@ -104,6 +109,20 @@ export class VisualizationEngine {
       transition: opacity 0.5s ease-in-out;
     `;
     this.container.appendChild(this.transitionContainer);
+
+    // Create hidden preload container (off-screen)
+    this.preloadContainer = document.createElement("div");
+    this.preloadContainer.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      visibility: hidden;
+      opacity: 0;
+    `;
+    this.container.appendChild(this.preloadContainer);
 
     console.log(
       "Engine initialized, container size:",
@@ -178,8 +197,18 @@ export class VisualizationEngine {
   setVisualization(vizId: string, config?: VisualizationConfig): void {
     if (vizId === this.currentVizId) return;
 
-    // USE MANAGER INSTEAD OF GLOBAL FACTORY
-    const newViz = visualizationManager.createVisualization(vizId);
+    // Check if we have this visualization preloaded
+    let newViz: Visualization | null = null;
+    if (this.preloadedVizId === vizId && this.preloadedViz) {
+      newViz = this.preloadedViz;
+      this.preloadedViz = null;
+      this.preloadedVizId = null;
+      console.log(`Using preloaded visualization: ${vizId}`);
+    } else {
+      // Create on-demand if not preloaded
+      newViz = visualizationManager.createVisualization(vizId);
+    }
+
     if (!newViz) {
       console.error(`Visualization not found: ${vizId}`);
       return;
@@ -341,6 +370,9 @@ export class VisualizationEngine {
 
     // Start new timer if enabled
     if (enabled) {
+      // Preload the first next visualization
+      this.preloadNextVisualization();
+
       this.rotationTimerId = window.setInterval(() => {
         if (this.rotationRandomizeAll) {
           // Full randomization - colors + all settings
@@ -355,8 +387,63 @@ export class VisualizationEngine {
           window.vizecAPI.updateVisualizationConfig({ colorScheme: randomColor });
         }
         window.vizecAPI.nextVisualization();
+
+        // Preload the next one after switching
+        setTimeout(() => this.preloadNextVisualization(), 500);
       }, interval * 1000);
     }
+  }
+
+  private preloadNextVisualization(): void {
+    if (!this.rotationEnabled || !this.preloadContainer) return;
+
+    const ids = visualizationManager.getIds();
+    if (ids.length === 0) return;
+
+    // Determine next visualization ID
+    let nextId: string;
+    if (this.rotationOrder === "random") {
+      // Pick a random one that's not the current
+      const candidates = ids.filter((id) => id !== this.currentVizId);
+      nextId = candidates[Math.floor(Math.random() * candidates.length)] || ids[0];
+    } else {
+      // Sequential
+      const currentIndex = this.currentVizId ? ids.indexOf(this.currentVizId) : -1;
+      nextId = ids[(currentIndex + 1) % ids.length];
+    }
+
+    // Don't re-preload the same one
+    if (nextId === this.preloadedVizId) return;
+
+    // Clean up old preloaded viz
+    if (this.preloadedViz) {
+      this.preloadedViz.destroy();
+      this.preloadedViz = null;
+    }
+    this.preloadContainer.innerHTML = "";
+
+    // Create and initialize the next visualization
+    const viz = visualizationManager.createVisualization(nextId);
+    if (!viz) return;
+
+    const tempContainer = document.createElement("div");
+    tempContainer.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    `;
+    this.preloadContainer.appendChild(tempContainer);
+
+    const width = this.container.clientWidth || window.innerWidth;
+    const height = this.container.clientHeight || window.innerHeight;
+    viz.init(tempContainer, { sensitivity: 1.0, colorScheme: "cyanMagenta" });
+    viz.resize(width, height);
+
+    this.preloadedViz = viz;
+    this.preloadedVizId = nextId;
+    console.log(`Preloaded visualization: ${nextId}`);
   }
 
   start(): void {
@@ -445,6 +532,11 @@ export class VisualizationEngine {
     if (this.currentVisualization) {
       this.currentVisualization.destroy();
       this.currentVisualization = null;
+    }
+
+    if (this.preloadedViz) {
+      this.preloadedViz.destroy();
+      this.preloadedViz = null;
     }
   }
 }
