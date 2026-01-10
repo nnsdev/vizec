@@ -236,7 +236,7 @@ export class AdditiveFieldVisualization extends BaseVisualization {
         type: "select",
         label: "Color Scheme",
         default: "synthwave",
-        options: COLOR_SCHEME_OPTIONS,
+        options: [...COLOR_SCHEME_OPTIONS],
       },
       particleCount: {
         type: "number",

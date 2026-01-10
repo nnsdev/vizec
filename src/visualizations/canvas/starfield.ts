@@ -21,6 +21,15 @@ interface Star {
   color: string;
 }
 
+interface StarfieldConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  starCount: number;
+  baseSpeed: number;
+  trailLength: number;
+  colorfulStars: boolean;
+}
+
 export class StarfieldVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "starfield",
@@ -34,7 +43,7 @@ export class StarfieldVisualization extends BaseVisualization {
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
   private height = 0;
-  private config: VisualizationConfig = {
+  private config: StarfieldConfig = {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     starCount: 400,
@@ -215,7 +224,7 @@ export class StarfieldVisualization extends BaseVisualization {
 
   updateConfig(config: Partial<VisualizationConfig>): void {
     const oldStarCount = this.config.starCount;
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as StarfieldConfig;
 
     if (config.starCount && config.starCount !== oldStarCount) {
       this.initStars();

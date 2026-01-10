@@ -11,6 +11,17 @@ import {
   getColorScheme,
 } from "../shared/colorSchemes";
 
+interface SpectrumCircleConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  barCount: number;
+  innerRadius: number;
+  barWidth: number;
+  glow: boolean;
+  mirror: boolean;
+  rotate: boolean;
+}
+
 export class SpectrumCircleVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "spectrumCircle",
@@ -25,7 +36,7 @@ export class SpectrumCircleVisualization extends BaseVisualization {
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
   private height = 0;
-  private config: VisualizationConfig = {
+  private config: SpectrumCircleConfig = {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     barCount: 180,
@@ -202,9 +213,9 @@ export class SpectrumCircleVisualization extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as SpectrumCircleConfig;
     if (config.barCount && config.barCount !== this.smoothedData.length) {
-      this.smoothedData = Array.from({ length: config.barCount }, () => 0);
+      this.smoothedData = Array.from({ length: this.config.barCount }, () => 0);
     }
   }
 

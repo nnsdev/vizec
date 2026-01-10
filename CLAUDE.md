@@ -116,7 +116,7 @@ Renderer Process (src/renderer/)
 
 3. **That's it** - auto-discovery via `esbuild-plugin-import-glob` finds all `.ts` files in `src/visualizations/**/` and registers any exported class with a valid `static meta` property
 
-4. **Make sure linting passes, if you have linting errors make sure to fix them before you consider yourself done**
+4. **Make sure linting passes, if you have linting errors make sure to fix them before you consider yourself done** When running linting, make sure to use bunx over npx
 
 ### Visualization Guidelines
 

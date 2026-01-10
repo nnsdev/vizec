@@ -11,6 +11,15 @@ import {
   getColorScheme,
 } from "../shared/colorSchemes";
 
+interface NeonGridConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  gridSpeed: number;
+  gridLines: number;
+  showSun: boolean;
+  showMountains: boolean;
+}
+
 export class NeonGridVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "neonGrid",
@@ -25,7 +34,7 @@ export class NeonGridVisualization extends BaseVisualization {
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
   private height = 0;
-  private config: VisualizationConfig = {
+  private config: NeonGridConfig = {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     gridSpeed: 2,
@@ -250,7 +259,7 @@ export class NeonGridVisualization extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as NeonGridConfig;
   }
 
   destroy(): void {
@@ -274,7 +283,7 @@ export class NeonGridVisualization extends BaseVisualization {
       },
       colorScheme: {
         type: "select",
-        options: COLOR_SCHEME_OPTIONS,
+        options: [...COLOR_SCHEME_OPTIONS],
         default: "cyanMagenta",
         label: "Color Scheme",
       },

@@ -24,6 +24,15 @@ interface Drop {
 const MATRIX_CHARS =
   "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+interface MatrixRainConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  fontSize: number;
+  density: number;
+  baseSpeed: number;
+  trailLength: number;
+}
+
 export class MatrixRainVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "matrixRain",
@@ -37,7 +46,7 @@ export class MatrixRainVisualization extends BaseVisualization {
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
   private height = 0;
-  private config: VisualizationConfig = {
+  private config: MatrixRainConfig = {
     sensitivity: 1.0,
     colorScheme: "neon",
     fontSize: 16,
@@ -207,7 +216,7 @@ export class MatrixRainVisualization extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as MatrixRainConfig;
   }
 
   destroy(): void {

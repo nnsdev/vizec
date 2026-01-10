@@ -21,6 +21,15 @@ interface Shape {
   speed: number;
 }
 
+interface KaleidoscopeConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  segments: number;
+  shapeCount: number;
+  rotationSpeed: number;
+  complexity: number;
+}
+
 export class KaleidoscopeVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "kaleidoscope",
@@ -35,7 +44,7 @@ export class KaleidoscopeVisualization extends BaseVisualization {
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
   private height = 0;
-  private config: VisualizationConfig = {
+  private config: KaleidoscopeConfig = {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     segments: 12,
@@ -237,7 +246,7 @@ export class KaleidoscopeVisualization extends BaseVisualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     const oldShapeCount = this.config.shapeCount;
     const oldComplexity = this.config.complexity;
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as KaleidoscopeConfig;
 
     if (
       (config.shapeCount && config.shapeCount !== oldShapeCount) ||

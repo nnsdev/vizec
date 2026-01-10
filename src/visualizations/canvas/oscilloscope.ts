@@ -11,6 +11,15 @@ import {
   getColorScheme,
 } from "../shared/colorSchemes";
 
+interface OscilloscopeConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  lineWidth: number;
+  glow: boolean;
+  stereo: boolean;
+  filled: boolean;
+}
+
 export class OscilloscopeVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "oscilloscope",
@@ -25,7 +34,7 @@ export class OscilloscopeVisualization extends BaseVisualization {
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
   private height = 0;
-  private config: VisualizationConfig = {
+  private config: OscilloscopeConfig = {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     lineWidth: 2,
@@ -158,7 +167,7 @@ export class OscilloscopeVisualization extends BaseVisualization {
     this.ctx.stroke();
 
     // Draw bass indicator dots on the sides
-    const dotSize = 5 + bass * sensitivity * 15;
+    const dotSize = Math.max(1, 5 + bass * 15);
     const dotGradient = this.ctx.createRadialGradient(30, centerY, 0, 30, centerY, dotSize);
     dotGradient.addColorStop(0, colors.primary);
     dotGradient.addColorStop(1, "transparent");
@@ -189,7 +198,7 @@ export class OscilloscopeVisualization extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as OscilloscopeConfig;
   }
 
   destroy(): void {

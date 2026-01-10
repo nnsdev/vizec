@@ -32,6 +32,15 @@ interface Firework {
   exploded: boolean;
 }
 
+interface FireworksConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  particleCount: number;
+  gravity: number;
+  trailLength: number;
+  beatThreshold: number;
+}
+
 export class FireworksVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "fireworks",
@@ -46,7 +55,7 @@ export class FireworksVisualization extends BaseVisualization {
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
   private height = 0;
-  private config: VisualizationConfig = {
+  private config: FireworksConfig = {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     particleCount: 80,
@@ -272,7 +281,7 @@ export class FireworksVisualization extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as FireworksConfig;
   }
 
   destroy(): void {

@@ -1,5 +1,5 @@
 import { VisualizationEngine } from "./engine";
-import { AppState } from "../../shared/types";
+import { AppState, AudioSource } from "../../shared/types";
 import { visualizationManager } from "./visualization-manager";
 
 // Initialize visualization engine
@@ -30,7 +30,7 @@ window.vizecAPI.onStateChanged((state: AppState) => {
 });
 
 // Listen for audio source selection (triggers capture start)
-window.vizecAPI.onAudioSourceSelected(async (source) => {
+window.vizecAPI.onAudioSourceSelected(async (source: AudioSource) => {
   console.log("Audio source selected:", source);
   try {
     // Pass the device ID for audio input devices, undefined for system audio

@@ -328,7 +328,7 @@ export class RibbonsVisualization extends BaseVisualization {
       },
       colorScheme: {
         type: "select",
-        options: COLOR_SCHEME_OPTIONS,
+        options: [...COLOR_SCHEME_OPTIONS],
         default: "cyanMagenta",
         label: "Color Scheme",
       },

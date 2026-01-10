@@ -168,12 +168,12 @@ export class VoronoiVisualization extends BaseVisualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { frequencyData, bass, isBeat } = audioData;
+    const { frequencyData, bass } = audioData;
     const { cellCount, borderGlow, speed, sensitivity, colorScheme } = this.config;
     const scheme = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.synthwave;
 
     // Detect beat for border glow
-    if (isBeat || (bass > this.lastBass + 0.15 && bass > 0.5)) {
+    if (bass > this.lastBass + 0.15 && bass > 0.5) {
       this.beatGlow = 1.0;
     }
     this.lastBass = bass;

@@ -18,6 +18,13 @@ interface Ring {
   lineWidth: number;
 }
 
+interface BeatPulseRingsConfig extends VisualizationConfig {
+  maxRings: number;
+  ringSpeed: number;
+  beatThreshold: number;
+  lineWidth: number;
+}
+
 export class BeatPulseRingsVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "beatPulseRings",
@@ -32,7 +39,7 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
   private ctx: CanvasRenderingContext2D | null = null;
   private width = 0;
   private height = 0;
-  private config: VisualizationConfig = {
+  private config: BeatPulseRingsConfig = {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     maxRings: 15,
@@ -172,7 +179,7 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as BeatPulseRingsConfig;
   }
 
   destroy(): void {

@@ -81,6 +81,16 @@ interface SpeedParticle {
   size: number;
 }
 
+interface AudioTerrainConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  speed: number;
+  gridSize: number;
+  heightScale: number;
+  fogDensity: number;
+  wireframe: boolean;
+}
+
 export class AudioTerrainVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "audioTerrain",
@@ -117,7 +127,7 @@ export class AudioTerrainVisualization extends BaseVisualization {
   private currentSpeed = 1;
   private glowIntensity = 1;
 
-  private config: VisualizationConfig = {
+  private config: AudioTerrainConfig = {
     sensitivity: 1.0,
     colorScheme: "synthwave",
     speed: 1.0,
@@ -533,7 +543,7 @@ export class AudioTerrainVisualization extends BaseVisualization {
     const oldWireframe = this.config.wireframe;
     const oldFogDensity = this.config.fogDensity;
 
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as AudioTerrainConfig;
 
     // Update scene based on config changes
     if (this.scene) {

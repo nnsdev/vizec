@@ -12,6 +12,15 @@ import {
   getColorScheme,
 } from "../shared/colorSchemes";
 
+interface AudioMeshConfig extends VisualizationConfig {
+  sensitivity: number;
+  colorScheme: string;
+  gridSize: number;
+  waveSpeed: number;
+  waveHeight: number;
+  wireframe: boolean;
+}
+
 export class AudioMeshVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
     id: "audioMesh",
@@ -30,7 +39,7 @@ export class AudioMeshVisualization extends BaseVisualization {
   private geometry: THREE.PlaneGeometry | null = null;
   private originalPositions: Float32Array | null = null;
 
-  private config: VisualizationConfig = {
+  private config: AudioMeshConfig = {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     gridSize: 64,
@@ -203,7 +212,7 @@ export class AudioMeshVisualization extends BaseVisualization {
     const oldGridSize = this.config.gridSize;
     const oldWireframe = this.config.wireframe;
 
-    this.config = { ...this.config, ...config };
+    this.config = { ...this.config, ...config } as AudioMeshConfig;
 
     // Recreate mesh if relevant settings changed
     if (
@@ -252,7 +261,7 @@ export class AudioMeshVisualization extends BaseVisualization {
       },
       colorScheme: {
         type: "select",
-        options: COLOR_SCHEME_OPTIONS,
+        options: [...COLOR_SCHEME_OPTIONS],
         default: "cyanMagenta",
         label: "Color Scheme",
       },

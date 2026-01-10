@@ -114,7 +114,7 @@ export class CubeFieldVisualization extends BaseVisualization {
         // Interpolate color based on position
         const posRatio = (i + j) / (gridSize * 2 - 2);
         const color = new THREE.Color(colors.primary).lerp(
-          new THREE.Color(colors.secondary),
+          new THREE.Color(colors.accent),
           posRatio,
         );
 
@@ -294,7 +294,7 @@ export class CubeFieldVisualization extends BaseVisualization {
       },
       colorScheme: {
         type: "select",
-        options: COLOR_SCHEME_OPTIONS,
+        options: [...COLOR_SCHEME_OPTIONS],
         default: "cyanMagenta",
         label: "Color Scheme",
       },
