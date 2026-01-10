@@ -15,7 +15,8 @@ export type ColorSchemeId =
   | "toxic"
   | "bloodMoon"
   | "synthwave"
-  | "golden";
+  | "golden"
+  | "nature";
 
 // Base color definitions (hex strings for canvas/p5)
 interface ColorSchemeBase {
@@ -39,6 +40,7 @@ const COLOR_SCHEME_DATA: Record<ColorSchemeId, ColorSchemeBase> = {
   bloodMoon: { primary: "#8b0000", secondary: "#ff4500", glow: "#dc143c" },
   synthwave: { primary: "#ff00ff", secondary: "#00ffff", glow: "#ff00aa" },
   golden: { primary: "#ffd700", secondary: "#ff8c00", glow: "#ffb347" },
+  nature: { primary: "#2E8B57", secondary: "#9ACD32", glow: "#00FF7F" },
 };
 
 // String format for Canvas2D and p5.js visualizations
@@ -164,6 +166,7 @@ export const COLOR_SCHEME_OPTIONS = [
   { value: "bloodMoon", label: "Blood Moon" },
   { value: "synthwave", label: "Synthwave" },
   { value: "golden", label: "Golden" },
+  { value: "nature", label: "Nature" },
 ] as const;
 
 // Array of colors for kaleidoscope, fireworks, etc.
