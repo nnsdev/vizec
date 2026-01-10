@@ -242,7 +242,7 @@ export class LaserScannerVisualization extends BaseVisualization {
         type: "select",
         label: "Color Scheme",
         default: "cyanMagenta",
-        options: [...COLOR_SCHEME_OPTIONS],
+        options: COLOR_SCHEME_OPTIONS.map((o) => ({ label: o.label, value: o.value })),
       },
       glow: {
         type: "boolean",
