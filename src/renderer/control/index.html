@@ -51,9 +51,18 @@
           <section class="section">
             <h2>VISUALIZATION</h2>
             <div class="control-group">
-              <select id="viz-select" class="select">
-                <option value="">Select visualization...</option>
-              </select>
+              <div class="searchable-select" id="viz-combobox">
+                <input
+                  type="text"
+                  id="viz-search"
+                  class="searchable-select-input"
+                  placeholder="Search visualizations..."
+                  autocomplete="off"
+                />
+                <div class="searchable-select-dropdown" id="viz-dropdown">
+                  <!-- Options populated by JS -->
+                </div>
+              </div>
             </div>
             <div class="button-row">
               <button id="prev-viz-btn" class="btn btn-icon">&lt; Prev</button>

@@ -18,7 +18,9 @@ const deletePresetBtn = document.getElementById("delete-preset-btn") as HTMLButt
 const audioSourceSelect = document.getElementById("audio-source-select") as HTMLSelectElement;
 const captureStatus = document.getElementById("capture-status") as HTMLDivElement;
 
-const vizSelect = document.getElementById("viz-select") as HTMLSelectElement;
+const vizCombobox = document.getElementById("viz-combobox") as HTMLDivElement;
+const vizSearch = document.getElementById("viz-search") as HTMLInputElement;
+const vizDropdown = document.getElementById("viz-dropdown") as HTMLDivElement;
 const prevVizBtn = document.getElementById("prev-viz-btn") as HTMLButtonElement;
 const nextVizBtn = document.getElementById("next-viz-btn") as HTMLButtonElement;
 const autoRotateCheck = document.getElementById("auto-rotate-check") as HTMLInputElement;
@@ -57,7 +59,10 @@ async function init() {
       populateVisualizations();
       // Restore selection if needed
       if (currentState && currentState.currentVisualization) {
-        vizSelect.value = currentState.currentVisualization;
+        const viz = visualizations.find((v) => v.id === currentState?.currentVisualization);
+        if (viz) {
+          vizSearch.value = viz.name;
+        }
       }
     });
   }
@@ -145,28 +150,85 @@ function populateAudioSources() {
   });
 }
 
-function populateVisualizations() {
-  // Clear existing options first
-  vizSelect.innerHTML = "";
+let highlightedIndex = -1;
+
+function populateVisualizations(filter: string = "") {
+  vizDropdown.innerHTML = "";
+  highlightedIndex = -1;
 
   if (visualizations.length === 0) {
-    const option = document.createElement("option");
+    const option = document.createElement("div");
+    option.className = "searchable-select-option no-results";
     option.textContent = "Loading...";
-    vizSelect.appendChild(option);
+    vizDropdown.appendChild(option);
     return;
   }
 
-  visualizations.forEach((viz) => {
-    const option = document.createElement("option");
-    option.value = viz.id;
-    option.textContent = viz.name;
-    vizSelect.appendChild(option);
-  });
+  const filterLower = filter.toLowerCase().trim();
+  const filtered = filterLower
+    ? visualizations.filter((viz) => viz.name.toLowerCase().includes(filterLower))
+    : visualizations;
 
-  // Set current value if state exists
-  if (currentState && currentState.currentVisualization) {
-    vizSelect.value = currentState.currentVisualization;
+  if (filtered.length === 0) {
+    const option = document.createElement("div");
+    option.className = "searchable-select-option no-results";
+    option.textContent = "No matches found";
+    vizDropdown.appendChild(option);
+    return;
   }
+
+  filtered.forEach((viz, index) => {
+    const option = document.createElement("div");
+    option.className = "searchable-select-option";
+    option.dataset.value = viz.id;
+    option.dataset.index = String(index);
+    option.textContent = viz.name;
+
+    if (currentState && currentState.currentVisualization === viz.id) {
+      option.classList.add("selected");
+    }
+
+    option.addEventListener("click", () => {
+      selectVisualization(viz.id, viz.name);
+    });
+
+    option.addEventListener("mouseenter", () => {
+      highlightOption(index);
+    });
+
+    vizDropdown.appendChild(option);
+  });
+}
+
+function selectVisualization(id: string, name: string) {
+  window.vizecAPI.setVisualization(id);
+  vizSearch.value = name;
+  closeDropdown();
+}
+
+function openDropdown() {
+  vizCombobox.classList.add("open");
+  populateVisualizations(vizSearch.value);
+}
+
+function closeDropdown() {
+  vizCombobox.classList.remove("open");
+  highlightedIndex = -1;
+}
+
+function highlightOption(index: number) {
+  const options = vizDropdown.querySelectorAll(".searchable-select-option:not(.no-results)");
+  options.forEach((opt, i) => {
+    opt.classList.toggle("highlighted", i === index);
+  });
+  highlightedIndex = index;
+}
+
+function getFilteredVisualizations() {
+  const filterLower = vizSearch.value.toLowerCase().trim();
+  return filterLower
+    ? visualizations.filter((viz) => viz.name.toLowerCase().includes(filterLower))
+    : visualizations;
 }
 
 function updateUIFromState() {
@@ -197,13 +259,9 @@ function updateUIFromState() {
 
   // Visualization
   if (currentState.currentVisualization) {
-    // Only update if the value actually exists in the options,
-    // or if we're still loading (to avoid unsetting it)
-    const exists = Array.from(vizSelect.options).some(
-      (opt) => opt.value === currentState?.currentVisualization,
-    );
-    if (exists) {
-      vizSelect.value = currentState.currentVisualization;
+    const viz = visualizations.find((v) => v.id === currentState?.currentVisualization);
+    if (viz && vizSearch.value !== viz.name) {
+      vizSearch.value = viz.name;
     }
   }
 
@@ -372,9 +430,48 @@ function setupEventListeners() {
     }
   });
 
-  // Visualization selection
-  vizSelect.addEventListener("change", () => {
-    window.vizecAPI.setVisualization(vizSelect.value);
+  // Visualization combobox events
+  vizSearch.addEventListener("focus", () => {
+    vizSearch.value = "";
+    openDropdown();
+    vizSearch.select();
+  });
+
+  vizSearch.addEventListener("input", () => {
+    openDropdown();
+    populateVisualizations(vizSearch.value);
+  });
+
+  vizSearch.addEventListener("keydown", (e) => {
+    const filtered = getFilteredVisualizations();
+    
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!vizCombobox.classList.contains("open")) {
+        openDropdown();
+      } else {
+        highlightOption(Math.min(highlightedIndex + 1, filtered.length - 1));
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      highlightOption(Math.max(highlightedIndex - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
+        const viz = filtered[highlightedIndex];
+        selectVisualization(viz.id, viz.name);
+      }
+    } else if (e.key === "Escape") {
+      closeDropdown();
+      vizSearch.blur();
+    }
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!vizCombobox.contains(e.target as Node)) {
+      closeDropdown();
+    }
   });
 
   prevVizBtn.addEventListener("click", () => {
