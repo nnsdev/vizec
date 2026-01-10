@@ -83,7 +83,6 @@ export class HitMarkers extends BaseVisualization {
   render(audioData: AudioData, _deltaTime: number): void {
     if (!this.ctx) return;
 
-    // Explicit access to avoid any destructing weirdness or scope shadowing
     const sensitivity = this.config.sensitivity || 1.0;
     const { bass } = audioData;
     
@@ -91,13 +90,9 @@ export class HitMarkers extends BaseVisualization {
     const centerX = this.width / 2;
     const centerY = this.height / 2;
 
-    // Apply recoil
-    // Boosted sensitivity again (160)
     const recoilImpulse = Math.max(0, (bass - 0.2) * sensitivity * 160); 
     this.recoil = Math.max(this.recoil, recoilImpulse);
     
-    // Spawn hit marker
-    // Even lower threshold for chaos
     const spawnThreshold = 0.2 / sensitivity; 
     if (bass > 0.3 && Math.random() > spawnThreshold) {
         this.markers.push({
@@ -108,38 +103,29 @@ export class HitMarkers extends BaseVisualization {
         });
     }
     
-    // Smooth decay
     this.recoil *= 0.85;
 
-    // Draw Crosshair
-    // Add breathing effect
     const breathing = Math.sin(Date.now() / 200) * 2;
     const crosshairSize = 20 + this.recoil + breathing;
     
     this.ctx.strokeStyle = "rgba(0, 255, 255, 0.8)";
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
-    // Top
     this.ctx.moveTo(centerX, centerY - crosshairSize);
     this.ctx.lineTo(centerX, centerY - crosshairSize * 0.5);
-    // Bottom
     this.ctx.moveTo(centerX, centerY + crosshairSize);
     this.ctx.lineTo(centerX, centerY + crosshairSize * 0.5);
-    // Left
     this.ctx.moveTo(centerX - crosshairSize, centerY);
     this.ctx.lineTo(centerX - crosshairSize * 0.5, centerY);
-    // Right
     this.ctx.moveTo(centerX + crosshairSize, centerY);
     this.ctx.lineTo(centerX + crosshairSize * 0.5, centerY);
     this.ctx.stroke();
     
-    // Center Dot
     this.ctx.fillStyle = "rgba(255, 0, 0, 0.9)";
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, 2, 0, Math.PI * 2);
     this.ctx.fill();
 
-    // Render Hit Markers
     for (let i = this.markers.length - 1; i >= 0; i--) {
         const m = this.markers[i];
         m.life -= 0.05;
@@ -155,24 +141,14 @@ export class HitMarkers extends BaseVisualization {
         this.ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
         this.ctx.lineWidth = 3;
         this.ctx.beginPath();
-        
-        // X shape
-        // Top-Left to Bottom-Right
         this.ctx.moveTo(m.x - size/2, m.y - size/2);
         this.ctx.lineTo(m.x - size/4, m.y - size/4);
-        
-        // Top-Right to Bottom-Left
         this.ctx.moveTo(m.x + size/2, m.y - size/2);
         this.ctx.lineTo(m.x + size/4, m.y - size/4);
-        
-        // Bottom-Left to Top-Right
         this.ctx.moveTo(m.x - size/2, m.y + size/2);
         this.ctx.lineTo(m.x - size/4, m.y + size/4);
-        
-        // Bottom-Right to Top-Left
         this.ctx.moveTo(m.x + size/2, m.y + size/2);
         this.ctx.lineTo(m.x + size/4, m.y + size/4);
-        
         this.ctx.stroke();
     }
   }

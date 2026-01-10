@@ -101,21 +101,10 @@ export class WindyGrassVisualization extends BaseVisualization {
 
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // Audio Mapping:
-    // Waveform (timeDomainData) maps to wind flowing across the screen.
-    // The timeDomainData is an array of 0-255 values (128 is center).
-    // We scroll through this buffer or map x-pos to index?
-    // Mapping x-pos to index creates a standing wave effect which is nice.
-    
-    // Also add some base "wind" that moves.
-    
     const waveData = timeDomainData;
     const dataLen = waveData.length;
 
     this.ctx.lineCap = "round";
-    
-    // Draw from back to front? Or just one layer.
-    // Gradient: Bottom is dark, tip is bright
     
     const gradient = this.ctx.createLinearGradient(0, this.height, 0, this.height - 200);
     gradient.addColorStop(0, colors.start);
@@ -123,40 +112,22 @@ export class WindyGrassVisualization extends BaseVisualization {
     this.ctx.strokeStyle = gradient;
 
     this.blades.forEach((blade) => {
-        // Get local audio value
-        // Map blade X to buffer index
         const idx = Math.floor((blade.x / this.width) * dataLen) % dataLen;
-        const waveVal = (waveData[idx] - 128) / 128; // -1 to 1
+        const waveVal = (waveData[idx] - 128) / 128;
         
-        // Physics
-        // Natural sway
         const sway = Math.sin(this.time * windSpeed + blade.phase) * 10;
-        
-        // Audio force
-        // Waveform bends the grass directly
         const force = waveVal * 50 * sensitivity * blade.stiffness;
-        
-        // Bass kick adds vertical scale?
-        // Let's make it grow/stretch
-        const stretch = 1.0 + (bass * sensitivity * 0.1);
+        const stretch = 1.0 + bass * sensitivity * 0.1;
 
         const tipX = blade.x + sway + force;
-        const tipY = this.height - (blade.height * stretch);
-        
-        // Control point for Quadratic curve
-        // Put it somewhere between base and tip, but offset to make it curve nicely
+        const tipY = this.height - blade.height * stretch;
         const ctrlX = blade.x + (tipX - blade.x) * 0.3;
-        const ctrlY = this.height - (blade.height * 0.5);
+        const ctrlY = this.height - blade.height * 0.5;
 
-        // Draw Blade
         this.ctx!.beginPath();
         this.ctx!.moveTo(blade.x, this.height);
         this.ctx!.quadraticCurveTo(ctrlX, ctrlY, tipX, tipY);
-        
-        // Width based on bass?
-        this.ctx!.lineWidth = 2 + (bass * 2);
-        
-        // Color variation
+        this.ctx!.lineWidth = 2 + bass * 2;
         this.ctx!.stroke();
     });
   }

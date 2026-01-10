@@ -104,73 +104,45 @@ export class AudioVinesVisualization extends BaseVisualization {
 
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // Dynamic movement factors
-    // Bass pushes growth slightly
-    // Mid makes them sway more
-    const swayAmount = (0.5 + mid * sensitivity * 2.0); 
-    const pulseSize = 1.0 + (bass * sensitivity * 0.5);
+    const swayAmount = 0.5 + mid * sensitivity * 2.0;
+    const pulseSize = 1.0 + bass * sensitivity * 0.5;
 
     this.vines.forEach((vine, index) => {
-        // Grow the vine
         if (vine.growth < 1.0) {
             vine.growth += vine.speed * (0.5 + volume) * deltaTime;
             if (vine.growth > 1.0) vine.growth = 1.0;
         }
 
-        // Calculate procedural spine
-        // We regenerate points every frame to make it animate/sway
-        // In a real physics sim we'd simulate nodes, but for visualizer, sine waves are cheaper and smoother
-        
         const currentHeight = vine.targetHeight * vine.growth;
         const segmentCount = 40;
         const segmentLen = currentHeight / segmentCount;
 
         this.ctx!.beginPath();
-        
-        // Base of the vine
-        let currentX = vine.x;
-        let currentY = this.height;
-        this.ctx!.moveTo(currentX, currentY);
+        this.ctx!.moveTo(vine.x, this.height);
 
         for (let i = 0; i < segmentCount; i++) {
-            // Sway calculation
-            // Base is stable, tip sways most
-            const sway = Math.sin(this.time * 2 + vine.phase + (i * 0.1)) * (i * curliness * swayAmount);
-            // Add some "music wind"
+            const sway = Math.sin(this.time * 2 + vine.phase + i * 0.1) * (i * curliness * swayAmount);
             const kick = Math.sin(this.time * 10) * bass * sensitivity * (i * 2);
-
             const nextX = vine.x + sway + kick;
-            const nextY = this.height - (i * segmentLen);
-
-            // Draw line
-            // We could do curves but short segments are fine
+            const nextY = this.height - i * segmentLen;
             this.ctx!.lineTo(nextX, nextY);
-            
-            // Save state for leaves (optional)
-            currentX = nextX;
-            currentY = nextY;
         }
 
-        // Draw Vine Stem
         this.ctx!.strokeStyle = index % 2 === 0 ? colors.start : colors.end;
-        this.ctx!.lineWidth = 3 * pulseSize * (1.0 - vine.growth * 0.5); // Tapering? No, just pulse
-        this.ctx!.lineWidth = Math.max(1, 8 * pulseSize * (1 - 0.5)); // Thick at bottom
+        this.ctx!.lineWidth = Math.max(1, 8 * pulseSize * 0.5);
         this.ctx!.lineCap = "round";
         this.ctx!.stroke();
 
-        // Draw Leaves/Buds
-        // Draw a leaf every N segments
         const leafSpacing = 5;
         for (let i = 5; i < segmentCount; i += leafSpacing) {
             if (i / segmentCount > vine.growth) break;
 
             const progress = i / segmentCount;
-            const sway = Math.sin(this.time * 2 + vine.phase + (i * 0.1)) * (i * curliness * swayAmount);
+            const sway = Math.sin(this.time * 2 + vine.phase + i * 0.1) * (i * curliness * swayAmount);
             const kick = Math.sin(this.time * 10) * bass * sensitivity * (i * 2);
             
             const leafX = vine.x + sway + kick;
-            const leafY = this.height - (i * segmentLen);
-
+            const leafY = this.height - i * segmentLen;
             const leafSize = 6 * pulseSize * (1 - progress * 0.5);
             
             this.ctx!.fillStyle = colors.glow || colors.end;

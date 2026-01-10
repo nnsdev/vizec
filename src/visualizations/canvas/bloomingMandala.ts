@@ -71,44 +71,25 @@ export class BloomingMandalaVisualization extends BaseVisualization {
     const centerX = this.width / 2;
     const centerY = this.height / 2;
     const maxRadius = Math.min(this.width, this.height) * 0.45;
-
-    // Rotation increases with bass
-    const rotation = this.time * rotationSpeed + (bass * sensitivity * 0.5);
-
-    // Draw layers from outside in (or inside out?)
-    // Let's do inside out so outer petals cover inner? No, other way around.
-    
-    // We map frequency bands to layers.
-    // Inner layers = high freq? Outer = low freq?
-    // Let's try:
-    // Center: Treble/High Mids
-    // Outer: Bass/Low Mids
+    const rotation = this.time * rotationSpeed + bass * sensitivity * 0.5;
 
     for (let l = 0; l < layers; l++) {
         this.ctx.save();
         this.ctx.translate(centerX, centerY);
         
-        // Each layer rotates slightly differently
         const layerDir = l % 2 === 0 ? 1 : -1;
-        this.ctx.rotate(rotation * layerDir + (l * 0.2));
+        this.ctx.rotate(rotation * layerDir + l * 0.2);
 
-        // Get audio value for this layer
-        // Distribute 0-100 across layers?
-        const freqIndex = Math.floor((l / layers) * 20); // First 20 bins (bass/low-mid)
+        const freqIndex = Math.floor((l / layers) * 20);
         const val = frequencyData[freqIndex] || 0;
         const intensity = (val / 255) * sensitivity;
-
         const layerRadius = (maxRadius / layers) * (l + 1) * (1 + intensity * 0.2);
         
-        // Color interpolation
-        // Inner = Start color, Outer = End color
         const colorRatio = l / (layers - 1);
-        this.ctx.fillStyle = l % 2 === 0 ? colors.start : colors.end;
-        this.ctx.fillStyle = colorRatio < 0.5 ? colors.start : colors.end; // Simplified
-        this.ctx.globalAlpha = 0.2 + (intensity * 0.4); // More transparent base
+        this.ctx.fillStyle = colorRatio < 0.5 ? colors.start : colors.end;
+        this.ctx.globalAlpha = 0.2 + intensity * 0.4;
 
-        // Draw Petals
-        const petalCount = petals + (l * 2); // More petals on outer layers
+        const petalCount = petals + l * 2;
         const angleStep = (Math.PI * 2) / petalCount;
 
         for (let p = 0; p < petalCount; p++) {
@@ -116,18 +97,14 @@ export class BloomingMandalaVisualization extends BaseVisualization {
             this.ctx.rotate(p * angleStep);
             this.ctx.beginPath();
             
-            // Petal Shape (Ellipse-ish)
-            // x, y, radiusX, radiusY, rotation, startAngle, endAngle
-            // We draw at radius distance
-            
             const petalSize = (maxRadius / layers) * 0.8;
-            const stretch = 1.0 + (volume * 0.5); // Pulse with volume
+            const stretch = 1.0 + volume * 0.5;
             
             this.ctx.ellipse(
-                layerRadius * 0.6, // distance from center
+                layerRadius * 0.6,
                 0, 
-                petalSize * stretch, // length 
-                petalSize * 0.4, // width
+                petalSize * stretch,
+                petalSize * 0.4,
                 0, 
                 0, 
                 Math.PI * 2
@@ -140,15 +117,14 @@ export class BloomingMandalaVisualization extends BaseVisualization {
         this.ctx.restore();
     }
     
-    // Center glow
-    this.ctx.globalAlpha = 0.4; // Force transparency for glow
+    this.ctx.globalAlpha = 0.4;
     const centerGlow = volume * sensitivity * 50;
     const grad = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerGlow);
     grad.addColorStop(0, colors.glow || colors.start);
     grad.addColorStop(1, "rgba(0,0,0,0)");
     this.ctx.fillStyle = grad;
     this.ctx.fillRect(0, 0, this.width, this.height);
-    this.ctx.globalAlpha = 1.0; // Reset
+    this.ctx.globalAlpha = 1.0;
   }
 
   resize(width: number, height: number): void {

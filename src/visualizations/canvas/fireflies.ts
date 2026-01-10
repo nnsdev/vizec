@@ -94,27 +94,15 @@ export class FirefliesVisualization extends BaseVisualization {
 
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // Audio influences
-    // Treble: Makes them move faster and swarm/attract to center or points
-    // Volume: Makes them glow brighter
-    
     const excitement = (mid + treble) * sensitivity;
     const moveSpeed = (1 + excitement * 2) * swarmSpeed;
     
-    // Batch glow drawing for performance
-    // We draw all the "glows" first (soft alpha), then the "cores" (solid)
-    
-    // Draw Glows
-    this.ctx.globalCompositeOperation = "lighter"; // Additive blending for nice overlap
+    this.ctx.globalCompositeOperation = "lighter";
     
     this.fireflies.forEach(f => {
-        // Update Physics
-        
-        // Random wander
         f.vx += (Math.random() - 0.5) * 0.1;
         f.vy += (Math.random() - 0.5) * 0.1;
         
-        // Attract to center on high energy
         if (excitement > 0.8) {
             const dx = (this.width / 2) - f.x;
             const dy = (this.height / 2) - f.y;
@@ -122,44 +110,36 @@ export class FirefliesVisualization extends BaseVisualization {
             f.vy += dy * 0.001;
         }
 
-        // Dampen
         f.vx *= 0.99;
         f.vy *= 0.99;
-
-        // Apply
         f.x += f.vx * moveSpeed;
         f.y += f.vy * moveSpeed;
 
-        // Wrap around screen
         if (f.x < 0) f.x = this.width;
         if (f.x > this.width) f.x = 0;
         if (f.y < 0) f.y = this.height;
         if (f.y > this.height) f.y = 0;
 
-        // Visuals
         const pulse = Math.sin(this.time * 3 + f.phase) * 0.5 + 0.5;
-        const brightness = 0.2 + (volume * sensitivity * 0.5) + (pulse * 0.3);
+        const brightness = 0.2 + volume * sensitivity * 0.5 + pulse * 0.3;
         const radius = f.radius * (1 + excitement * 0.5);
 
-        // Draw Glow (Soft)
         const gradient = this.ctx!.createRadialGradient(f.x, f.y, 0, f.x, f.y, radius * 4);
-        gradient.addColorStop(0, colors.start); // Center color
+        gradient.addColorStop(0, colors.start);
         gradient.addColorStop(1, "rgba(0,0,0,0)");
         
         this.ctx!.fillStyle = gradient;
-        this.ctx!.globalAlpha = brightness * 0.6; // Semi-transparent glow
+        this.ctx!.globalAlpha = brightness * 0.6;
         this.ctx!.beginPath();
         this.ctx!.arc(f.x, f.y, radius * 4, 0, Math.PI * 2);
         this.ctx!.fill();
     });
 
-    // Draw Cores (Sharper dots)
     this.fireflies.forEach(f => {
-        const radius = f.radius; // Base radius
-        this.ctx!.fillStyle = colors.end; // Bright core
+        this.ctx!.fillStyle = colors.end;
         this.ctx!.globalAlpha = 0.8;
         this.ctx!.beginPath();
-        this.ctx!.arc(f.x, f.y, radius, 0, Math.PI * 2);
+        this.ctx!.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
         this.ctx!.fill();
     });
     

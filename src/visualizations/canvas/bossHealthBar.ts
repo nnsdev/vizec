@@ -89,11 +89,6 @@ export class BossHealthBar extends BaseVisualization {
     const { volume, bass } = audioData;
     const { sensitivity, position } = this.config;
     
-    // "Health" is inversely related to volume? Or directly?
-    // Let's make it track volume for now - higher volume = full health bar
-    // Or cool effect: Music "attacks" the bar?
-    // Let's go with: Bar represents ENERGY.
-    
     const targetHealth = Math.min(1.0, volume * sensitivity);
     // Smooth transition
     this.currentHealth += (targetHealth - this.currentHealth) * 0.1;

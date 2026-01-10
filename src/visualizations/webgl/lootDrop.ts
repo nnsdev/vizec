@@ -41,10 +41,9 @@ export class LootDrop extends BaseVisualization {
     this.camera.position.set(0, 2, 8);
     this.camera.lookAt(0, 2, 0);
 
-    // The Beam
     const beamGeo = new THREE.CylinderGeometry(0.5, 0.5, 20, 16, 1, true);
     const beamMat = new THREE.MeshBasicMaterial({ 
-        color: 0xffaa00, // Legendary Orange
+        color: 0xffaa00,
         transparent: true, 
         opacity: 0.3,
         side: THREE.DoubleSide,
@@ -55,22 +54,21 @@ export class LootDrop extends BaseVisualization {
     this.beam.position.y = 10;
     this.scene.add(this.beam);
 
-    // Particles
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(this.particleCount * 3);
     const speeds = new Float32Array(this.particleCount);
     
-    for(let i=0; i<this.particleCount; i++) {
+    for (let i = 0; i < this.particleCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         const r = 0.5 + Math.random() * 2;
-        positions[i*3] = Math.cos(angle) * r; // x
-        positions[i*3+1] = Math.random() * 10; // y
-        positions[i*3+2] = Math.sin(angle) * r; // z
+        positions[i * 3] = Math.cos(angle) * r;
+        positions[i * 3 + 1] = Math.random() * 10;
+        positions[i * 3 + 2] = Math.sin(angle) * r;
         speeds[i] = 0.05 + Math.random() * 0.1;
     }
     
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('speed', new THREE.BufferAttribute(speeds, 1)); // custom
+    geometry.setAttribute('speed', new THREE.BufferAttribute(speeds, 1));
     
     const partMat = new THREE.PointsMaterial({
         color: 0xffcc88,
@@ -107,38 +105,31 @@ export class LootDrop extends BaseVisualization {
     const { sensitivity } = this.config;
     const { volume, bass } = audioData;
     
-    // Pulse beam opacity
     const beamMat = this.beam.material as THREE.MeshBasicMaterial;
     beamMat.opacity = 0.2 + (bass * 0.4 * sensitivity);
     this.beam.rotation.y += 0.01;
     
-    // Particle animation
     const positions = this.particles.geometry.attributes.position.array as Float32Array;
-    // We can't access custom attributes easily in TS without custom shader material or casting
-    // Just re-randomize speed here or assume constant up flow
     
-    for(let i=0; i<this.particleCount; i++) {
-        let y = positions[i*3+1];
-        y += 0.05 + (volume * 0.2); // Speed up with volume
+    for (let i = 0; i < this.particleCount; i++) {
+        let y = positions[i * 3 + 1];
+        y += 0.05 + (volume * 0.2);
         
-        if(y > 15) {
+        if (y > 15) {
             y = 0;
-            // Reset radius
             const angle = Math.random() * Math.PI * 2;
             const r = 0.5 + Math.random() * 2;
-            positions[i*3] = Math.cos(angle) * r;
-            positions[i*3+2] = Math.sin(angle) * r;
+            positions[i * 3] = Math.cos(angle) * r;
+            positions[i * 3 + 2] = Math.sin(angle) * r;
         }
         
-        positions[i*3+1] = y;
+        positions[i * 3 + 1] = y;
         
-        // Swirl
-        const x = positions[i*3];
-        const z = positions[i*3+2];
-        const angle = 0.02 * (1 + bass);
-        // Rotate x,z
-        positions[i*3] = x * Math.cos(angle) - z * Math.sin(angle);
-        positions[i*3+2] = x * Math.sin(angle) + z * Math.cos(angle);
+        const x = positions[i * 3];
+        const z = positions[i * 3 + 2];
+        const swirlAngle = 0.02 * (1 + bass);
+        positions[i * 3] = x * Math.cos(swirlAngle) - z * Math.sin(swirlAngle);
+        positions[i * 3 + 2] = x * Math.sin(swirlAngle) + z * Math.cos(swirlAngle);
     }
     
     this.particles.geometry.attributes.position.needsUpdate = true;
