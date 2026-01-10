@@ -18,11 +18,13 @@ class VisualizationRegistry {
   }
 
   getAllMeta(): VisualizationMeta[] {
-    return Array.from(this.visualizations.values());
+    return Array.from(this.visualizations.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
   }
 
   getIds(): string[] {
-    return Array.from(this.visualizations.keys());
+    return this.getAllMeta().map((meta) => meta.id);
   }
 }
 

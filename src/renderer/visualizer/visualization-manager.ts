@@ -54,7 +54,7 @@ export class VisualizationManager {
   }
 
   public registerWithMainProcess() {
-    const metas = Array.from(this.visualizations.values()).map((v) => v.meta);
+    const metas = this.getMetas();
     console.log("Sending visualizations to main process:", metas);
     if (window.vizecAPI) {
       window.vizecAPI.registerVisualizations(metas);
@@ -79,11 +79,15 @@ export class VisualizationManager {
   }
 
   public getIds(): string[] {
-    return Array.from(this.visualizations.keys());
+    return Array.from(this.visualizations.values())
+      .sort((a, b) => a.meta.name.localeCompare(b.meta.name))
+      .map((v) => v.meta.id);
   }
 
   public getMetas(): VisualizationMeta[] {
-    return Array.from(this.visualizations.values()).map((v) => v.meta);
+    return Array.from(this.visualizations.values())
+      .map((v) => v.meta)
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 }
 
