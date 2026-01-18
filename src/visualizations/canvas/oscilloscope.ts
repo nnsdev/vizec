@@ -78,11 +78,12 @@ export class OscilloscopeVisualization extends BaseVisualization {
     this.ctx.globalAlpha = 0.7;
 
     const centerY = this.height / 2;
-    const amplitudeScale = (this.height / 5) * sensitivity;
+    // Reduced amplitude by 80%
+    const amplitudeScale = (this.height / 25) * sensitivity;
 
     // Draw waveform
     this.ctx.beginPath();
-    this.ctx.lineWidth = lineWidth + bass * 2;
+    this.ctx.lineWidth = lineWidth + bass * 0.5;
     this.ctx.strokeStyle = colors.primary;
     this.ctx.lineCap = "round";
     this.ctx.lineJoin = "round";
@@ -166,8 +167,8 @@ export class OscilloscopeVisualization extends BaseVisualization {
     this.ctx.lineTo(this.width, centerY);
     this.ctx.stroke();
 
-    // Draw bass indicator dots on the sides
-    const dotSize = Math.max(1, 5 + bass * 15);
+    // Draw bass indicator dots on the sides - reduced
+    const dotSize = Math.max(1, 3 + bass * 4);
     const dotGradient = this.ctx.createRadialGradient(30, centerY, 0, 30, centerY, dotSize);
     dotGradient.addColorStop(0, colors.primary);
     dotGradient.addColorStop(1, "transparent");

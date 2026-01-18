@@ -137,11 +137,11 @@ export class ForgeSparksVisualization extends BaseVisualization {
       new THREE.BufferAttribute(this.sparkColors, 3)
     );
 
-    // Create material
+    // Create material - larger sparks for visibility
     const material = new THREE.PointsMaterial({
-      size: 0.15,
+      size: 0.4,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.9,
       vertexColors: true,
       sizeAttenuation: true,
     });
@@ -213,16 +213,21 @@ export class ForgeSparksVisualization extends BaseVisualization {
     const { bass, mid } = audioData;
     const { sensitivity, forgeIntensity } = this.config;
 
-    // Smooth audio
-    const smoothing = 0.15;
-    this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * smoothing;
-    this.smoothedMid = this.smoothedMid * (1 - smoothing) + mid * sensitivity * smoothing;
+    // Smooth audio - faster response, boosted sensitivity
+    const smoothing = 0.3;
+    this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * 2 * smoothing;
+    this.smoothedMid = this.smoothedMid * (1 - smoothing) + mid * sensitivity * 2 * smoothing;
 
     this.time += deltaTime * 0.001;
     const dt = deltaTime * 0.001;
 
-    // Emit spark bursts on bass hits
-    if (this.smoothedBass > 0.3 && this.time - this.lastBurstTime > 0.1) {
+    // Emit spark bursts on bass hits - lowered threshold, faster rate
+    // Also emit continuous small bursts for constant activity
+    if (this.smoothedBass > 0.1 && this.time - this.lastBurstTime > 0.05) {
+      this.emitSparkBurst();
+      this.lastBurstTime = this.time;
+    } else if (this.time - this.lastBurstTime > 0.15) {
+      // Ambient sparks even without strong bass
       this.emitSparkBurst();
       this.lastBurstTime = this.time;
     }

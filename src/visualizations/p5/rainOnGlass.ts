@@ -36,7 +36,7 @@ export class RainOnGlassVisualization extends BaseVisualization {
   private config: RainOnGlassConfig = {
     sensitivity: 1.0,
     colorScheme: "night",
-    raindropCount: 100,
+    raindropCount: 400, // Increased 4x
     trailSensitivity: 0.7,
     blurAmount: 2,
     lightIntensity: 0.5,
@@ -88,8 +88,18 @@ export class RainOnGlassVisualization extends BaseVisualization {
     // Draw subtle background
     this.drawBackground(this.backgroundBuffer, colors);
 
-    // Spawn new drops based on treble (high frequencies = more drops)
-    if (Math.random() < treble * 0.3 * this.config.sensitivity) {
+    // Spawn new drops based on treble (high frequencies = more drops) - 4x spawn rate
+    const spawnChance = treble * 1.2 * this.config.sensitivity;
+    if (Math.random() < spawnChance) {
+      this.spawnDrop(p, colors, treble);
+    }
+    if (Math.random() < spawnChance * 0.8) {
+      this.spawnDrop(p, colors, treble);
+    }
+    if (Math.random() < spawnChance * 0.6) {
+      this.spawnDrop(p, colors, treble);
+    }
+    if (Math.random() < spawnChance * 0.4) {
       this.spawnDrop(p, colors, treble);
     }
 

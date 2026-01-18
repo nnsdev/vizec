@@ -52,7 +52,7 @@ export class ConcentricRipplesVisualization extends BaseVisualization {
   private smoothedBass = 0;
   private smoothedVolume = 0;
   private lastBassHit = 0;
-  private bassThreshold = 0.5;
+  private bassThreshold = 0.3;
   private time = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
@@ -64,7 +64,7 @@ export class ConcentricRipplesVisualization extends BaseVisualization {
     this.canvas.style.height = "100%";
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext("2d");
+    this.ctx = this.canvas.getContext("2d", { alpha: true });
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -79,10 +79,10 @@ export class ConcentricRipplesVisualization extends BaseVisualization {
     const { sensitivity, colorScheme, maxRipples, expansionSpeed, lineWidth } = this.config;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
-    // Smooth audio values
-    const smoothing = 0.15;
-    this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * smoothing;
-    this.smoothedVolume = this.smoothedVolume * (1 - smoothing) + volume * sensitivity * smoothing;
+    // Smooth audio values - faster response
+    const smoothing = 0.3;
+    this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * 2 * smoothing;
+    this.smoothedVolume = this.smoothedVolume * (1 - smoothing) + volume * sensitivity * 2 * smoothing;
 
     this.time += deltaTime * 0.001;
 
@@ -90,15 +90,18 @@ export class ConcentricRipplesVisualization extends BaseVisualization {
     this.ctx.clearRect(0, 0, this.width, this.height);
 
     // Detect bass hit and create new ripple
-    if (this.smoothedBass > this.bassThreshold && this.time - this.lastBassHit > 0.15) {
-      if (this.ripples.length < maxRipples) {
+    const cooldownPassed = this.time - this.lastBassHit > 0.08;
+    
+    if (cooldownPassed && this.ripples.length < maxRipples) {
+      // Spawn on bass hits OR periodically for ambient ripples
+      const bassHit = bass * sensitivity > 0.15;
+      const ambientSpawn = this.time - this.lastBassHit > 0.5;
+      
+      if (bassHit || ambientSpawn) {
         this.createRipple(colors, lineWidth);
         this.lastBassHit = this.time;
       }
     }
-
-    // Update adaptive threshold
-    this.bassThreshold = 0.3 + this.smoothedBass * 0.3;
 
     // Update and draw ripples
     this.updateRipples(deltaTime, expansionSpeed);

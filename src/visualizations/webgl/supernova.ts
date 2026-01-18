@@ -118,8 +118,9 @@ export class SupernovaVisualization extends BaseVisualization {
   private height = 0;
   private time = 0;
   private lastBassHit = 0;
-  private bassHitThreshold = 0.65;
+  private bassHitThreshold = 0.75; // Higher threshold - less frequent explosions
   private explosionCooldown = 0;
+  private flashIntensity = 0; // Track flash for smoother decay
 
   init(container: HTMLElement, config: VisualizationConfig): void {
     this.container = container;
@@ -491,10 +492,15 @@ export class SupernovaVisualization extends BaseVisualization {
 
     if (isBassHit) {
       const explosionPower = (bassBoost - this.bassHitThreshold) / (1 - this.bassHitThreshold);
-      this.triggerExplosion(explosionPower * explosionIntensity);
-      this.explosionCooldown = 0.15; // Prevent too rapid explosions
+      // Reduced explosion power and longer cooldown for less epileptic effect
+      this.triggerExplosion(explosionPower * explosionIntensity * 0.6);
+      this.explosionCooldown = 0.4; // Longer cooldown - less rapid explosions
       this.lastBassHit = this.time;
+      this.flashIntensity = Math.min(0.5, explosionPower * 0.3); // Reduced flash
     }
+    
+    // Decay flash smoothly
+    this.flashIntensity *= 0.92;
 
     // Update core
     this.updateCore(bass, volume, sensitivity);
@@ -524,13 +530,13 @@ export class SupernovaVisualization extends BaseVisualization {
     const scheme = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.classic;
     const bassBoost = Math.pow(bass, 0.5) * sensitivity;
 
-    // Core pulsing
-    const pulseScale = 1 + bassBoost * 0.5 + Math.sin(this.time * 5) * 0.05;
+    // Core pulsing - reduced intensity
+    const pulseScale = 1 + bassBoost * 0.25 + Math.sin(this.time * 3) * 0.03;
     this.core.scale.setScalar(pulseScale);
     this.coreGlow.scale.setScalar(pulseScale * 2.5);
 
-    // Core brightness
-    const brightness = 0.8 + volume * 0.2 + bassBoost * 0.3;
+    // Core brightness - smoother, less intense
+    const brightness = 0.7 + volume * 0.15 + bassBoost * 0.15;
     const coreColor = new THREE.Color(scheme.core);
     coreColor.multiplyScalar(brightness);
     this.coreMaterial.color = coreColor;
@@ -594,8 +600,8 @@ export class SupernovaVisualization extends BaseVisualization {
       const colorIdx = Math.min(6, Math.floor((distance / maxDist) * 6));
       const color = new THREE.Color(scheme.gradient[colorIdx]);
 
-      // Sparkle/twinkle on treble
-      const sparkle = trebleBoost > 0.3 ? 1 + Math.sin(this.time * 50 + i) * trebleBoost * 0.5 : 1;
+      // Sparkle/twinkle on treble - reduced intensity and slower
+      const sparkle = trebleBoost > 0.4 ? 1 + Math.sin(this.time * 20 + i) * trebleBoost * 0.2 : 1;
 
       // Fade out
       const fade = lifeRatio;
@@ -718,20 +724,20 @@ export class SupernovaVisualization extends BaseVisualization {
 
     const bassBoost = Math.pow(bass, 0.5) * sensitivity;
 
-    // Camera shake on explosions
+    // Camera shake on explosions - reduced and smoother
     const timeSinceExplosion = this.time - this.lastBassHit;
-    if (timeSinceExplosion < 0.3) {
-      const shakeIntensity = (0.3 - timeSinceExplosion) * 2;
+    if (timeSinceExplosion < 0.15) {
+      const shakeIntensity = (0.15 - timeSinceExplosion) * 0.8; // Much less shake
       this.camera.position.x = (Math.random() - 0.5) * shakeIntensity;
       this.camera.position.y = (Math.random() - 0.5) * shakeIntensity;
     } else {
       // Smooth return to center
-      this.camera.position.x *= 0.9;
-      this.camera.position.y *= 0.9;
+      this.camera.position.x *= 0.95;
+      this.camera.position.y *= 0.95;
     }
 
-    // Zoom based on bass intensity
-    const targetZ = 100 - bassBoost * 20 - volume * sensitivity * 10;
+    // Zoom based on bass intensity - reduced zoom effect
+    const targetZ = 100 - bassBoost * 8 - volume * sensitivity * 4;
     this.camera.position.z += (targetZ - this.camera.position.z) * 0.1;
 
     // Subtle rotation

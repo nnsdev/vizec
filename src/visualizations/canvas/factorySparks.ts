@@ -122,8 +122,8 @@ export class FactorySparksVisualization extends BaseVisualization {
     // Actually clear for transparent background
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // Detect bass hits
-    const bassThreshold = 0.4;
+    // Detect bass hits - lower threshold for more activity
+    const bassThreshold = 0.2;
     const bassHit = bass * sensitivity > bassThreshold && prevBass * sensitivity < bassThreshold;
 
     // Update each emitter
@@ -138,9 +138,14 @@ export class FactorySparksVisualization extends BaseVisualization {
         emitter.active = true;
       }
 
-      // Continuous sparks with volume
-      if (this.smoothedVolume * sensitivity > 0.3 && Math.random() < 0.15 * sparkIntensity) {
-        this.createSpark(emitter, this.smoothedVolume * sensitivity * 0.6, colors);
+      // Continuous sparks with volume - much more frequent
+      if (this.smoothedVolume * sensitivity > 0.15 && Math.random() < 0.4 * sparkIntensity) {
+        this.createSpark(emitter, this.smoothedVolume * sensitivity * 0.8, colors);
+      }
+      
+      // Extra mid-frequency sparks for more activity
+      if (mid * sensitivity > 0.2 && Math.random() < 0.25 * sparkIntensity) {
+        this.createSpark(emitter, mid * sensitivity * 0.7, colors);
       }
 
       // Update sparks
@@ -169,7 +174,8 @@ export class FactorySparksVisualization extends BaseVisualization {
     intensity: number,
     colors: { start: string; end: string; glow: string }
   ): void {
-    const sparkCount = Math.floor((20 + Math.random() * 30) * intensity);
+    // More sparks per burst
+    const sparkCount = Math.floor((35 + Math.random() * 50) * intensity);
 
     for (let i = 0; i < sparkCount; i++) {
       this.createSpark(emitter, intensity, colors);
@@ -181,19 +187,19 @@ export class FactorySparksVisualization extends BaseVisualization {
     intensity: number,
     _colors: { start: string; end: string; glow: string }
   ): void {
-    const spreadAngle = Math.PI * 0.4;
+    const spreadAngle = Math.PI * 0.6; // Wider spread
     const angle = emitter.angle + (Math.random() - 0.5) * spreadAngle;
-    const speed = 5 + Math.random() * 10 + intensity * 8;
+    const speed = 8 + Math.random() * 15 + intensity * 12; // Faster sparks
 
     const spark: Spark = {
-      x: emitter.x,
-      y: emitter.y,
+      x: emitter.x + (Math.random() - 0.5) * 10, // Slight position variance
+      y: emitter.y + (Math.random() - 0.5) * 10,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      size: 1 + Math.random() * 2 + intensity,
+      size: 1.5 + Math.random() * 3 + intensity * 1.5, // Bigger sparks
       life: 1,
-      maxLife: 0.5 + Math.random() * 0.5 + intensity * 0.3,
-      brightness: 0.7 + Math.random() * 0.3,
+      maxLife: 1.0 + Math.random() * 1.0 + intensity * 0.5, // Live longer
+      brightness: 0.8 + Math.random() * 0.2,
       trail: [],
     };
 
@@ -202,32 +208,32 @@ export class FactorySparksVisualization extends BaseVisualization {
 
   private updateEmitterSparks(emitter: Emitter, deltaTime: number, midEffect: number): void {
     const dt = deltaTime * 0.016;
-    const gravity = 0.15;
+    const gravity = 0.4; // Stronger gravity for arc effect
 
     emitter.sparks = emitter.sparks.filter((spark) => {
-      // Save position for trail
+      // Save position for trail - longer trails
       spark.trail.push({ x: spark.x, y: spark.y });
-      if (spark.trail.length > 8) {
+      if (spark.trail.length > 15) {
         spark.trail.shift();
       }
 
       // Update physics
-      spark.vy += gravity * dt; // Gravity
-      spark.vx *= 0.99; // Air resistance
-      spark.vy *= 0.99;
+      spark.vy += gravity * dt; // Gravity pulls down
+      spark.vx *= 0.985; // Air resistance
+      spark.vy *= 0.985;
 
-      // Add slight turbulence from audio
-      spark.vx += (Math.random() - 0.5) * midEffect * 0.3;
-      spark.vy += (Math.random() - 0.5) * midEffect * 0.2;
+      // Add turbulence from audio
+      spark.vx += (Math.random() - 0.5) * midEffect * 0.5;
+      spark.vy += (Math.random() - 0.5) * midEffect * 0.3;
 
       spark.x += spark.vx * dt;
       spark.y += spark.vy * dt;
 
-      // Decay life
-      spark.life -= (1 / spark.maxLife) * dt * 0.03;
+      // Slower life decay - sparks last longer
+      spark.life -= (1 / spark.maxLife) * dt * 0.015;
 
       // Decrease brightness as life decreases
-      spark.brightness = Math.max(0.2, spark.brightness * 0.995);
+      spark.brightness = Math.max(0.3, spark.life * 0.8 + 0.2);
 
       // Remove if dead or off screen
       return spark.life > 0 && spark.y < this.height + 50 && spark.x > -50 && spark.x < this.width + 50;
@@ -278,19 +284,29 @@ export class FactorySparksVisualization extends BaseVisualization {
     ctx.globalCompositeOperation = "lighter";
 
     emitter.sparks.forEach((spark) => {
-      // Draw trail
+      // Draw trail with gradient effect
       if (spark.trail.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(spark.trail[0].x, spark.trail[0].y);
-
+        // Draw multiple trail segments with fading alpha
         for (let i = 1; i < spark.trail.length; i++) {
+          const segmentAlpha = (i / spark.trail.length) * spark.life * spark.brightness * 0.8;
+          const segmentWidth = spark.size * (0.3 + (i / spark.trail.length) * 0.7);
+          
+          ctx.beginPath();
+          ctx.moveTo(spark.trail[i - 1].x, spark.trail[i - 1].y);
           ctx.lineTo(spark.trail[i].x, spark.trail[i].y);
+          ctx.strokeStyle = this.hexToRgba(colors.start, segmentAlpha);
+          ctx.lineWidth = segmentWidth;
+          ctx.lineCap = "round";
+          ctx.stroke();
         }
+        
+        // Final segment to current position
+        const lastTrail = spark.trail[spark.trail.length - 1];
+        ctx.beginPath();
+        ctx.moveTo(lastTrail.x, lastTrail.y);
         ctx.lineTo(spark.x, spark.y);
-
-        const trailAlpha = spark.life * spark.brightness * 0.6;
-        ctx.strokeStyle = this.hexToRgba(colors.start, trailAlpha);
-        ctx.lineWidth = spark.size * 0.5;
+        ctx.strokeStyle = this.hexToRgba(colors.glow, spark.life * spark.brightness);
+        ctx.lineWidth = spark.size;
         ctx.lineCap = "round";
         ctx.stroke();
       }

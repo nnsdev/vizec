@@ -34,7 +34,7 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
 
   // Particle system
   private particles: THREE.Points | null = null;
-  private particleCount = 500000;
+  private particleCount = 200000; // Reduced for better performance
   private positions: Float32Array | null = null;
   private velocities: Float32Array | null = null;
   private colors: Float32Array | null = null;
@@ -42,7 +42,7 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
   private lifetimes: Float32Array | null = null;
 
   // Flow field
-  private flowFieldSize = 32;
+  private flowFieldSize = 24; // Reduced for better performance
   private flowField: THREE.Vector3[][][] | null = null;
   private flowFieldTime = 0;
 
@@ -468,9 +468,9 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
     this.trebleEnergy += (audioData.treble - this.trebleEnergy) * smoothing;
     this.volumeLevel += (audioData.volume - this.volumeLevel) * smoothing;
 
-    // Update flow field more frequently for better audio response
+    // Update flow field less frequently for better performance
     this.flowFieldTime += deltaTime;
-    if (this.flowFieldTime > 0.033) {
+    if (this.flowFieldTime > 0.066) { // ~15fps for flow field updates
       this.updateFlowField(performance.now() * 0.001);
       this.flowFieldTime = 0;
     }

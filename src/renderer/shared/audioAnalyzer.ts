@@ -160,10 +160,11 @@ export class AudioAnalyzer {
     const bassEnd = Math.floor(bufferLength / 8);
     const midEnd = Math.floor(bufferLength / 2);
 
-    const bass = this.calculateBandEnergy(gatedFrequencyData, 0, bassEnd);
-    const mid = this.calculateBandEnergy(gatedFrequencyData, bassEnd, midEnd);
-    const treble = this.calculateBandEnergy(gatedFrequencyData, midEnd, bufferLength);
-    const volume = this.calculateBandEnergy(gatedFrequencyData, 0, bufferLength);
+    // Bass naturally has more energy - scale down to prevent pegging
+    const bass = this.calculateBandEnergy(gatedFrequencyData, 0, bassEnd, 0.5);
+    const mid = this.calculateBandEnergy(gatedFrequencyData, bassEnd, midEnd, 0.8);
+    const treble = this.calculateBandEnergy(gatedFrequencyData, midEnd, bufferLength, 1.0);
+    const volume = this.calculateBandEnergy(gatedFrequencyData, 0, bufferLength, 0.7);
 
     return {
       frequencyData: gatedFrequencyData,
@@ -179,11 +180,19 @@ export class AudioAnalyzer {
     return this.audioContext !== null && this.analyser !== null;
   }
 
-  private calculateBandEnergy(data: Uint8Array, start: number, end: number): number {
+  private calculateBandEnergy(
+    data: Uint8Array,
+    start: number,
+    end: number,
+    bandScale = 1.0
+  ): number {
     let sum = 0;
     for (let i = start; i < end; i++) {
       sum += data[i];
     }
-    return (sum / (end - start) / 255) * this.sensitivity;
+    const raw = sum / (end - start) / 255;
+    // Apply logarithmic compression to prevent pegging at max
+    const compressed = Math.pow(raw, 0.7);
+    return compressed * this.sensitivity * bandScale;
   }
 }

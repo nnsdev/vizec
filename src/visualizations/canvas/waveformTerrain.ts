@@ -33,7 +33,7 @@ export class WaveformTerrainVisualization extends BaseVisualization {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     speed: 1.0,
-    lineCount: 40,
+    lineCount: 25, // Reduced for better performance
     perspectiveIntensity: 0.8,
   };
   private width = 0;
@@ -63,7 +63,7 @@ export class WaveformTerrainVisualization extends BaseVisualization {
   }
 
   private initializeTerrainHistory(): void {
-    const pointsPerLine = 128;
+    const pointsPerLine = 64; // Reduced from 128 for better performance
     this.terrainHistory = [];
     for (let i = 0; i < this.config.lineCount; i++) {
       this.terrainHistory.push(Array.from({ length: pointsPerLine }, () => 0));
@@ -90,10 +90,10 @@ export class WaveformTerrainVisualization extends BaseVisualization {
       // Shift all lines back
       this.terrainHistory.pop();
 
-      // Create new line from waveform data
+      // Create new line from waveform data - reduced point count
       const newLine: number[] = [];
-      const step = Math.floor(timeDomainData.length / 128);
-      for (let i = 0; i < 128; i++) {
+      const step = Math.floor(timeDomainData.length / 64);
+      for (let i = 0; i < 64; i++) {
         const value = (timeDomainData[i * step] - 128) / 128;
         newLine.push(value * sensitivity);
       }
@@ -209,9 +209,9 @@ export class WaveformTerrainVisualization extends BaseVisualization {
       lineCount: {
         type: "number",
         label: "Line Count",
-        default: 40,
-        min: 20,
-        max: 80,
+        default: 25,
+        min: 15,
+        max: 50,
         step: 5,
       },
       colorScheme: {

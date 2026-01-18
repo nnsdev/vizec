@@ -139,8 +139,8 @@ export class DesertDunesVisualization extends BaseVisualization {
       duneColor = colors.dune1;
     }
 
-    // Calculate alpha (back layers more transparent)
-    const alpha = 0.3 + progress * 0.5;
+    // Calculate alpha (back layers more transparent, overall more see-through)
+    const alpha = 0.15 + progress * 0.35;
 
     // Begin shape for dune layer
     p.beginShape();

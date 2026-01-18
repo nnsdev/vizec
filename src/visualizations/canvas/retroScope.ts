@@ -74,9 +74,18 @@ export class RetroScopeVisualization extends BaseVisualization {
 
     this.time += deltaTime * 0.001;
 
-    // Fade the trail canvas for phosphor decay effect
-    this.trailCtx.fillStyle = `rgba(0, 0, 0, ${1 - phosphorTrail})`;
-    this.trailCtx.fillRect(0, 0, this.width, this.height);
+    // For phosphor decay with transparency: copy current trail, clear, redraw faded, then add new
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = this.width;
+    tempCanvas.height = this.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (tempCtx) {
+      tempCtx.drawImage(this.trailCanvas, 0, 0);
+      this.trailCtx.clearRect(0, 0, this.width, this.height);
+      this.trailCtx.globalAlpha = phosphorTrail;
+      this.trailCtx.drawImage(tempCanvas, 0, 0);
+      this.trailCtx.globalAlpha = 1.0;
+    }
 
     // Draw waveform on trail canvas
     this.drawWaveform(this.trailCtx, timeDomainData, sensitivity, colors);
@@ -119,29 +128,27 @@ export class RetroScopeVisualization extends BaseVisualization {
 
     // Draw main waveform line
     ctx.strokeStyle = colors.glow;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 20;
     ctx.shadowColor = colors.glow;
 
     ctx.beginPath();
 
-    const step = Math.floor(timeDomainData.length / displayWidth);
+    // Use full timeDomainData length and map to displayWidth
+    const dataLength = timeDomainData.length;
 
     for (let i = 0; i < displayWidth; i++) {
-      let sum = 0;
-      for (let j = 0; j < step; j++) {
-        const index = i * step + j;
-        if (index < timeDomainData.length) {
-          sum += timeDomainData[index];
-        }
-      }
-      const value = sum / step;
+      // Map display position to data index
+      const dataIndex = Math.floor((i / displayWidth) * dataLength);
+      const value = timeDomainData[dataIndex] ?? 128;
 
       const x = margin + i;
+      // Moderate amplification
       const normalizedValue = (value - 128) / 128;
-      const y = centerY + normalizedValue * (displayHeight / 2) * sensitivity;
+      const amplifiedValue = normalizedValue * sensitivity * 1.5;
+      const y = centerY + amplifiedValue * (displayHeight / 2);
 
       if (i === 0) {
         ctx.moveTo(x, y);

@@ -3,6 +3,6 @@ dist/
 .claude/
 release/
 
-# Python env
 python/.venv/
 
+.wreckit

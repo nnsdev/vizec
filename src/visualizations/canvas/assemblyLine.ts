@@ -3,8 +3,8 @@ import {
   ConfigSchema,
   VisualizationConfig,
   VisualizationMeta,
-} from "../types";
-import { BaseVisualization } from "../base";
+} from '../types';
+import { BaseVisualization } from '../base';
 
 interface AssemblyLineConfig extends VisualizationConfig {
   armCount: number;
@@ -34,7 +34,7 @@ interface ConveyorItem {
   y: number;
   width: number;
   height: number;
-  type: "box" | "cylinder" | "gear";
+  type: 'box' | 'cylinder' | 'gear';
   processed: boolean;
   color: string;
 }
@@ -59,56 +59,60 @@ interface ProgressIndicator {
 }
 
 // Industrial color palettes
-const INDUSTRIAL_PALETTES: Record<string, {
-  metal: string;
-  darkMetal: string;
-  belt: string;
-  arm: string;
-  spark: string;
-  sparkGlow: string;
-  warning: string;
-  accent: string;
-}> = {
+const INDUSTRIAL_PALETTES: Record<
+  string,
+  {
+    metal: string;
+    darkMetal: string;
+    belt: string;
+    arm: string;
+    spark: string;
+    sparkGlow: string;
+    warning: string;
+    accent: string;
+  }
+> = {
   factory: {
-    metal: "#5A5A5A",
-    darkMetal: "#3A3A3A",
-    belt: "#2D2D2D",
-    arm: "#666666",
-    spark: "#FFA500",
-    sparkGlow: "#FF6600",
-    warning: "#FFD700",
-    accent: "#00FF00",
+    metal: '#5A5A5A',
+    darkMetal: '#3A3A3A',
+    belt: '#2D2D2D',
+    arm: '#666666',
+    spark: '#FFA500',
+    sparkGlow: '#FF6600',
+    warning: '#FFD700',
+    accent: '#00FF00',
   },
   modern: {
-    metal: "#707070",
-    darkMetal: "#404040",
-    belt: "#1A1A1A",
-    arm: "#808080",
-    spark: "#00BFFF",
-    sparkGlow: "#0080FF",
-    warning: "#00FF7F",
-    accent: "#00FFFF",
+    metal: '#707070',
+    darkMetal: '#404040',
+    belt: '#1A1A1A',
+    arm: '#808080',
+    spark: '#00BFFF',
+    sparkGlow: '#0080FF',
+    warning: '#00FF7F',
+    accent: '#00FFFF',
   },
   heavy: {
-    metal: "#4A4A4A",
-    darkMetal: "#2A2A2A",
-    belt: "#1F1F1F",
-    arm: "#5A5A5A",
-    spark: "#FF4500",
-    sparkGlow: "#FF0000",
-    warning: "#FF6347",
-    accent: "#FF8C00",
+    metal: '#4A4A4A',
+    darkMetal: '#2A2A2A',
+    belt: '#1F1F1F',
+    arm: '#5A5A5A',
+    spark: '#FF4500',
+    sparkGlow: '#FF0000',
+    warning: '#FF6347',
+    accent: '#FF8C00',
   },
 };
 
 export class AssemblyLineVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
-    id: "assemblyLine",
-    name: "Assembly Line",
-    author: "Vizec",
-    description: "Mechanical assembly line with robotic arms and welding sparks",
-    renderer: "canvas2d",
-    transitionType: "crossfade",
+    id: 'assemblyLine',
+    name: 'Assembly Line',
+    author: 'Vizec',
+    description:
+      'Mechanical assembly line with robotic arms and welding sparks',
+    renderer: 'canvas2d',
+    transitionType: 'crossfade',
   };
 
   private canvas: HTMLCanvasElement | null = null;
@@ -119,7 +123,7 @@ export class AssemblyLineVisualization extends BaseVisualization {
     beltSpeed: 1.0,
     sparkIntensity: 1.0,
     activityLevel: 1.0,
-    colorScheme: "factory",
+    colorScheme: 'factory',
   };
 
   private width = 0;
@@ -137,15 +141,15 @@ export class AssemblyLineVisualization extends BaseVisualization {
   private beltHeight = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
-    this.canvas = document.createElement("canvas");
-    this.canvas.style.position = "absolute";
-    this.canvas.style.top = "0";
-    this.canvas.style.left = "0";
-    this.canvas.style.width = "100%";
-    this.canvas.style.height = "100%";
+    this.canvas = document.createElement('canvas');
+    this.canvas.style.position = 'absolute';
+    this.canvas.style.top = '0';
+    this.canvas.style.left = '0';
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = '100%';
     container.appendChild(this.canvas);
 
-    this.ctx = this.canvas.getContext("2d");
+    this.ctx = this.canvas.getContext('2d');
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -178,8 +182,8 @@ export class AssemblyLineVisualization extends BaseVisualization {
         baseY,
         segment1Length: 60 + Math.random() * 30,
         segment2Length: 50 + Math.random() * 20,
-        angle1: -Math.PI / 4 + Math.random() * Math.PI / 4,
-        angle2: -Math.PI / 6 + Math.random() * Math.PI / 3,
+        angle1: -Math.PI / 4 + (Math.random() * Math.PI) / 4,
+        angle2: -Math.PI / 6 + (Math.random() * Math.PI) / 3,
         targetAngle1: -Math.PI / 4,
         targetAngle2: 0,
         moveTimer: Math.random() * 2,
@@ -192,7 +196,7 @@ export class AssemblyLineVisualization extends BaseVisualization {
 
   private initProgressIndicators(): void {
     this.progressIndicators = [];
-    const labels = ["EFFICIENCY", "OUTPUT", "POWER"];
+    const labels = ['EFFICIENCY', 'OUTPUT', 'POWER'];
 
     for (let i = 0; i < 3; i++) {
       this.progressIndicators.push({
@@ -208,9 +212,9 @@ export class AssemblyLineVisualization extends BaseVisualization {
   private spawnItem(): void {
     if (this.items.length > 10) return;
 
-    const types: ("box" | "cylinder" | "gear")[] = ["box", "cylinder", "gear"];
+    const types: ('box' | 'cylinder' | 'gear')[] = ['box', 'cylinder', 'gear'];
     const type = types[Math.floor(Math.random() * types.length)];
-    const colors = ["#8B4513", "#696969", "#4682B4", "#6B8E23"];
+    const colors = ['#8B4513', '#696969', '#4682B4', '#6B8E23'];
 
     this.items.push({
       x: -50,
@@ -227,9 +231,16 @@ export class AssemblyLineVisualization extends BaseVisualization {
     if (!this.ctx || !this.canvas) return;
 
     this.time += deltaTime * 0.001;
-    const { sensitivity, beltSpeed, sparkIntensity, activityLevel, colorScheme } = this.config;
+    const {
+      sensitivity,
+      beltSpeed,
+      sparkIntensity,
+      activityLevel,
+      colorScheme,
+    } = this.config;
     const { bass, mid, treble, volume } = audioData;
-    const palette = INDUSTRIAL_PALETTES[colorScheme] || INDUSTRIAL_PALETTES.factory;
+    const palette =
+      INDUSTRIAL_PALETTES[colorScheme] || INDUSTRIAL_PALETTES.factory;
 
     // Smooth audio values
     const smoothing = 0.15;
@@ -240,8 +251,9 @@ export class AssemblyLineVisualization extends BaseVisualization {
     // Clear canvas with transparent background
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // Update belt
-    this.beltOffset += beltSpeed * (1 + this.midSmooth * sensitivity) * deltaTime * 0.1;
+    // Update belt - much faster base speed
+    this.beltOffset +=
+      beltSpeed * (2 + this.midSmooth * sensitivity * 6) * deltaTime;
 
     // Render conveyor belt
     this.renderConveyorBelt(palette, beltSpeed, sensitivity);
@@ -267,14 +279,19 @@ export class AssemblyLineVisualization extends BaseVisualization {
   private renderConveyorBelt(
     palette: typeof INDUSTRIAL_PALETTES.factory,
     beltSpeed: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
 
     // Belt main body
     ctx.fillStyle = this.hexToRgba(palette.belt, 0.55);
-    ctx.fillRect(0, this.beltY - this.beltHeight / 2, this.width, this.beltHeight);
+    ctx.fillRect(
+      0,
+      this.beltY - this.beltHeight / 2,
+      this.width,
+      this.beltHeight,
+    );
 
     // Belt tracks (moving lines)
     const trackSpacing = 30;
@@ -283,7 +300,11 @@ export class AssemblyLineVisualization extends BaseVisualization {
     ctx.strokeStyle = this.hexToRgba(palette.metal, 0.4);
     ctx.lineWidth = 2;
 
-    for (let x = -trackSpacing + offset; x < this.width + trackSpacing; x += trackSpacing) {
+    for (
+      let x = -trackSpacing + offset;
+      x < this.width + trackSpacing;
+      x += trackSpacing
+    ) {
       ctx.beginPath();
       ctx.moveTo(x, this.beltY - this.beltHeight / 2);
       ctx.lineTo(x, this.beltY + this.beltHeight / 2);
@@ -299,7 +320,12 @@ export class AssemblyLineVisualization extends BaseVisualization {
     const supportSpacing = this.width / 5;
     for (let x = supportSpacing; x < this.width; x += supportSpacing) {
       ctx.fillStyle = this.hexToRgba(palette.darkMetal, 0.55);
-      ctx.fillRect(x - 10, this.beltY + this.beltHeight / 2, 20, this.height - this.beltY - this.beltHeight / 2);
+      ctx.fillRect(
+        x - 10,
+        this.beltY + this.beltHeight / 2,
+        20,
+        this.height - this.beltY - this.beltHeight / 2,
+      );
     }
   }
 
@@ -307,7 +333,7 @@ export class AssemblyLineVisualization extends BaseVisualization {
     deltaTime: number,
     palette: typeof INDUSTRIAL_PALETTES.factory,
     beltSpeed: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -316,8 +342,8 @@ export class AssemblyLineVisualization extends BaseVisualization {
     for (let i = this.items.length - 1; i >= 0; i--) {
       const item = this.items[i];
 
-      // Move item along belt
-      item.x += beltSpeed * 50 * (1 + this.midSmooth * sensitivity * 0.5) * dt;
+      // Move item along belt - faster movement
+      item.x += beltSpeed * 120 * (1 + this.midSmooth * sensitivity) * dt;
 
       // Remove if off screen
       if (item.x > this.width + 100) {
@@ -330,15 +356,25 @@ export class AssemblyLineVisualization extends BaseVisualization {
       ctx.translate(item.x, item.y - item.height / 2);
 
       switch (item.type) {
-        case "box":
+        case 'box':
           ctx.fillStyle = this.hexToRgba(item.color, 0.55);
-          ctx.fillRect(-item.width / 2, -item.height / 2, item.width, item.height);
+          ctx.fillRect(
+            -item.width / 2,
+            -item.height / 2,
+            item.width,
+            item.height,
+          );
           ctx.strokeStyle = this.hexToRgba(palette.darkMetal, 0.4);
           ctx.lineWidth = 1;
-          ctx.strokeRect(-item.width / 2, -item.height / 2, item.width, item.height);
+          ctx.strokeRect(
+            -item.width / 2,
+            -item.height / 2,
+            item.width,
+            item.height,
+          );
           break;
 
-        case "cylinder":
+        case 'cylinder':
           ctx.fillStyle = this.hexToRgba(item.color, 0.55);
           ctx.beginPath();
           ctx.ellipse(0, 0, item.width / 2, item.height / 2, 0, 0, Math.PI * 2);
@@ -348,7 +384,7 @@ export class AssemblyLineVisualization extends BaseVisualization {
           ctx.stroke();
           break;
 
-        case "gear":
+        case 'gear':
           this.drawGear(item.width / 2, item.color, palette);
           break;
       }
@@ -365,7 +401,11 @@ export class AssemblyLineVisualization extends BaseVisualization {
     }
   }
 
-  private drawGear(radius: number, color: string, palette: typeof INDUSTRIAL_PALETTES.factory): void {
+  private drawGear(
+    radius: number,
+    color: string,
+    palette: typeof INDUSTRIAL_PALETTES.factory,
+  ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
 
@@ -397,28 +437,41 @@ export class AssemblyLineVisualization extends BaseVisualization {
     deltaTime: number,
     palette: typeof INDUSTRIAL_PALETTES.factory,
     activityLevel: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
     const dt = deltaTime * 0.001;
 
     for (const arm of this.arms) {
-      // Update move timer
-      arm.moveTimer -= dt * activityLevel * (1 + this.bassSmooth * sensitivity);
+      // Update move timer - faster with audio
+      arm.moveTimer -=
+        dt * activityLevel * (1.5 + this.bassSmooth * sensitivity * 2);
+
+      // Direct audio influence on arm angles - continuous movement
+      const audioSwing1 =
+        Math.sin(this.time * 2 + arm.baseX * 0.01) *
+        this.bassSmooth *
+        sensitivity *
+        0.3;
+      const audioSwing2 =
+        Math.cos(this.time * 3 + arm.baseX * 0.01) *
+        this.midSmooth *
+        sensitivity *
+        0.4;
 
       if (arm.moveTimer <= 0) {
-        // Set new target angles
-        arm.targetAngle1 = -Math.PI / 3 + Math.random() * Math.PI / 2;
-        arm.targetAngle2 = -Math.PI / 4 + Math.random() * Math.PI / 2;
-        arm.moveInterval = 0.5 + Math.random() * 1.5;
+        // Set new target angles - wider range
+        arm.targetAngle1 = -Math.PI / 2 + Math.random() * Math.PI * 0.8;
+        arm.targetAngle2 = -Math.PI / 3 + Math.random() * Math.PI * 0.6;
+        arm.moveInterval = 0.2 + Math.random() * 0.5; // Much faster interval
         arm.moveTimer = arm.moveInterval;
 
         // Check if near an item for welding
         for (const item of this.items) {
-          if (!item.processed && Math.abs(item.x - arm.baseX) < 50) {
+          if (!item.processed && Math.abs(item.x - arm.baseX) < 80) {
             arm.isWelding = true;
-            arm.weldTimer = 0.3;
+            arm.weldTimer = 0.4;
             item.processed = true;
             this.emitSparks(arm, palette);
             break;
@@ -426,10 +479,10 @@ export class AssemblyLineVisualization extends BaseVisualization {
         }
       }
 
-      // Smoothly interpolate to target angles
-      const speed = 3 * (1 + this.bassSmooth * sensitivity);
-      arm.angle1 += (arm.targetAngle1 - arm.angle1) * dt * speed;
-      arm.angle2 += (arm.targetAngle2 - arm.angle2) * dt * speed;
+      // Smoothly interpolate to target angles - much faster
+      const speed = 8 * (1 + this.bassSmooth * sensitivity * 2);
+      arm.angle1 += (arm.targetAngle1 + audioSwing1 - arm.angle1) * dt * speed;
+      arm.angle2 += (arm.targetAngle2 + audioSwing2 - arm.angle2) * dt * speed;
 
       // Update welding
       if (arm.isWelding) {
@@ -447,7 +500,7 @@ export class AssemblyLineVisualization extends BaseVisualization {
   private drawRoboticArm(
     arm: RoboticArm,
     palette: typeof INDUSTRIAL_PALETTES.factory,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -462,13 +515,15 @@ export class AssemblyLineVisualization extends BaseVisualization {
     const joint1X = arm.baseX + Math.cos(arm.angle1) * arm.segment1Length;
     const joint1Y = arm.baseY + Math.sin(arm.angle1) * arm.segment1Length;
 
-    const endX = joint1X + Math.cos(arm.angle1 + arm.angle2) * arm.segment2Length;
-    const endY = joint1Y + Math.sin(arm.angle1 + arm.angle2) * arm.segment2Length;
+    const endX =
+      joint1X + Math.cos(arm.angle1 + arm.angle2) * arm.segment2Length;
+    const endY =
+      joint1Y + Math.sin(arm.angle1 + arm.angle2) * arm.segment2Length;
 
     // Draw first segment
     ctx.strokeStyle = this.hexToRgba(palette.arm, 0.6);
     ctx.lineWidth = 12;
-    ctx.lineCap = "round";
+    ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.moveTo(arm.baseX, arm.baseY);
     ctx.lineTo(joint1X, joint1Y);
@@ -523,11 +578,16 @@ export class AssemblyLineVisualization extends BaseVisualization {
     }
   }
 
-  private emitSparks(arm: RoboticArm, palette: typeof INDUSTRIAL_PALETTES.factory): void {
+  private emitSparks(
+    arm: RoboticArm,
+    palette: typeof INDUSTRIAL_PALETTES.factory,
+  ): void {
     const joint1X = arm.baseX + Math.cos(arm.angle1) * arm.segment1Length;
     const joint1Y = arm.baseY + Math.sin(arm.angle1) * arm.segment1Length;
-    const endX = joint1X + Math.cos(arm.angle1 + arm.angle2) * arm.segment2Length;
-    const endY = joint1Y + Math.sin(arm.angle1 + arm.angle2) * arm.segment2Length;
+    const endX =
+      joint1X + Math.cos(arm.angle1 + arm.angle2) * arm.segment2Length;
+    const endY =
+      joint1Y + Math.sin(arm.angle1 + arm.angle2) * arm.segment2Length;
 
     const particleCount = 15 + Math.floor(Math.random() * 20);
 
@@ -552,7 +612,7 @@ export class AssemblyLineVisualization extends BaseVisualization {
     deltaTime: number,
     palette: typeof INDUSTRIAL_PALETTES.factory,
     sparkIntensity: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -580,8 +640,12 @@ export class AssemblyLineVisualization extends BaseVisualization {
 
       // Glow
       const glowGradient = ctx.createRadialGradient(
-        spark.x, spark.y, 0,
-        spark.x, spark.y, spark.size * 3
+        spark.x,
+        spark.y,
+        0,
+        spark.x,
+        spark.y,
+        spark.size * 3,
       );
       glowGradient.addColorStop(0, this.hexToRgba(spark.color, alpha));
       glowGradient.addColorStop(1, this.hexToRgba(spark.color, 0));
@@ -592,7 +656,7 @@ export class AssemblyLineVisualization extends BaseVisualization {
       ctx.fill();
 
       // Core
-      ctx.fillStyle = this.hexToRgba("#FFFFFF", alpha);
+      ctx.fillStyle = this.hexToRgba('#FFFFFF', alpha);
       ctx.beginPath();
       ctx.arc(spark.x, spark.y, spark.size * 0.5, 0, Math.PI * 2);
       ctx.fill();
@@ -609,7 +673,7 @@ export class AssemblyLineVisualization extends BaseVisualization {
 
   private renderProgressIndicators(
     palette: typeof INDUSTRIAL_PALETTES.factory,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -617,7 +681,8 @@ export class AssemblyLineVisualization extends BaseVisualization {
     for (const indicator of this.progressIndicators) {
       // Update target based on audio
       indicator.targetProgress = 0.3 + this.midSmooth * 0.5 * sensitivity;
-      indicator.progress += (indicator.targetProgress - indicator.progress) * 0.1;
+      indicator.progress +=
+        (indicator.targetProgress - indicator.progress) * 0.1;
 
       const barWidth = 80;
       const barHeight = 10;
@@ -627,9 +692,15 @@ export class AssemblyLineVisualization extends BaseVisualization {
       ctx.fillRect(indicator.x, indicator.y, barWidth, barHeight);
 
       // Progress fill
-      const fillColor = indicator.progress > 0.7 ? palette.warning : palette.accent;
+      const fillColor =
+        indicator.progress > 0.7 ? palette.warning : palette.accent;
       ctx.fillStyle = this.hexToRgba(fillColor, 0.55);
-      ctx.fillRect(indicator.x, indicator.y, barWidth * indicator.progress, barHeight);
+      ctx.fillRect(
+        indicator.x,
+        indicator.y,
+        barWidth * indicator.progress,
+        barHeight,
+      );
 
       // Border
       ctx.strokeStyle = this.hexToRgba(palette.metal, 0.5);
@@ -638,11 +709,15 @@ export class AssemblyLineVisualization extends BaseVisualization {
 
       // Label
       ctx.fillStyle = this.hexToRgba(palette.metal, 0.6);
-      ctx.font = "10px monospace";
+      ctx.font = '10px monospace';
       ctx.fillText(indicator.label, indicator.x, indicator.y - 5);
 
       // Value
-      ctx.fillText(`${Math.floor(indicator.progress * 100)}%`, indicator.x + barWidth + 5, indicator.y + 8);
+      ctx.fillText(
+        `${Math.floor(indicator.progress * 100)}%`,
+        indicator.x + barWidth + 5,
+        indicator.y + 8,
+      );
     }
   }
 
@@ -688,50 +763,50 @@ export class AssemblyLineVisualization extends BaseVisualization {
   getConfigSchema(): ConfigSchema {
     return {
       sensitivity: {
-        type: "number",
-        label: "Sensitivity",
+        type: 'number',
+        label: 'Sensitivity',
         default: 1.0,
         min: 0.1,
         max: 3.0,
         step: 0.1,
       },
       colorScheme: {
-        type: "select",
-        label: "Factory Style",
-        default: "factory",
+        type: 'select',
+        label: 'Factory Style',
+        default: 'factory',
         options: [
-          { label: "Classic Factory", value: "factory" },
-          { label: "Modern Tech", value: "modern" },
-          { label: "Heavy Industry", value: "heavy" },
+          { label: 'Classic Factory', value: 'factory' },
+          { label: 'Modern Tech', value: 'modern' },
+          { label: 'Heavy Industry', value: 'heavy' },
         ],
       },
       armCount: {
-        type: "number",
-        label: "Robotic Arms",
+        type: 'number',
+        label: 'Robotic Arms',
         default: 3,
         min: 1,
         max: 6,
         step: 1,
       },
       beltSpeed: {
-        type: "number",
-        label: "Belt Speed",
+        type: 'number',
+        label: 'Belt Speed',
         default: 1.0,
         min: 0.3,
         max: 3.0,
         step: 0.1,
       },
       sparkIntensity: {
-        type: "number",
-        label: "Spark Intensity",
+        type: 'number',
+        label: 'Spark Intensity',
         default: 1.0,
         min: 0,
         max: 2.0,
         step: 0.1,
       },
       activityLevel: {
-        type: "number",
-        label: "Activity Level",
+        type: 'number',
+        label: 'Activity Level',
         default: 1.0,
         min: 0.3,
         max: 2.0,

@@ -135,9 +135,13 @@ export class SteamVentsVisualization extends BaseVisualization {
         this.createSteamBurst(vent, particleDensity, bass * sensitivity);
       }
 
-      // Continuous steam with high volume
-      if (this.smoothedVolume * sensitivity > 0.4 && Math.random() < 0.05 * particleDensity) {
-        this.createSteamParticle(vent, this.smoothedVolume * sensitivity * 0.5);
+      // Continuous steam with high volume - increased frequency
+      if (this.smoothedVolume * sensitivity > 0.25 && Math.random() < 0.15 * particleDensity) {
+        this.createSteamParticle(vent, this.smoothedVolume * sensitivity * 0.6);
+      }
+      // Extra continuous steam for more visible effect
+      if (this.smoothedVolume * sensitivity > 0.3 && Math.random() < 0.1 * particleDensity) {
+        this.createSteamParticle(vent, this.smoothedVolume * sensitivity * 0.4);
       }
 
       // Update particles
@@ -156,7 +160,8 @@ export class SteamVentsVisualization extends BaseVisualization {
   }
 
   private createSteamBurst(vent: Vent, density: number, intensity: number): void {
-    const particleCount = Math.floor((15 + Math.random() * 25) * density * intensity);
+    // Doubled particle count for more steam
+    const particleCount = Math.floor((30 + Math.random() * 50) * density * intensity);
 
     for (let i = 0; i < particleCount; i++) {
       this.createSteamParticle(vent, intensity);
@@ -164,16 +169,16 @@ export class SteamVentsVisualization extends BaseVisualization {
   }
 
   private createSteamParticle(vent: Vent, intensity: number): SteamParticle {
-    const spread = vent.width * 0.5;
+    const spread = vent.width * 0.6;
     const particle: SteamParticle = {
       x: vent.x + (Math.random() - 0.5) * spread,
       y: vent.baseY - 10,
-      vx: (Math.random() - 0.5) * 2,
-      vy: -(3 + Math.random() * 5 + intensity * 4),
-      size: 10 + Math.random() * 20 + intensity * 15,
-      alpha: 0.6 + Math.random() * 0.2,
+      vx: (Math.random() - 0.5) * 2.5,
+      vy: -(4 + Math.random() * 7 + intensity * 6), // Faster upward
+      size: 15 + Math.random() * 30 + intensity * 20, // Bigger particles
+      alpha: 0.7 + Math.random() * 0.2,
       life: 1,
-      maxLife: 1,
+      maxLife: 1.2, // Live longer
       rotation: Math.random() * Math.PI * 2,
       rotationSpeed: (Math.random() - 0.5) * 0.1,
     };

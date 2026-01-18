@@ -35,6 +35,7 @@ interface TelegraphKey {
   height: number;
   pressed: boolean;
   pressAmount: number;
+  lastSparkTime: number;
 }
 
 export class TelegraphSparksVisualization extends BaseVisualization {
@@ -96,6 +97,7 @@ export class TelegraphSparksVisualization extends BaseVisualization {
         height: 30,
         pressed: false,
         pressAmount: 0,
+        lastSparkTime: 0,
       });
     }
   }
@@ -107,10 +109,10 @@ export class TelegraphSparksVisualization extends BaseVisualization {
     const { sensitivity, colorScheme, sparkIntensity, glowStrength } = this.config;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
-    // Smooth audio values
-    const smoothing = 0.15;
-    this.smoothedMid = this.smoothedMid * (1 - smoothing) + mid * sensitivity * smoothing;
-    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * smoothing;
+    // Smooth audio values - faster response, boosted sensitivity
+    const smoothing = 0.3;
+    this.smoothedMid = this.smoothedMid * (1 - smoothing) + mid * sensitivity * 2 * smoothing;
+    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
 
     this.time += deltaTime * 0.001;
 
@@ -119,15 +121,20 @@ export class TelegraphSparksVisualization extends BaseVisualization {
 
     // Update keys and trigger sparks
     for (const key of this.keys) {
-      // Press key when mid is strong
-      key.pressed = this.smoothedMid > 0.4;
+      // Press key when mid is strong - use raw mid value for immediate response
+      const midLevel = mid * sensitivity;
+      key.pressed = midLevel > 0.08 || this.smoothedMid > 0.1;
       const targetPress = key.pressed ? 1 : 0;
-      key.pressAmount += (targetPress - key.pressAmount) * 0.2;
+      key.pressAmount += (targetPress - key.pressAmount) * 0.4;
 
       // Trigger sparks when key is pressed and enough time has passed
-      if (key.pressed && this.time - this.lastSparkTime > 0.05) {
+      // Each key has its own spark timer
+      const shouldSpark = key.pressed && this.time - key.lastSparkTime > 0.02;
+      const ambientSpark = this.time - key.lastSparkTime > 0.2;
+      
+      if (shouldSpark || ambientSpark) {
         this.createSpark(key, sparkIntensity);
-        this.lastSparkTime = this.time;
+        key.lastSparkTime = this.time;
       }
 
       this.drawKey(key, colors);

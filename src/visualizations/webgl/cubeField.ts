@@ -159,8 +159,9 @@ export class CubeFieldVisualization extends BaseVisualization {
 
     this.time += deltaTime;
 
-    const bassBoost = Math.pow(bass, 0.7) * 2;
-    const midBoost = Math.pow(mid, 0.7) * 1.5;
+    // Reduced intensity by 50%
+    const bassBoost = Math.pow(bass, 0.7) * 1.0;
+    const midBoost = Math.pow(mid, 0.7) * 0.75;
 
     // Rotate entire grid based on audio
     if (rotateWithAudio) {
@@ -178,8 +179,8 @@ export class CubeFieldVisualization extends BaseVisualization {
       const freqValue = frequencyData[freqIndex] / 255;
       const boostedValue = Math.pow(freqValue, 0.8) * sensitivity;
 
-      // Calculate target height
-      const targetHeight = 0.5 + boostedValue * maxHeight;
+      // Calculate target height - reduced by 50%
+      const targetHeight = 0.5 + boostedValue * maxHeight * 0.5;
 
       // Smooth height transition
       const currentScale = mesh.scale.y;

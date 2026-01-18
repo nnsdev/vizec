@@ -110,10 +110,10 @@ export class PollenDriftVisualization extends BaseVisualization {
     const { sensitivity, colorScheme, windStrength, particleSize } = this.config;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
-    // Smooth audio values
-    const smoothing = 0.1;
-    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * smoothing;
-    this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * smoothing;
+    // Smooth audio values - faster response
+    const smoothing = 0.25;
+    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
+    this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * 2 * smoothing;
 
     // Clear canvas
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -214,18 +214,18 @@ export class PollenDriftVisualization extends BaseVisualization {
     windStrength: number,
     gustStrength: number
   ): void {
-    const dt = deltaTime * 0.05;
+    const dt = deltaTime * 0.3;
 
-    // Treble affects horizontal movement (fluttering)
-    const flutter = Math.sin(this.time * 5 + particle.x * 0.01) * this.smoothedTreble * 2;
+    // Treble affects horizontal movement (fluttering) - increased effect
+    const flutter = Math.sin(this.time * 5 + particle.x * 0.01) * this.smoothedTreble * 15;
 
-    // Wind effect
-    const windX = Math.cos(this.windAngle) * windStrength * (1 + gustStrength);
-    const windY = 0.1 + this.smoothedBass * 0.5; // Bass adds upward gusts occasionally
+    // Wind effect - much stronger base wind and gusts
+    const windX = Math.cos(this.windAngle) * windStrength * 5 * (1 + gustStrength * 3);
+    const windY = 0.5 + this.smoothedBass * 3; // Bass adds upward gusts
 
-    particle.x += (particle.speedX + windX + flutter) * dt;
-    particle.y += (particle.speedY - windY * gustStrength * 0.3) * dt;
-    particle.rotation += particle.rotationSpeed * dt * (1 + this.smoothedTreble);
+    particle.x += (particle.speedX * 2 + windX + flutter) * dt;
+    particle.y += (particle.speedY * 2 - windY * gustStrength) * dt;
+    particle.rotation += particle.rotationSpeed * dt * 2 * (1 + this.smoothedTreble);
 
     // Wrap around edges
     if (particle.x < -20) particle.x = this.width + 20;

@@ -122,7 +122,8 @@ export class HexShield extends BaseVisualization {
 
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    const sensitivityFactor = Math.pow(sensitivity / 2, 2);
+    // Reduced impact by 50%
+    const sensitivityFactor = Math.pow(sensitivity / 2, 2) * 0.5;
 
     this.hexes.forEach((hex) => {
       const decayRate = 0.85 + sensitivityFactor * 0.1; // 0.85-0.95 range
@@ -140,10 +141,10 @@ export class HexShield extends BaseVisualization {
       }
 
       if (
-        bass > 0.7 - sensitivityFactor * 0.2 &&
-        Math.random() > 0.97 - sensitivityFactor * 0.1
+        bass > 0.7 - sensitivityFactor * 0.1 &&
+        Math.random() > 0.98 - sensitivityFactor * 0.05
       ) {
-        hex.active = Math.min(1.0, hex.active + 0.5 * sensitivityFactor);
+        hex.active = Math.min(1.0, hex.active + 0.25 * sensitivityFactor);
       }
 
       this.ctx!.strokeStyle = `rgba(0, 150, 255, ${0.1 + hex.active * 0.8})`;

@@ -585,7 +585,7 @@ export class VisualizationEngine {
     if (!this.isRunning) return;
 
     const now = performance.now();
-    const deltaTime = (now - this.lastFrameTime) / 1000;
+    const deltaTime = now - this.lastFrameTime; // Keep in milliseconds
     this.lastFrameTime = now;
 
     // Clean up old words periodically

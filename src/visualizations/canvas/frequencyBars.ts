@@ -109,8 +109,8 @@ export class FrequencyBarsVisualization extends BaseVisualization {
       this.smoothedData[i] = this.smoothedData[i] * smoothing + value * (1 - smoothing);
       const smoothedValue = this.smoothedData[i];
 
-      // Calculate bar height - no additional bass boost since we balanced it above
-      const barHeight = smoothedValue * this.height * 0.2;
+      // Calculate bar height - reduced by 50%
+      const barHeight = smoothedValue * this.height * 0.1;
 
       // Calculate x position
       const x = i * (barWidth + gap);

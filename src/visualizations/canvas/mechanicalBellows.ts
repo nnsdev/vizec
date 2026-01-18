@@ -108,10 +108,10 @@ export class MechanicalBellowsVisualization extends BaseVisualization {
     const { sensitivity, colorScheme, steamIntensity } = this.config;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
-    // Smooth audio values
-    const smoothing = 0.2;
-    this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * smoothing;
-    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * smoothing;
+    // Smooth audio values - increased smoothing factor and doubled sensitivity multiplier
+    const smoothing = 0.35;
+    this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * 2 * smoothing;
+    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
 
     this.time += deltaTime * 0.001;
 
@@ -122,16 +122,16 @@ export class MechanicalBellowsVisualization extends BaseVisualization {
     for (let i = 0; i < this.bellows.length; i++) {
       const bellows = this.bellows[i];
 
-      // Update compression based on bass
-      bellows.targetCompression = 0.3 + this.smoothedBass * 0.7;
+      // Update compression based on bass - clamp to prevent going underground
+      const clampedBass = Math.min(this.smoothedBass, 1.0);
+      bellows.targetCompression = 0.2 + clampedBass * 0.7;
+      bellows.targetCompression = Math.min(bellows.targetCompression, 0.95); // Max compression limit
       bellows.compression += (bellows.targetCompression - bellows.compression) * 0.15;
 
-      // Emit steam when compressing
-      if (bellows.compression > 0.5) {
-        const steamCount = Math.floor((bellows.compression - 0.5) * steamIntensity * 5);
-        for (let j = 0; j < steamCount; j++) {
-          this.emitSteam(bellows);
-        }
+      // Emit steam - much more aggressive
+      const steamCount = Math.floor((0.3 + bellows.compression) * steamIntensity * 25);
+      for (let j = 0; j < steamCount; j++) {
+        this.emitSteam(bellows);
       }
 
       this.drawBellows(bellows, colors, i);
@@ -146,18 +146,18 @@ export class MechanicalBellowsVisualization extends BaseVisualization {
   }
 
   private emitSteam(bellows: Bellows): void {
-    if (this.steamParticles.length > 300) return;
+    if (this.steamParticles.length > 500) return;
 
     const side = Math.random() > 0.5 ? 1 : -1;
     this.steamParticles.push({
       x: bellows.x + side * bellows.width * 0.4,
       y: bellows.y - bellows.height * (1 - bellows.compression) * 0.5,
-      vx: side * (1 + Math.random() * 2),
-      vy: -1 - Math.random() * 3,
-      size: 5 + Math.random() * 10,
-      alpha: 0.5 + Math.random() * 0.3,
-      life: 1.0,
-      maxLife: 1.0,
+      vx: side * (2 + Math.random() * 4),
+      vy: -3 - Math.random() * 5,
+      size: 10 + Math.random() * 20,
+      alpha: 0.6 + Math.random() * 0.3,
+      life: 1.5,
+      maxLife: 1.5,
     });
   }
 

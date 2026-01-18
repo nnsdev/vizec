@@ -35,6 +35,8 @@ interface Pipe {
   segments: { x: number; y: number }[];
   pressure: number;
   glowIntensity: number;
+  flowOffset: number; // For animated flow
+  totalLength: number; // Pre-calculated pipe length
 }
 
 interface SteamParticle {
@@ -208,6 +210,15 @@ export class BrassValvesVisualization extends BaseVisualization {
 
     segments.push({ x: valve2.x, y: valve2.y });
 
+    // Calculate total pipe length
+    let totalLength = 0;
+    for (let i = 1; i < segments.length; i++) {
+      totalLength += Math.hypot(
+        segments[i].x - segments[i - 1].x,
+        segments[i].y - segments[i - 1].y
+      );
+    }
+
     this.pipes.push({
       startX: valve1.x,
       startY: valve1.y,
@@ -216,6 +227,8 @@ export class BrassValvesVisualization extends BaseVisualization {
       segments,
       pressure: 0.5,
       glowIntensity: 0,
+      flowOffset: Math.random() * 100,
+      totalLength,
     });
   }
 
@@ -258,10 +271,13 @@ export class BrassValvesVisualization extends BaseVisualization {
       // Update pressure based on mid frequencies
       pipe.pressure = 0.3 + this.midSmooth * pressureReactivity * sensitivity * 0.7;
       pipe.glowIntensity = this.midSmooth * pressureReactivity * sensitivity;
+      
+      // Animate flow - speed based on bass
+      pipe.flowOffset += (2 + this.bassSmooth * sensitivity * 8) * 0.016;
 
-      // Draw pipe segments
+      // Draw pipe segments (outer)
       ctx.strokeStyle = this.hexToRgba(palette.iron, 0.55);
-      ctx.lineWidth = 8;
+      ctx.lineWidth = 10;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
@@ -274,7 +290,7 @@ export class BrassValvesVisualization extends BaseVisualization {
 
       // Inner pipe (copper)
       ctx.strokeStyle = this.hexToRgba(palette.copper, 0.45);
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 6;
 
       ctx.beginPath();
       ctx.moveTo(pipe.segments[0].x, pipe.segments[0].y);
@@ -283,11 +299,15 @@ export class BrassValvesVisualization extends BaseVisualization {
       }
       ctx.stroke();
 
-      // Pressure glow
-      if (pipe.glowIntensity > 0.2) {
-        ctx.strokeStyle = this.hexToRgba(palette.glow, pipe.glowIntensity * 0.3);
-        ctx.lineWidth = 12;
-        ctx.filter = "blur(4px)";
+      // Animated flow particles inside pipes
+      this.drawPipeFlow(pipe, palette, sensitivity);
+
+      // Pressure glow - pulsing with bass
+      const pulseGlow = pipe.glowIntensity * (0.8 + Math.sin(this.time * 6) * 0.2 * this.bassSmooth);
+      if (pulseGlow > 0.15) {
+        ctx.strokeStyle = this.hexToRgba(palette.glow, pulseGlow * 0.4);
+        ctx.lineWidth = 14 + this.bassSmooth * 6;
+        ctx.filter = "blur(6px)";
 
         ctx.beginPath();
         ctx.moveTo(pipe.segments[0].x, pipe.segments[0].y);
@@ -300,9 +320,86 @@ export class BrassValvesVisualization extends BaseVisualization {
 
       // Draw pipe joints/fittings
       for (const segment of pipe.segments) {
-        this.drawRivet(segment.x, segment.y, 5, palette);
+        this.drawRivet(segment.x, segment.y, 6, palette);
       }
     }
+  }
+
+  private drawPipeFlow(
+    pipe: Pipe,
+    palette: typeof STEAMPUNK_PALETTES.classic,
+    sensitivity: number
+  ): void {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+
+    // Draw flowing energy/steam particles along the pipe
+    const particleSpacing = 25;
+    const particleCount = Math.floor(pipe.totalLength / particleSpacing);
+    const flowSpeed = pipe.flowOffset;
+
+    for (let i = 0; i < particleCount; i++) {
+      // Calculate position along pipe as percentage
+      let t = ((i * particleSpacing + flowSpeed * 30) % pipe.totalLength) / pipe.totalLength;
+      
+      // Get position on pipe path
+      const pos = this.getPointOnPipe(pipe, t);
+      if (!pos) continue;
+
+      // Particle size pulses with audio
+      const basePulse = Math.sin(t * Math.PI * 4 + this.time * 3) * 0.5 + 0.5;
+      const audioPulse = this.midSmooth * sensitivity;
+      const size = 2 + basePulse * 2 + audioPulse * 3;
+      
+      // Alpha based on pressure and pulse
+      const alpha = (0.3 + pipe.pressure * 0.4) * (0.5 + basePulse * 0.5);
+
+      // Glow effect
+      const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, size * 2);
+      gradient.addColorStop(0, this.hexToRgba(palette.glow, alpha));
+      gradient.addColorStop(0.5, this.hexToRgba(palette.copper, alpha * 0.5));
+      gradient.addColorStop(1, this.hexToRgba(palette.glow, 0));
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, size * 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Bright core
+      ctx.fillStyle = this.hexToRgba(palette.steam, alpha * 0.8);
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, size * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  private getPointOnPipe(pipe: Pipe, t: number): { x: number; y: number } | null {
+    if (pipe.segments.length < 2) return null;
+
+    // Find which segment we're on
+    const targetDist = t * pipe.totalLength;
+    let accumulatedDist = 0;
+
+    for (let i = 1; i < pipe.segments.length; i++) {
+      const segLength = Math.hypot(
+        pipe.segments[i].x - pipe.segments[i - 1].x,
+        pipe.segments[i].y - pipe.segments[i - 1].y
+      );
+
+      if (accumulatedDist + segLength >= targetDist) {
+        // Interpolate within this segment
+        const segT = (targetDist - accumulatedDist) / segLength;
+        return {
+          x: pipe.segments[i - 1].x + (pipe.segments[i].x - pipe.segments[i - 1].x) * segT,
+          y: pipe.segments[i - 1].y + (pipe.segments[i].y - pipe.segments[i - 1].y) * segT,
+        };
+      }
+
+      accumulatedDist += segLength;
+    }
+
+    // Return last point if we somehow overshot
+    return pipe.segments[pipe.segments.length - 1];
   }
 
   private updateValves(
