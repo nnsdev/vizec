@@ -2,6 +2,7 @@ import { app, BrowserWindow, desktopCapturer, session } from "electron";
 import { createVisualizerWindow } from "./windows/visualizer";
 import { createControlWindow } from "./windows/control";
 import { setupIpcHandlers } from "./ipc/handlers";
+import { initSpeechSidecar } from "./speech/sidecar";
 import { PresetManager } from "./presets/presetManager";
 import { AppState } from "../shared/types";
 
@@ -40,8 +41,12 @@ const appState: AppState = {
 function broadcastState() {
   const windows = [visualizerWindow, controlWindow].filter(Boolean);
   windows.forEach((win) => {
-    if (win && !win.isDestroyed()) {
-      win.webContents.send("state-changed", appState);
+    try {
+      if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
+        win.webContents.send("state-changed", appState);
+      }
+    } catch (err) {
+      // Window may be in process of being destroyed, ignore
     }
   });
 }
@@ -86,6 +91,22 @@ async function createWindows() {
   // Create windows
   visualizerWindow = createVisualizerWindow();
   controlWindow = createControlWindow();
+
+  const sidecar = initSpeechSidecar((channel, payload) => {
+    const windows = [visualizerWindow, controlWindow].filter(Boolean);
+    windows.forEach((win) => {
+      if (win && !win.isDestroyed()) {
+        win.webContents.send(channel, payload);
+      }
+    });
+  });
+  sidecar.start();
+  sidecar.init({
+    model: "tiny",
+    demucsModel: "htdemucs",
+    segmentSeconds: 2.5,
+    stepSeconds: 0.5,
+  });
 
   // Handle window closed
   visualizerWindow.on("closed", () => {

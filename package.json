@@ -1,6 +1,6 @@
 {
   "name": "vizec",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Techno Audio Visualizer - Modular audio visualization with transparent overlay",
   "keywords": [
     "audio",
@@ -55,6 +55,10 @@
       {
         "from": "presets",
         "to": "presets"
+      },
+      {
+        "from": "python",
+        "to": "python"
       }
     ],
     "win": {

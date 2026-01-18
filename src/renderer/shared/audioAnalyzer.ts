@@ -1,5 +1,7 @@
 import { AudioData } from "../../shared/types";
 
+type RawAudioCallback = (samples: Float32Array, sampleRate: number) => void;
+
 export class AudioAnalyzer {
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
@@ -7,6 +9,11 @@ export class AudioAnalyzer {
   private gainNode: GainNode | null = null;
   private frequencyData: Uint8Array = new Uint8Array(0);
   private timeDomainData: Uint8Array = new Uint8Array(0);
+
+  // Raw audio capture for speech recognition (using AudioWorklet)
+  private workletNode: AudioWorkletNode | null = null;
+  private rawAudioCallback: RawAudioCallback | null = null;
+  private workletReady = false;
 
   private sensitivity = 4.0; // Sensitivity multiplier
   private smoothing = 0.5; // Lower smoothing for more responsiveness to music
@@ -16,6 +23,28 @@ export class AudioAnalyzer {
   async connect(stream: MediaStream): Promise<void> {
     // Create audio context
     this.audioContext = new AudioContext();
+
+    // Ensure context is running
+    if (this.audioContext.state === "suspended") {
+      await this.audioContext.resume();
+    }
+
+    // Load AudioWorklet for raw audio capture
+    try {
+      await this.audioContext.audioWorklet.addModule("./audio-processor.js");
+      this.workletNode = new AudioWorkletNode(this.audioContext, "audio-capture-processor");
+
+      this.workletNode.port.onmessage = (event) => {
+        if (!this.rawAudioCallback) return;
+        const { samples, sampleRate } = event.data;
+        this.rawAudioCallback(new Float32Array(samples), sampleRate);
+      };
+
+      this.workletReady = true;
+    } catch (err) {
+      console.warn("[AudioAnalyzer] Failed to load AudioWorklet:", err);
+      this.workletReady = false;
+    }
 
     // Create gain node to amplify the signal (loopback audio is often quiet)
     this.gainNode = this.audioContext.createGain();
@@ -33,12 +62,31 @@ export class AudioAnalyzer {
     this.source.connect(this.gainNode);
     this.gainNode.connect(this.analyser);
 
+    // Also connect to worklet for raw capture (if available)
+    if (this.workletNode) {
+      this.gainNode.connect(this.workletNode);
+      // Worklet doesn't need to connect to destination
+    }
+
     // Initialize data arrays
     const bufferLength = this.analyser.frequencyBinCount;
     this.frequencyData = new Uint8Array(bufferLength);
     this.timeDomainData = new Uint8Array(bufferLength);
 
-    console.log("AudioAnalyzer connected with gain:", this.gain);
+  }
+
+  /**
+   * Set callback for raw audio data (used by speech recognition)
+   */
+  setRawAudioCallback(callback: RawAudioCallback | null): void {
+    this.rawAudioCallback = callback;
+  }
+
+  /**
+   * Check if raw audio capture is available
+   */
+  isRawCaptureAvailable(): boolean {
+    return this.workletReady;
   }
 
   disconnect(): void {

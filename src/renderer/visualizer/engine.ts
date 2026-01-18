@@ -1,6 +1,14 @@
-import { Visualization, VisualizationConfig, AppState } from "../../shared/types";
+import {
+  AppState,
+  SpeechData,
+  SpeechInitOptions,
+  Visualization,
+  VisualizationConfig,
+  WordEvent,
+} from "../../shared/types";
 import { visualizationManager } from "./visualization-manager";
 import { AudioAnalyzer } from "../shared/audioAnalyzer";
+import { getSpeechRecognizer, SpeechRecognizer } from "../shared/speechRecognizer";
 
 export class VisualizationEngine {
   private container: HTMLElement;
@@ -87,9 +95,34 @@ export class VisualizationEngine {
   private preloadedVizId: string | null = null;
   private preloadContainer: HTMLElement | null = null;
 
+  // Speech recognition
+  private speechRecognizer: SpeechRecognizer;
+  private speechEnabled = false;
+  private speechData: SpeechData = {
+    recentWords: [],
+    currentWord: null,
+    transcript: "",
+    isActive: false,
+  };
+  private readonly WORD_DISPLAY_DURATION = 2000; // How long to show current word (ms)
+  private readonly MAX_RECENT_WORDS = 20;
+  private readonly speechDefaults: SpeechInitOptions = {
+    model: "tiny",
+    demucsModel: "htdemucs",
+    segmentSeconds: 2.5,
+    stepSeconds: 0.5,
+  };
+
   constructor(container: HTMLElement) {
     this.container = container;
     this.audioAnalyzer = new AudioAnalyzer();
+    this.speechRecognizer = getSpeechRecognizer();
+
+    // Set up speech recognition callbacks
+    this.speechRecognizer.setOnWord((event) => this.handleWordEvent(event));
+    this.speechRecognizer.setOnTranscript((event) => {
+      this.speechData.transcript = event.text;
+    });
 
     // Ensure container has proper styling
     this.container.style.position = "relative";
@@ -174,6 +207,12 @@ export class VisualizationEngine {
 
       // Connect audio analyzer
       await this.audioAnalyzer.connect(this.mediaStream);
+
+      if (this.speechEnabled) {
+        this.audioAnalyzer.setRawAudioCallback((samples, sampleRate) => {
+          this.speechRecognizer.feedAudio(samples, sampleRate);
+        });
+      }
 
       // Start render loop
       this.start();
@@ -349,6 +388,82 @@ export class VisualizationEngine {
     this.audioAnalyzer.setSmoothing(smoothing);
   }
 
+  /**
+   * Initialize and enable speech recognition
+   * Downloads model on first call (~75MB)
+   */
+  async enableSpeechRecognition(
+    onStatus?: (status: string, progress?: number, message?: string) => void
+  ): Promise<void> {
+    if (!this.speechRecognizer.isReady()) {
+      await this.speechRecognizer.initialize(this.speechDefaults, onStatus);
+    }
+
+    if (this.audioAnalyzer.isConnected()) {
+      this.audioAnalyzer.setRawAudioCallback((samples, sampleRate) => {
+        this.speechRecognizer.feedAudio(samples, sampleRate);
+      });
+    }
+
+    this.speechRecognizer.start();
+    this.speechEnabled = true;
+    this.speechData.isActive = true;
+  }
+
+  /**
+   * Disable speech recognition
+   */
+  disableSpeechRecognition(): void {
+    this.speechRecognizer.stop();
+    this.audioAnalyzer.setRawAudioCallback(null);
+    this.speechEnabled = false;
+    this.speechData.isActive = false;
+    this.speechData.currentWord = null;
+    this.speechData.recentWords = [];
+    this.speechData.transcript = "";
+  }
+
+  /**
+   * Check if speech recognition is enabled
+   */
+  isSpeechEnabled(): boolean {
+    return this.speechEnabled;
+  }
+
+  /**
+   * Handle incoming word events from speech recognizer
+   */
+  private handleWordEvent(event: WordEvent): void {
+    // Add to recent words
+    this.speechData.recentWords.push(event);
+
+    // Trim old words
+    if (this.speechData.recentWords.length > this.MAX_RECENT_WORDS) {
+      this.speechData.recentWords.shift();
+    }
+
+    // Set as current word
+    this.speechData.currentWord = event.word;
+
+    // Clear current word after display duration
+    setTimeout(() => {
+      if (this.speechData.currentWord === event.word) {
+        this.speechData.currentWord = null;
+      }
+    }, this.WORD_DISPLAY_DURATION);
+  }
+
+  /**
+   * Clean up old words from recent words list
+   */
+  private cleanupOldWords(): void {
+    const now = Date.now();
+    const maxAge = 10000; // 10 seconds
+    this.speechData.recentWords = this.speechData.recentWords.filter(
+      (w) => now - w.timestamp < maxAge
+    );
+  }
+
   setRotation(
     enabled: boolean,
     interval: number,
@@ -473,8 +588,16 @@ export class VisualizationEngine {
     const deltaTime = (now - this.lastFrameTime) / 1000;
     this.lastFrameTime = now;
 
-    // Get audio data
+    // Clean up old words periodically
+    if (this.speechEnabled) {
+      this.cleanupOldWords();
+    }
+
+    // Get audio data with speech info
     const audioData = this.audioAnalyzer.getAudioData();
+    if (this.speechEnabled) {
+      audioData.speech = { ...this.speechData };
+    }
 
     // Render current visualization
     if (this.currentVisualization && !this.isTransitioning) {
@@ -528,6 +651,8 @@ export class VisualizationEngine {
   destroy(): void {
     this.stop();
     this.stopCapture();
+    this.disableSpeechRecognition();
+    this.speechRecognizer.destroy();
 
     if (this.currentVisualization) {
       this.currentVisualization.destroy();

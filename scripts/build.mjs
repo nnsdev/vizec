@@ -32,7 +32,7 @@ async function build() {
     for (const file of files) {
       const srcFile = path.join(src, file);
       const destFile = path.join(dest, file);
-      if (srcFile.endsWith(".html") || srcFile.endsWith(".css")) {
+      if (srcFile.endsWith(".html") || srcFile.endsWith(".css") || srcFile.endsWith(".js")) {
         fs.copyFileSync(srcFile, destFile);
       }
     }

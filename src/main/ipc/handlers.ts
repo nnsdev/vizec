@@ -1,11 +1,13 @@
 import { ipcMain, desktopCapturer } from "electron";
 import {
   IPC_CHANNELS,
-  AudioSource,
-  Preset,
   AudioConfig,
+  AudioSource,
   DisplayConfig,
+  Preset,
   RotationConfig,
+  SpeechAudioChunk,
+  SpeechInitOptions,
   VisualizationConfig,
   VisualizationMeta,
 } from "../../shared/types";
@@ -16,10 +18,19 @@ import {
   getVisualizerWindow,
   getControlWindow,
 } from "../index";
+import { getSpeechSidecar } from "../speech/sidecar";
 import { visualizationRegistry } from "../registry";
 
 export function setupIpcHandlers() {
   console.log("Setting up IPC handlers...");
+
+  const getSpeechSidecarSafe = () => {
+    try {
+      return getSpeechSidecar();
+    } catch {
+      return null;
+    }
+  };
 
   // Get available audio sources
   ipcMain.handle(IPC_CHANNELS.GET_AUDIO_SOURCES, async (): Promise<AudioSource[]> => {
@@ -60,6 +71,34 @@ export function setupIpcHandlers() {
   ipcMain.on(IPC_CHANNELS.STOP_AUDIO_CAPTURE, () => {
     console.log("IPC: STOP_AUDIO_CAPTURE");
     updateAppState({ isCapturing: false });
+  });
+
+  // Speech control
+  ipcMain.on(IPC_CHANNELS.SPEECH_INIT, (_event, options: SpeechInitOptions) => {
+    const sidecar = getSpeechSidecarSafe();
+    if (!sidecar) return;
+    sidecar.init(options);
+  });
+
+  ipcMain.on(IPC_CHANNELS.SPEECH_ENABLE, () => {
+    const sidecar = getSpeechSidecarSafe();
+    if (!sidecar) return;
+    sidecar.enable();
+  });
+
+  ipcMain.on(IPC_CHANNELS.SPEECH_DISABLE, () => {
+    const sidecar = getSpeechSidecarSafe();
+    if (!sidecar) return;
+    sidecar.disable();
+  });
+
+  ipcMain.on(IPC_CHANNELS.SPEECH_AUDIO, (_event, chunk: SpeechAudioChunk) => {
+    const sidecar = getSpeechSidecarSafe();
+    if (!sidecar) return;
+    const samples = resolveSamples(chunk.samples);
+    if (!samples) return;
+    if (typeof chunk.sampleRate !== "number" || !Number.isFinite(chunk.sampleRate)) return;
+    sidecar.sendAudio(samples, chunk.sampleRate);
   });
 
   // Register visualizations (from Renderer)
@@ -199,4 +238,22 @@ export function setupIpcHandlers() {
   ipcMain.on(IPC_CHANNELS.SET_AUDIO_CONFIG, (event, audioConfig: AudioConfig) => {
     updateAppState({ audioConfig });
   });
+}
+
+function resolveSamples(value: unknown): Float32Array | null {
+  if (value instanceof Float32Array) return value;
+  if (value instanceof ArrayBuffer) return new Float32Array(value);
+  if (ArrayBuffer.isView(value)) {
+    const view = value as ArrayBufferView;
+    return new Float32Array(view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength));
+  }
+  if (Array.isArray(value)) return Float32Array.from(value);
+  if (isRecord(value) && Array.isArray(value.data)) return Float32Array.from(value.data);
+  return null;
+}
+
+type UnknownRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is UnknownRecord {
+  return typeof value === "object" && value !== null;
 }
