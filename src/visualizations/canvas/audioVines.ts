@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -79,18 +74,18 @@ export class AudioVinesVisualization extends BaseVisualization {
   private initVines(): void {
     this.vines = [];
     const { vineCount } = this.config;
-    
+
     // Create vines spaced out at the bottom
     for (let i = 0; i < vineCount; i++) {
-        this.vines.push({
-            nodes: [],
-            x: (this.width / (vineCount + 1)) * (i + 1),
-            targetHeight: this.height * (0.6 + Math.random() * 0.4),
-            growth: 0,
-            phase: Math.random() * Math.PI * 2,
-            speed: 0.02 + Math.random() * 0.03,
-            colorOffset: Math.random()
-        });
+      this.vines.push({
+        nodes: [],
+        x: (this.width / (vineCount + 1)) * (i + 1),
+        targetHeight: this.height * (0.6 + Math.random() * 0.4),
+        growth: 0,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.02 + Math.random() * 0.03,
+        colorOffset: Math.random(),
+      });
     }
   }
 
@@ -108,48 +103,48 @@ export class AudioVinesVisualization extends BaseVisualization {
     const pulseSize = 1.0 + bass * sensitivity * 0.5;
 
     this.vines.forEach((vine, index) => {
-        if (vine.growth < 1.0) {
-            vine.growth += vine.speed * (0.5 + volume) * deltaTime;
-            if (vine.growth > 1.0) vine.growth = 1.0;
-        }
+      if (vine.growth < 1.0) {
+        vine.growth += vine.speed * (0.5 + volume) * deltaTime;
+        if (vine.growth > 1.0) vine.growth = 1.0;
+      }
 
-        const currentHeight = vine.targetHeight * vine.growth;
-        const segmentCount = 40;
-        const segmentLen = currentHeight / segmentCount;
+      const currentHeight = vine.targetHeight * vine.growth;
+      const segmentCount = 40;
+      const segmentLen = currentHeight / segmentCount;
 
+      this.ctx!.beginPath();
+      this.ctx!.moveTo(vine.x, this.height);
+
+      for (let i = 0; i < segmentCount; i++) {
+        const sway = Math.sin(this.time * 2 + vine.phase + i * 0.1) * (i * curliness * swayAmount);
+        const kick = Math.sin(this.time * 10) * bass * sensitivity * (i * 2);
+        const nextX = vine.x + sway + kick;
+        const nextY = this.height - i * segmentLen;
+        this.ctx!.lineTo(nextX, nextY);
+      }
+
+      this.ctx!.strokeStyle = index % 2 === 0 ? colors.start : colors.end;
+      this.ctx!.lineWidth = Math.max(1, 8 * pulseSize * 0.5);
+      this.ctx!.lineCap = "round";
+      this.ctx!.stroke();
+
+      const leafSpacing = 5;
+      for (let i = 5; i < segmentCount; i += leafSpacing) {
+        if (i / segmentCount > vine.growth) break;
+
+        const progress = i / segmentCount;
+        const sway = Math.sin(this.time * 2 + vine.phase + i * 0.1) * (i * curliness * swayAmount);
+        const kick = Math.sin(this.time * 10) * bass * sensitivity * (i * 2);
+
+        const leafX = vine.x + sway + kick;
+        const leafY = this.height - i * segmentLen;
+        const leafSize = 6 * pulseSize * (1 - progress * 0.5);
+
+        this.ctx!.fillStyle = colors.glow || colors.end;
         this.ctx!.beginPath();
-        this.ctx!.moveTo(vine.x, this.height);
-
-        for (let i = 0; i < segmentCount; i++) {
-            const sway = Math.sin(this.time * 2 + vine.phase + i * 0.1) * (i * curliness * swayAmount);
-            const kick = Math.sin(this.time * 10) * bass * sensitivity * (i * 2);
-            const nextX = vine.x + sway + kick;
-            const nextY = this.height - i * segmentLen;
-            this.ctx!.lineTo(nextX, nextY);
-        }
-
-        this.ctx!.strokeStyle = index % 2 === 0 ? colors.start : colors.end;
-        this.ctx!.lineWidth = Math.max(1, 8 * pulseSize * 0.5);
-        this.ctx!.lineCap = "round";
-        this.ctx!.stroke();
-
-        const leafSpacing = 5;
-        for (let i = 5; i < segmentCount; i += leafSpacing) {
-            if (i / segmentCount > vine.growth) break;
-
-            const progress = i / segmentCount;
-            const sway = Math.sin(this.time * 2 + vine.phase + i * 0.1) * (i * curliness * swayAmount);
-            const kick = Math.sin(this.time * 10) * bass * sensitivity * (i * 2);
-            
-            const leafX = vine.x + sway + kick;
-            const leafY = this.height - i * segmentLen;
-            const leafSize = 6 * pulseSize * (1 - progress * 0.5);
-            
-            this.ctx!.fillStyle = colors.glow || colors.end;
-            this.ctx!.beginPath();
-            this.ctx!.arc(leafX, leafY, leafSize, 0, Math.PI * 2);
-            this.ctx!.fill();
-        }
+        this.ctx!.arc(leafX, leafY, leafSize, 0, Math.PI * 2);
+        this.ctx!.fill();
+      }
     });
   }
 
@@ -167,9 +162,9 @@ export class AudioVinesVisualization extends BaseVisualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     const oldCounts = this.config.vineCount;
     this.config = { ...this.config, ...config } as AudioVinesConfig;
-    
+
     if (this.config.vineCount !== oldCounts) {
-        this.initVines();
+      this.initVines();
     }
   }
 

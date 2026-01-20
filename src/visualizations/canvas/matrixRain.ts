@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_STRING,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_STRING, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface Drop {
   x: number;
@@ -114,6 +105,11 @@ export class MatrixRainVisualization extends BaseVisualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
+    // Normalize deltaTime to seconds
+    let dt = deltaTime || 0.016;
+    if (dt > 1) dt = dt / 1000;
+    dt = Math.max(0.001, Math.min(0.1, dt));
+
     const { bass, volume, frequencyData } = audioData;
     const { sensitivity, colorScheme, fontSize, baseSpeed } = this.config;
     const colors = getColorScheme(COLOR_SCHEMES_STRING, colorScheme);
@@ -139,7 +135,7 @@ export class MatrixRainVisualization extends BaseVisualization {
       const drop = this.drops[i];
 
       // Move drop
-      drop.y += drop.speed * baseSpeed * speedMultiplier * deltaTime * 60;
+      drop.y += drop.speed * baseSpeed * speedMultiplier * dt * 60;
 
       // Get frequency data for this column
       const colIndex = Math.floor(drop.x / fontSize);
@@ -163,22 +159,26 @@ export class MatrixRainVisualization extends BaseVisualization {
         if (j === 0) {
           opacity = 1;
         } else {
-          opacity = (1 - j / drop.length) * drop.brightness * (0.5 + freqValue * 0.5);
+          opacity = (1 - j / drop.length) * drop.brightness * (0.6 + freqValue * 0.4);
         }
+
+        // Parse primary color safely
+        const primaryColor = colors.primary || "#00ff00";
+        const glowColor = colors.glow || "#00ff00";
+        const r = parseInt(primaryColor.slice(1, 3), 16) || 0;
+        const g = parseInt(primaryColor.slice(3, 5), 16) || 255;
+        const b = parseInt(primaryColor.slice(5, 7), 16) || 0;
 
         // Head character is white/bright
         if (j === 0) {
           this.ctx.fillStyle = "#ffffff";
-          this.ctx.shadowBlur = 10 + freqValue * 10;
-          this.ctx.shadowColor = colors.glow;
+          this.ctx.shadowBlur = 15 + freqValue * 15;
+          this.ctx.shadowColor = glowColor;
         } else {
-          // Parse color and apply opacity
-          const r = parseInt(colors.primary.slice(1, 3), 16);
-          const g = parseInt(colors.primary.slice(3, 5), 16);
-          const b = parseInt(colors.primary.slice(5, 7), 16);
-          this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity * 0.7})`;
-          this.ctx.shadowBlur = freqValue * 5;
-          this.ctx.shadowColor = colors.glow;
+          // Apply opacity - more visible
+          this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${Math.max(0.3, opacity * 0.9)})`;
+          this.ctx.shadowBlur = 5 + freqValue * 8;
+          this.ctx.shadowColor = glowColor;
         }
 
         this.ctx.fillText(drop.chars[j], drop.x + fontSize / 2, charY);

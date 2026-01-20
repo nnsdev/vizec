@@ -1,10 +1,5 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface RainOnGlassConfig extends VisualizationConfig {
@@ -137,21 +132,17 @@ export class RainOnGlassVisualization extends BaseVisualization {
     // Subtle bokeh lights in background
     const lightCount = 3;
     for (let i = 0; i < lightCount; i++) {
-      const x = (this.time * 20 + i * this.width / lightCount) % (this.width + 200) - 100;
+      const x = ((this.time * 20 + (i * this.width) / lightCount) % (this.width + 200)) - 100;
       const y = this.height * 0.3 + Math.sin(this.time + i) * 50;
       const size = 50 + Math.sin(this.time * 0.5 + i * 2) * 20;
-      const alpha = (this.config.lightIntensity * 15 * (0.5 + Math.sin(this.time + i) * 0.5));
+      const alpha = this.config.lightIntensity * 15 * (0.5 + Math.sin(this.time + i) * 0.5);
 
       buffer.fill(45, 80, 100, alpha);
       buffer.ellipse(x, y, size, size);
     }
   }
 
-  private spawnDrop(
-    p: p5,
-    colors: { primary: string; secondary: string },
-    treble: number,
-  ): void {
+  private spawnDrop(p: p5, colors: { primary: string; secondary: string }, treble: number): void {
     const x = Math.random() * this.width;
     const y = Math.random() * this.height * 0.2;
     const size = 3 + Math.random() * 8 + treble * 10;
@@ -175,9 +166,7 @@ export class RainOnGlassVisualization extends BaseVisualization {
 
       // Leave trail
       if (Math.random() < 0.3) {
-        this.trails.push(
-          new TrailPoint(drop.x, drop.y, drop.size * 0.5, drop.speed),
-        );
+        this.trails.push(new TrailPoint(drop.x, drop.y, drop.size * 0.5, drop.speed));
       }
 
       // Draw drop
@@ -200,10 +189,7 @@ export class RainOnGlassVisualization extends BaseVisualization {
     }
   }
 
-  private drawTrails(
-    p: p5,
-    _colors: { primary: string; secondary: string },
-  ): void {
+  private drawTrails(p: p5, _colors: { primary: string; secondary: string }): void {
     p.noStroke();
 
     for (const trail of this.trails) {

@@ -1,10 +1,5 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface OilSwirlConfig extends VisualizationConfig {
@@ -258,7 +253,7 @@ class OilDroplet {
   ): void {
     // Store history for trails
     this.history.push({ x: this.x, y: this.y, radius: this.radius });
-    
+
     // Limit history based on trail config (0.8 - 0.99 maps to ~5 - 50 frames)
     const maxHistory = Math.floor((trailLengthConfig - 0.8) * 200) + 5;
     if (this.history.length > maxHistory) {
@@ -305,7 +300,7 @@ class OilDroplet {
       const t = i / this.history.length;
       const alpha = t * 40; // Fade in
       const size = pos.radius * t;
-      
+
       const layerHue = (colors.baseHue + this.hue) % 360;
       p.fill(layerHue, 80 * iridescence, 90, alpha);
       p.ellipse(pos.x, pos.y, size, size);

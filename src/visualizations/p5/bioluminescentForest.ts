@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface BioluminescentForestConfig extends VisualizationConfig {
   treeCount: number;
@@ -159,7 +150,15 @@ export class BioluminescentForestVisualization extends BaseVisualization {
       };
 
       // Generate branches recursively
-      this.generateBranches(tree, x, this.groundY - height * 0.3, height * 0.7, -Math.PI / 2, 0, palette);
+      this.generateBranches(
+        tree,
+        x,
+        this.groundY - height * 0.3,
+        height * 0.7,
+        -Math.PI / 2,
+        0,
+        palette,
+      );
 
       this.trees.push(tree);
     }
@@ -172,7 +171,7 @@ export class BioluminescentForestVisualization extends BaseVisualization {
     length: number,
     angle: number,
     depth: number,
-    palette: string[]
+    palette: string[],
   ): void {
     if (depth > 4 || length < 20) return;
 
@@ -210,7 +209,7 @@ export class BioluminescentForestVisualization extends BaseVisualization {
     // Create sub-branches
     const branchCount = 2 + Math.floor(Math.random() * 2);
     for (let i = 0; i < branchCount; i++) {
-      const newAngle = angle + (Math.random() - 0.5) * Math.PI / 2;
+      const newAngle = angle + ((Math.random() - 0.5) * Math.PI) / 2;
       const newLength = length * (0.5 + Math.random() * 0.3);
       this.generateBranches(tree, endX, endY, newLength, newAngle, depth + 1, palette);
     }
@@ -352,11 +351,12 @@ export class BioluminescentForestVisualization extends BaseVisualization {
     branch: Branch,
     glowIntensity: number,
     sensitivity: number,
-    swayX: number
+    swayX: number,
   ): void {
     // Branch line (dark silhouette)
     const branchWidth = 3 - branch.depth * 0.5;
-    const endX = branch.startX + Math.cos(branch.angle) * branch.length + swayX * (branch.depth * 0.2);
+    const endX =
+      branch.startX + Math.cos(branch.angle) * branch.length + swayX * (branch.depth * 0.2);
     const endY = branch.startY + Math.sin(branch.angle) * branch.length;
 
     const branchColor = p.color(15, 25, 20);
@@ -412,7 +412,7 @@ export class BioluminescentForestVisualization extends BaseVisualization {
         mushroom.x - mushroom.capWidth * 0.1,
         stemTop,
         mushroom.capWidth * 0.2,
-        mushroom.stemHeight
+        mushroom.stemHeight,
       );
 
       // Cap glow (underneath)
@@ -424,21 +424,14 @@ export class BioluminescentForestVisualization extends BaseVisualization {
         mushroom.x,
         stemTop + mushroom.capHeight * 0.3,
         mushroom.capWidth * 1.5,
-        mushroom.capHeight * 2
+        mushroom.capHeight * 2,
       );
 
       // Cap
       const capColor = p.color(20, 30, 25);
       capColor.setAlpha(140);
       p.fill(capColor);
-      p.arc(
-        mushroom.x,
-        stemTop,
-        mushroom.capWidth,
-        mushroom.capHeight * 2,
-        p.PI,
-        p.TWO_PI
-      );
+      p.arc(mushroom.x, stemTop, mushroom.capWidth, mushroom.capHeight * 2, p.PI, p.TWO_PI);
 
       // Cap spots (glowing)
       const spotCount = 3 + Math.floor(Math.random() * 0.01); // Mostly static
@@ -518,8 +511,7 @@ export class BioluminescentForestVisualization extends BaseVisualization {
     this.config = { ...this.config, ...config } as BioluminescentForestConfig;
 
     if (
-      (this.config.treeCount !== oldTreeCount ||
-        this.config.mushroomCount !== oldMushroomCount) &&
+      (this.config.treeCount !== oldTreeCount || this.config.mushroomCount !== oldMushroomCount) &&
       this.width > 0
     ) {
       this.initScene();

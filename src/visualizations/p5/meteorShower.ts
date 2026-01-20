@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface MeteorShowerConfig extends VisualizationConfig {
   meteorDensity: number;
@@ -214,11 +205,7 @@ export class MeteorShowerVisualization extends BaseVisualization {
       meteor.life -= 0.01;
 
       // Remove if off screen or dead
-      if (
-        meteor.x < -100 ||
-        meteor.y > this.height + 100 ||
-        meteor.life <= 0
-      ) {
+      if (meteor.x < -100 || meteor.y > this.height + 100 || meteor.life <= 0) {
         this.meteors.splice(i, 1);
       }
     }

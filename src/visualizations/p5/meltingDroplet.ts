@@ -1,10 +1,5 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface MeltingDropletConfig extends VisualizationConfig {
@@ -116,10 +111,7 @@ export class MeltingDropletVisualization extends BaseVisualization {
     }
   }
 
-  private drawSurface(
-    p: p5,
-    _colors: { primary: string; secondary: string },
-  ): void {
+  private drawSurface(p: p5, _colors: { primary: string; secondary: string }): void {
     p.noStroke();
     p.fill(220, 30, 15, 20);
     p.rect(0, this.height * 0.85, this.width, this.height * 0.15);
@@ -233,8 +225,8 @@ class MeltingDrop {
   stretchY: number = 1;
   stretchX: number = 1;
   vy: number = 0;
- 滴Count: number = 0;
- 滴s: FallingDrop[] = [];
+  滴Count: number = 0;
+  滴s: FallingDrop[] = [];
   wobblePhase: number = Math.random() * Math.PI * 2;
   wobbleSpeed: number = 0.02 + Math.random() * 0.02;
 
@@ -370,10 +362,7 @@ class FallingDrop {
     this.y += this.speed;
   }
 
-  draw(
-    p: p5,
-    colors: { primary: string; secondary: string },
-  ): void {
+  draw(p: p5, colors: { primary: string; secondary: string }): void {
     p.noStroke();
     p.fill(colors.primary);
     p.ellipse(this.x, this.y, this.size, this.size * 1.5);

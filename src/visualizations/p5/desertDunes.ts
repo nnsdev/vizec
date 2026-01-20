@@ -1,10 +1,5 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface DesertDunesConfig extends VisualizationConfig {
@@ -13,13 +8,46 @@ interface DesertDunesConfig extends VisualizationConfig {
   colorScheme: string;
 }
 
-const COLOR_SCHEMES: Record<string, { sky: string; dune1: string; dune2: string; dune3: string; accent: string }> = {
-  golden: { sky: "#1a0f00", dune1: "#d4a84b", dune2: "#c4983b", dune3: "#b4882b", accent: "#ffd700" },
-  sunset: { sky: "#1a0505", dune1: "#ff6b6b", dune2: "#ee5a5a", dune3: "#dd4a4a", accent: "#feca57" },
+const COLOR_SCHEMES: Record<
+  string,
+  { sky: string; dune1: string; dune2: string; dune3: string; accent: string }
+> = {
+  golden: {
+    sky: "#1a0f00",
+    dune1: "#d4a84b",
+    dune2: "#c4983b",
+    dune3: "#b4882b",
+    accent: "#ffd700",
+  },
+  sunset: {
+    sky: "#1a0505",
+    dune1: "#ff6b6b",
+    dune2: "#ee5a5a",
+    dune3: "#dd4a4a",
+    accent: "#feca57",
+  },
   fire: { sky: "#1a0500", dune1: "#ff4500", dune2: "#ee3400", dune3: "#dd2300", accent: "#ffd700" },
-  monochrome: { sky: "#0a0a0a", dune1: "#888888", dune2: "#666666", dune3: "#444444", accent: "#ffffff" },
-  synthwave: { sky: "#0a001a", dune1: "#ff00ff", dune2: "#dd00dd", dune3: "#bb00bb", accent: "#00ffff" },
-  ocean: { sky: "#000a14", dune1: "#0077be", dune2: "#006699", dune3: "#005577", accent: "#00d4aa" },
+  monochrome: {
+    sky: "#0a0a0a",
+    dune1: "#888888",
+    dune2: "#666666",
+    dune3: "#444444",
+    accent: "#ffffff",
+  },
+  synthwave: {
+    sky: "#0a001a",
+    dune1: "#ff00ff",
+    dune2: "#dd00dd",
+    dune3: "#bb00bb",
+    accent: "#00ffff",
+  },
+  ocean: {
+    sky: "#000a14",
+    dune1: "#0077be",
+    dune2: "#006699",
+    dune3: "#005577",
+    accent: "#00d4aa",
+  },
 };
 
 export class DesertDunesVisualization extends BaseVisualization {
@@ -94,14 +122,7 @@ export class DesertDunesVisualization extends BaseVisualization {
     // Draw dune layers from back to front
     for (let i = 0; i < duneCount; i++) {
       const layerProgress = i / (duneCount - 1);
-      this.drawDuneLayer(
-        p,
-        i,
-        duneCount,
-        layerProgress,
-        colors,
-        sensitivity
-      );
+      this.drawDuneLayer(p, i, duneCount, layerProgress, colors, sensitivity);
     }
 
     // Draw sparkle particles on high treble
@@ -116,7 +137,7 @@ export class DesertDunesVisualization extends BaseVisualization {
     totalLayers: number,
     progress: number,
     colors: { sky: string; dune1: string; dune2: string; dune3: string; accent: string },
-    sensitivity: number
+    sensitivity: number,
   ): void {
     // Calculate parallax speed (back layers move slower)
     const parallaxSpeed = 0.3 + progress * 0.7;
@@ -195,7 +216,7 @@ export class DesertDunesVisualization extends BaseVisualization {
     maxDuneHeight: number,
     accentColor: string,
     sensitivity: number,
-    index: number
+    index: number,
   ): void {
     const glowAlpha = 0.1 + this.smoothedVolume * sensitivity * 0.15;
 

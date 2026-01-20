@@ -18,9 +18,7 @@ class VisualizationRegistry {
   }
 
   getAllMeta(): VisualizationMeta[] {
-    return Array.from(this.visualizations.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return Array.from(this.visualizations.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
   getIds(): string[] {

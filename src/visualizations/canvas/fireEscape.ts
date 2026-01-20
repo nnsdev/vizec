@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -288,10 +283,7 @@ export class FireEscapeVisualization extends BaseVisualization {
       this.ctx.fill();
 
       // Light cone
-      const coneGrad = this.ctx.createRadialGradient(
-        light.x, light.y, 0,
-        light.x, light.y, 60
-      );
+      const coneGrad = this.ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, 60);
       coneGrad.addColorStop(0, `rgba(255, 200, 150, ${brightness * 0.3})`);
       coneGrad.addColorStop(1, "rgba(255, 200, 150, 0)");
       this.ctx.fillStyle = coneGrad;

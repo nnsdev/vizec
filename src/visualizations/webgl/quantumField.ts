@@ -1,16 +1,7 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_HEX,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_HEX, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface QuantumFieldConfig extends VisualizationConfig {
   particleCount: number;
@@ -38,7 +29,8 @@ export class QuantumFieldVisualization extends BaseVisualization {
     id: "quantumField",
     name: "Quantum Field",
     author: "Vizec",
-    description: "Probability clouds and wave functions responding to audio with entanglement effects",
+    description:
+      "Probability clouds and wave functions responding to audio with entanglement effects",
     renderer: "threejs",
     transitionType: "crossfade",
   };
@@ -182,7 +174,7 @@ export class QuantumFieldVisualization extends BaseVisualization {
         velocity: new THREE.Vector3(
           (Math.random() - 0.5) * 0.1,
           (Math.random() - 0.5) * 0.1,
-          (Math.random() - 0.5) * 0.1
+          (Math.random() - 0.5) * 0.1,
         ),
         phase: Math.random() * Math.PI * 2,
         phaseSpeed: 0.5 + Math.random() * 2,
@@ -296,20 +288,28 @@ export class QuantumFieldVisualization extends BaseVisualization {
       collapsedArray.push(p.collapsed ? 1.0 : 0.0);
 
       // Color based on whether entangled
-      const color = p.entangledWith !== null
-        ? secondaryColor
-        : primaryColor;
+      const color = p.entangledWith !== null ? secondaryColor : primaryColor;
       customColors.push(color.r, color.g, color.b);
     }
 
     this.particleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
     this.particleGeometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
     this.particleGeometry.setAttribute("phase", new THREE.Float32BufferAttribute(phases, 1));
-    this.particleGeometry.setAttribute("collapsed", new THREE.Float32BufferAttribute(collapsedArray, 1));
-    this.particleGeometry.setAttribute("customColor", new THREE.Float32BufferAttribute(customColors, 3));
+    this.particleGeometry.setAttribute(
+      "collapsed",
+      new THREE.Float32BufferAttribute(collapsedArray, 1),
+    );
+    this.particleGeometry.setAttribute(
+      "customColor",
+      new THREE.Float32BufferAttribute(customColors, 3),
+    );
   }
 
-  private createEntanglementLines(colors: { primary: number; secondary: number; glow: number }): void {
+  private createEntanglementLines(colors: {
+    primary: number;
+    secondary: number;
+    glow: number;
+  }): void {
     if (!this.scene) return;
 
     this.entanglementGeometry = new THREE.BufferGeometry();
@@ -375,7 +375,10 @@ export class QuantumFieldVisualization extends BaseVisualization {
       }
     }
 
-    this.entanglementGeometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    this.entanglementGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
     this.entanglementGeometry.setAttribute("linePos", new THREE.Float32BufferAttribute(linePos, 1));
   }
 
@@ -395,7 +398,7 @@ export class QuantumFieldVisualization extends BaseVisualization {
       positions.push(
         Math.cos(angle) * radius,
         Math.sin(angle) * radius,
-        (Math.random() - 0.5) * 10
+        (Math.random() - 0.5) * 10,
       );
       sizes.push(1 + Math.random() * 2);
       phases.push(angle);
@@ -465,7 +468,11 @@ export class QuantumFieldVisualization extends BaseVisualization {
     this.scene.add(this.waveMesh);
   }
 
-  private createProbabilityClouds(colors: { primary: number; secondary: number; glow: number }): void {
+  private createProbabilityClouds(colors: {
+    primary: number;
+    secondary: number;
+    glow: number;
+  }): void {
     if (!this.scene) return;
 
     // Outer probability cloud particles
@@ -482,7 +489,7 @@ export class QuantumFieldVisualization extends BaseVisualization {
       positions.push(
         radius * Math.sin(phi) * Math.cos(theta),
         radius * Math.sin(phi) * Math.sin(theta),
-        radius * Math.cos(phi)
+        radius * Math.cos(phi),
       );
       sizes.push(1 + Math.random() * 3);
       alphas.push(0.2 + Math.random() * 0.3);
@@ -633,7 +640,7 @@ export class QuantumFieldVisualization extends BaseVisualization {
     deltaTime: number,
     bassBoost: number,
     midBoost: number,
-    trebleBoost: number
+    trebleBoost: number,
   ): void {
     const dt = deltaTime * 0.001;
 

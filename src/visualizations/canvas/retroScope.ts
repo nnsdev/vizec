@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -75,10 +70,10 @@ export class RetroScopeVisualization extends BaseVisualization {
     this.time += deltaTime * 0.001;
 
     // For phosphor decay with transparency: copy current trail, clear, redraw faded, then add new
-    const tempCanvas = document.createElement('canvas');
+    const tempCanvas = document.createElement("canvas");
     tempCanvas.width = this.width;
     tempCanvas.height = this.height;
-    const tempCtx = tempCanvas.getContext('2d');
+    const tempCtx = tempCanvas.getContext("2d");
     if (tempCtx) {
       tempCtx.drawImage(this.trailCanvas, 0, 0);
       this.trailCtx.clearRect(0, 0, this.width, this.height);
@@ -119,7 +114,7 @@ export class RetroScopeVisualization extends BaseVisualization {
     ctx: CanvasRenderingContext2D,
     timeDomainData: Uint8Array,
     sensitivity: number,
-    colors: { start: string; end: string; glow: string }
+    colors: { start: string; end: string; glow: string },
   ): void {
     const margin = 50;
     const displayWidth = this.width - margin * 2;
@@ -199,7 +194,10 @@ export class RetroScopeVisualization extends BaseVisualization {
     ctx.globalAlpha = 1.0;
   }
 
-  private drawCRTFrame(colors: { start: string; end: string; glow: string }, curvature: number): void {
+  private drawCRTFrame(
+    colors: { start: string; end: string; glow: string },
+    curvature: number,
+  ): void {
     if (!this.ctx) return;
 
     const margin = 30;
@@ -210,7 +208,13 @@ export class RetroScopeVisualization extends BaseVisualization {
     this.ctx.lineWidth = 3;
 
     this.ctx.beginPath();
-    this.ctx.roundRect(margin, margin, this.width - margin * 2, this.height - margin * 2, 10 * curvature);
+    this.ctx.roundRect(
+      margin,
+      margin,
+      this.width - margin * 2,
+      this.height - margin * 2,
+      10 * curvature,
+    );
     this.ctx.stroke();
 
     // Corner accent dots
@@ -253,8 +257,12 @@ export class RetroScopeVisualization extends BaseVisualization {
     if (!this.ctx) return;
 
     const gradient = this.ctx.createRadialGradient(
-      this.width / 2, this.height / 2, 0,
-      this.width / 2, this.height / 2, Math.max(this.width, this.height) * 0.7
+      this.width / 2,
+      this.height / 2,
+      0,
+      this.width / 2,
+      this.height / 2,
+      Math.max(this.width, this.height) * 0.7,
     );
 
     gradient.addColorStop(0, "transparent");

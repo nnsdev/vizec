@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -124,8 +119,8 @@ export class EscalatorVisualization extends BaseVisualization {
     // Animate handrail segments
     const handrailSegments = 30;
     for (let i = 0; i < handrailSegments; i++) {
-      const t1 = ((i / handrailSegments) + this.time * 0.1 * stepSpeed) % 1;
-      const t2 = (((i + 0.5) / handrailSegments) + this.time * 0.1 * stepSpeed) % 1;
+      const t1 = (i / handrailSegments + this.time * 0.1 * stepSpeed) % 1;
+      const t2 = ((i + 0.5) / handrailSegments + this.time * 0.1 * stepSpeed) % 1;
 
       if (t2 > t1) {
         const x1 = startX + (endX - startX) * t1 - escalatorWidth / 2 - 10;
@@ -269,19 +264,13 @@ export class EscalatorVisualization extends BaseVisualization {
     }
 
     // Add ambient glow at entry/exit
-    const entryGlow = this.ctx.createRadialGradient(
-      startX, startY, 0,
-      startX, startY, 100
-    );
+    const entryGlow = this.ctx.createRadialGradient(startX, startY, 0, startX, startY, 100);
     entryGlow.addColorStop(0, `rgba(${this.hexToRgb(colors.start)}, ${0.2 * neonIntensity})`);
     entryGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
     this.ctx.fillStyle = entryGlow;
     this.ctx.fillRect(startX - 100, startY - 100, 200, 200);
 
-    const exitGlow = this.ctx.createRadialGradient(
-      endX, endY, 0,
-      endX, endY, 100
-    );
+    const exitGlow = this.ctx.createRadialGradient(endX, endY, 0, endX, endY, 100);
     exitGlow.addColorStop(0, `rgba(${this.hexToRgb(colors.end)}, ${0.2 * neonIntensity})`);
     exitGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
     this.ctx.fillStyle = exitGlow;

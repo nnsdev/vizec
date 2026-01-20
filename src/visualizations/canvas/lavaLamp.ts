@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface LavaLampConfig extends VisualizationConfig {
@@ -276,18 +271,30 @@ class LavaBlob {
     this.x += Math.sin(this.phase) * (0.2 + treble * sensitivity * 0.3);
   }
 
-  draw(ctx: CanvasRenderingContext2D, colors: { primary: string; secondary: string; accent: string }): void {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    colors: { primary: string; secondary: string; accent: string },
+  ): void {
     // Glow layers
     for (let i = 4; i >= 0; i--) {
       const glowRadius = this.radius * (1 + i * 0.4);
       const alpha = 0.15 - i * 0.03;
 
-      const gradient = ctx.createRadialGradient(
-        this.x, this.y, 0,
-        this.x, this.y, glowRadius,
+      const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowRadius);
+      gradient.addColorStop(
+        0,
+        colors.primary +
+          Math.floor(alpha * 255)
+            .toString(16)
+            .padStart(2, "0"),
       );
-      gradient.addColorStop(0, colors.primary + Math.floor(alpha * 255).toString(16).padStart(2, "0"));
-      gradient.addColorStop(0.5, colors.secondary + Math.floor((alpha * 0.5) * 255).toString(16).padStart(2, "0"));
+      gradient.addColorStop(
+        0.5,
+        colors.secondary +
+          Math.floor(alpha * 0.5 * 255)
+            .toString(16)
+            .padStart(2, "0"),
+      );
       gradient.addColorStop(1, "transparent");
 
       ctx.fillStyle = gradient;
@@ -298,8 +305,12 @@ class LavaBlob {
 
     // Main blob body
     const bodyGradient = ctx.createRadialGradient(
-      this.x - this.radius * 0.3, this.y - this.radius * 0.3, 0,
-      this.x, this.y, this.radius,
+      this.x - this.radius * 0.3,
+      this.y - this.radius * 0.3,
+      0,
+      this.x,
+      this.y,
+      this.radius,
     );
     bodyGradient.addColorStop(0, colors.accent);
     bodyGradient.addColorStop(0.3, colors.primary);
@@ -313,7 +324,15 @@ class LavaBlob {
     // Highlight
     ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
     ctx.beginPath();
-    ctx.ellipse(this.x - this.radius * 0.3, this.y - this.radius * 0.4, this.radius * 0.25, this.radius * 0.35, -0.5, 0, Math.PI * 2);
+    ctx.ellipse(
+      this.x - this.radius * 0.3,
+      this.y - this.radius * 0.4,
+      this.radius * 0.25,
+      this.radius * 0.35,
+      -0.5,
+      0,
+      Math.PI * 2,
+    );
     ctx.fill();
   }
 }

@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -121,7 +116,7 @@ export class HeatShimmerVisualization extends BaseVisualization {
   private drawShimmerWaves(
     colors: { start: string; end: string; glow: string },
     distortMult: number,
-    midEffect: number
+    midEffect: number,
   ): void {
     if (!this.ctx) return;
 
@@ -174,7 +169,7 @@ export class HeatShimmerVisualization extends BaseVisualization {
   private drawHeatBands(
     colors: { start: string; end: string; glow: string },
     bassEffect: number,
-    trebleEffect: number
+    trebleEffect: number,
   ): void {
     if (!this.ctx) return;
 
@@ -212,21 +207,30 @@ export class HeatShimmerVisualization extends BaseVisualization {
         const sparkleSize = 2 + Math.random() * 3;
 
         const sparkleGradient = ctx.createRadialGradient(
-          sparkleX, sparkleY, 0,
-          sparkleX, sparkleY, sparkleSize * 3
+          sparkleX,
+          sparkleY,
+          0,
+          sparkleX,
+          sparkleY,
+          sparkleSize * 3,
         );
         sparkleGradient.addColorStop(0, this.hexToRgba(colors.glow, 0.5));
         sparkleGradient.addColorStop(1, this.hexToRgba(colors.glow, 0));
 
         ctx.fillStyle = sparkleGradient;
-        ctx.fillRect(sparkleX - sparkleSize * 3, sparkleY - sparkleSize * 3, sparkleSize * 6, sparkleSize * 6);
+        ctx.fillRect(
+          sparkleX - sparkleSize * 3,
+          sparkleY - sparkleSize * 3,
+          sparkleSize * 6,
+          sparkleSize * 6,
+        );
       }
     }
   }
 
   private drawHeatWisps(
     colors: { start: string; end: string; glow: string },
-    volumeLevel: number
+    volumeLevel: number,
   ): void {
     if (!this.ctx) return;
 

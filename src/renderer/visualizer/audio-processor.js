@@ -11,11 +11,11 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
       // Send audio data to main thread
       this.port.postMessage({
         samples: input[0], // First channel
-        sampleRate: sampleRate
+        sampleRate: sampleRate,
       });
     }
     return true; // Keep processor alive
   }
 }
 
-registerProcessor('audio-capture-processor', AudioCaptureProcessor);
+registerProcessor("audio-capture-processor", AudioCaptureProcessor);

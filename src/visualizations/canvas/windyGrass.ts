@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -68,26 +63,26 @@ export class WindyGrassVisualization extends BaseVisualization {
   private initGrass(): void {
     this.blades = [];
     const { density } = this.config;
-    
+
     // We want to fill the width
     // Density is just a number, let's say "blades per screen width approx"
     const count = density;
     const spacing = this.width / count;
-    
-    for (let i = 0; i < count; i++) {
-        // Randomize position slightly so it's not a perfect grid
-        const x = (i * spacing) + (Math.random() * spacing * 0.5);
-        
-        // Parallax depth? Let's keep it 2D for now, maybe vary height
-        const height = this.height * (0.15 + Math.random() * 0.15); // Bottom 15-30% of screen
 
-        this.blades.push({
-            x,
-            height,
-            lean: 0,
-            stiffness: 0.5 + Math.random() * 0.5, // 0.5 - 1.0
-            phase: Math.random() * Math.PI * 2
-        });
+    for (let i = 0; i < count; i++) {
+      // Randomize position slightly so it's not a perfect grid
+      const x = i * spacing + Math.random() * spacing * 0.5;
+
+      // Parallax depth? Let's keep it 2D for now, maybe vary height
+      const height = this.height * (0.15 + Math.random() * 0.15); // Bottom 15-30% of screen
+
+      this.blades.push({
+        x,
+        height,
+        lean: 0,
+        stiffness: 0.5 + Math.random() * 0.5, // 0.5 - 1.0
+        phase: Math.random() * Math.PI * 2,
+      });
     }
   }
 
@@ -105,30 +100,30 @@ export class WindyGrassVisualization extends BaseVisualization {
     const dataLen = waveData.length;
 
     this.ctx.lineCap = "round";
-    
+
     const gradient = this.ctx.createLinearGradient(0, this.height, 0, this.height - 200);
     gradient.addColorStop(0, colors.start);
     gradient.addColorStop(1, colors.end);
     this.ctx.strokeStyle = gradient;
 
     this.blades.forEach((blade) => {
-        const idx = Math.floor((blade.x / this.width) * dataLen) % dataLen;
-        const waveVal = (waveData[idx] - 128) / 128;
-        
-        const sway = Math.sin(this.time * windSpeed + blade.phase) * 10;
-        const force = waveVal * 50 * sensitivity * blade.stiffness;
-        const stretch = 1.0 + bass * sensitivity * 0.1;
+      const idx = Math.floor((blade.x / this.width) * dataLen) % dataLen;
+      const waveVal = (waveData[idx] - 128) / 128;
 
-        const tipX = blade.x + sway + force;
-        const tipY = this.height - blade.height * stretch;
-        const ctrlX = blade.x + (tipX - blade.x) * 0.3;
-        const ctrlY = this.height - blade.height * 0.5;
+      const sway = Math.sin(this.time * windSpeed + blade.phase) * 10;
+      const force = waveVal * 50 * sensitivity * blade.stiffness;
+      const stretch = 1.0 + bass * sensitivity * 0.1;
 
-        this.ctx!.beginPath();
-        this.ctx!.moveTo(blade.x, this.height);
-        this.ctx!.quadraticCurveTo(ctrlX, ctrlY, tipX, tipY);
-        this.ctx!.lineWidth = 2 + bass * 2;
-        this.ctx!.stroke();
+      const tipX = blade.x + sway + force;
+      const tipY = this.height - blade.height * stretch;
+      const ctrlX = blade.x + (tipX - blade.x) * 0.3;
+      const ctrlY = this.height - blade.height * 0.5;
+
+      this.ctx!.beginPath();
+      this.ctx!.moveTo(blade.x, this.height);
+      this.ctx!.quadraticCurveTo(ctrlX, ctrlY, tipX, tipY);
+      this.ctx!.lineWidth = 2 + bass * 2;
+      this.ctx!.stroke();
     });
   }
 
@@ -146,9 +141,9 @@ export class WindyGrassVisualization extends BaseVisualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     const oldDensity = this.config.density;
     this.config = { ...this.config, ...config } as WindyGrassConfig;
-    
+
     if (this.config.density !== oldDensity) {
-        this.initGrass();
+      this.initGrass();
     }
   }
 

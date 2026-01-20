@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_GLITCH,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_GLITCH, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface GlitchSpectrumConfig extends VisualizationConfig {
   barCount: number;

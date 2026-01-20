@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -91,9 +86,12 @@ export class PollenDriftVisualization extends BaseVisualization {
     return {
       x: Math.random() * this.width,
       y: randomY ? Math.random() * this.height : -20,
-      size: type === "dandelion" ? 8 + Math.random() * 6 :
-            type === "seed" ? 4 + Math.random() * 3 :
-            2 + Math.random() * 2,
+      size:
+        type === "dandelion"
+          ? 8 + Math.random() * 6
+          : type === "seed"
+            ? 4 + Math.random() * 3
+            : 2 + Math.random() * 2,
       speedX: (Math.random() - 0.5) * 0.5,
       speedY: 0.2 + Math.random() * 0.3,
       rotation: Math.random() * Math.PI * 2,
@@ -112,7 +110,8 @@ export class PollenDriftVisualization extends BaseVisualization {
 
     // Smooth audio values - faster response
     const smoothing = 0.25;
-    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
+    this.smoothedTreble =
+      this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
     this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * 2 * smoothing;
 
     // Clear canvas
@@ -137,7 +136,7 @@ export class PollenDriftVisualization extends BaseVisualization {
   private drawParticle(
     particle: Particle,
     colors: { start: string; end: string; glow: string },
-    sizeMultiplier: number
+    sizeMultiplier: number,
   ): void {
     if (!this.ctx) return;
 
@@ -165,10 +164,7 @@ export class PollenDriftVisualization extends BaseVisualization {
         const rayLength = size * 0.4;
         this.ctx.beginPath();
         this.ctx.moveTo(0, 0);
-        this.ctx.lineTo(
-          Math.cos(angle) * rayLength,
-          Math.sin(angle) * rayLength - size * 0.1
-        );
+        this.ctx.lineTo(Math.cos(angle) * rayLength, Math.sin(angle) * rayLength - size * 0.1);
         this.ctx.stroke();
 
         // Small dot at end
@@ -178,7 +174,7 @@ export class PollenDriftVisualization extends BaseVisualization {
           Math.sin(angle) * rayLength - size * 0.1,
           1,
           0,
-          Math.PI * 2
+          Math.PI * 2,
         );
         this.ctx.fillStyle = colors.end;
         this.ctx.fill();
@@ -212,7 +208,7 @@ export class PollenDriftVisualization extends BaseVisualization {
     particle: Particle,
     deltaTime: number,
     windStrength: number,
-    gustStrength: number
+    gustStrength: number,
   ): void {
     const dt = deltaTime * 0.3;
 
@@ -235,9 +231,11 @@ export class PollenDriftVisualization extends BaseVisualization {
       particle.y = -20;
       particle.x = Math.random() * this.width;
     }
-    if (particle.y < -30 && gustStrength > 0.5) {
-      // Strong gusts can push some back down
-      particle.speedY = Math.abs(particle.speedY);
+    if (particle.y < -50) {
+      // Particles that go too far above screen - reset from bottom
+      particle.y = this.height + 20;
+      particle.x = Math.random() * this.width;
+      particle.speedY = Math.abs(particle.speedY); // Ensure moving down
     }
   }
 

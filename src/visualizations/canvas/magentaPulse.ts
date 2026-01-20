@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface PulseRing {
@@ -46,11 +41,11 @@ export class MagentaPulseVisualization extends BaseVisualization {
   private height = 0;
   private pulses: PulseRing[] = [];
   private config: MagentaPulseConfig = {
-    sensitivity: 1,
+    sensitivity: 1.5,
     colorScheme: "magenta",
-    pulseSpeed: 160,
-    burstThreshold: 0.25,
-    trailLength: 60,
+    pulseSpeed: 180,
+    burstThreshold: 0.15,
+    trailLength: 80,
     glow: true,
   };
   private elapsedSincePulse = 0;
@@ -75,8 +70,13 @@ export class MagentaPulseVisualization extends BaseVisualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
+    // Normalize deltaTime to seconds
+    let dt = deltaTime || 0.016;
+    if (dt > 1) dt = dt / 1000;
+    dt = Math.max(0.001, Math.min(0.1, dt));
+
     const { bass, volume, treble } = audioData;
-    this.elapsedSincePulse += deltaTime;
+    this.elapsedSincePulse += dt;
     const colors = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.magenta;
 
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -89,11 +89,17 @@ export class MagentaPulseVisualization extends BaseVisualization {
       this.elapsedSincePulse = 0;
     }
 
+    // Fallback: spawn periodically even with low audio (attract mode)
+    if (this.elapsedSincePulse > 0.8) {
+      this.spawnPulse(0.5, 0.5);
+      this.elapsedSincePulse = 0;
+    }
+
     const nowPulses: PulseRing[] = [];
 
     for (const pulse of this.pulses) {
-      pulse.radius += this.config.pulseSpeed * deltaTime;
-      pulse.alpha -= 0.4 * deltaTime;
+      pulse.radius += this.config.pulseSpeed * dt;
+      pulse.alpha -= 0.15 * dt; // Even slower fade
       if (pulse.radius >= pulse.maxRadius || pulse.alpha <= 0) {
         continue;
       }
@@ -101,18 +107,21 @@ export class MagentaPulseVisualization extends BaseVisualization {
       const gradient = this.ctx.createRadialGradient(
         pulse.x,
         pulse.y,
-        pulse.radius * 0.1,
+        pulse.radius * 0.05,
         pulse.x,
         pulse.y,
         pulse.radius,
       );
-      gradient.addColorStop(0, this.applyAlpha(colors.center, pulse.alpha * 0.9));
-      gradient.addColorStop(0.35, this.applyAlpha(colors.halo, pulse.alpha * 0.6));
-      gradient.addColorStop(1, this.applyAlpha(colors.edge, pulse.alpha * 0.2));
+      gradient.addColorStop(0, this.applyAlpha(colors.center, pulse.alpha * 1.0));
+      gradient.addColorStop(0.3, this.applyAlpha(colors.halo, pulse.alpha * 0.8));
+      gradient.addColorStop(0.7, this.applyAlpha(colors.edge, pulse.alpha * 0.5));
+      gradient.addColorStop(1, this.applyAlpha(colors.edge, pulse.alpha * 0.15));
 
       this.ctx.beginPath();
       this.ctx.fillStyle = gradient;
-      this.ctx.globalAlpha = this.config.glow ? pulse.alpha : Math.max(pulse.alpha * 0.6, 0);
+      this.ctx.globalAlpha = this.config.glow
+        ? Math.min(1, pulse.alpha * 1.2)
+        : Math.max(pulse.alpha * 0.8, 0);
       this.ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
       this.ctx.fill();
 
@@ -120,21 +129,22 @@ export class MagentaPulseVisualization extends BaseVisualization {
     }
 
     this.pulses = nowPulses;
+    this.ctx.globalAlpha = 1;
     this.ctx.globalCompositeOperation = "source-over";
   }
 
   private spawnPulse(volume: number, treble: number): void {
     if (!this.canvas) return;
 
-    const strength = Math.max(0.35, Math.min(1, volume * this.config.sensitivity));
-    const maxRadius = (Math.max(this.width, this.height) / 2) * (0.5 + strength * 0.5);
+    const strength = Math.max(0.4, Math.min(1, volume * this.config.sensitivity));
+    const maxRadius = (Math.max(this.width, this.height) / 2) * (0.7 + strength * 0.5);
     const softAngle = Math.random() * Math.PI * 2;
     const offset = (Math.sin(softAngle) * treble + 0.5) * (this.width / 3);
 
     this.pulses.push({
       x: this.width / 2 + offset,
       y: this.height / 2 + Math.cos(softAngle) * (this.height / 4),
-      radius: 0,
+      radius: 20, // Start with visible radius
       alpha: 1,
       maxRadius,
       speed: this.config.pulseSpeed,

@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface SupernovaConfig extends VisualizationConfig {
@@ -498,7 +493,7 @@ export class SupernovaVisualization extends BaseVisualization {
       this.lastBassHit = this.time;
       this.flashIntensity = Math.min(0.5, explosionPower * 0.3); // Reduced flash
     }
-    
+
     // Decay flash smoothly
     this.flashIntensity *= 0.92;
 

@@ -72,7 +72,6 @@ export class AudioAnalyzer {
     const bufferLength = this.analyser.frequencyBinCount;
     this.frequencyData = new Uint8Array(bufferLength);
     this.timeDomainData = new Uint8Array(bufferLength);
-
   }
 
   /**
@@ -184,7 +183,7 @@ export class AudioAnalyzer {
     data: Uint8Array,
     start: number,
     end: number,
-    bandScale = 1.0
+    bandScale = 1.0,
   ): number {
     let sum = 0;
     for (let i = start; i < end; i++) {

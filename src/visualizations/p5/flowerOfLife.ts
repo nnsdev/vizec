@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface FlowerOfLifeConfig extends VisualizationConfig {
   sensitivity: number;
@@ -49,7 +40,10 @@ export class FlowerOfLifeVisualization extends BaseVisualization {
 
     this.p5Instance = new p5((p: p5) => {
       p.setup = () => {
-        const canvas = p.createCanvas(container.clientWidth || window.innerWidth, container.clientHeight || window.innerHeight);
+        const canvas = p.createCanvas(
+          container.clientWidth || window.innerWidth,
+          container.clientHeight || window.innerHeight,
+        );
         canvas.parent(container);
         p.colorMode(p.HSB, 360, 100, 100, 100);
         p.noFill();
@@ -60,7 +54,10 @@ export class FlowerOfLifeVisualization extends BaseVisualization {
       };
 
       p.windowResized = () => {
-        p.resizeCanvas(container.clientWidth || window.innerWidth, container.clientHeight || window.innerHeight);
+        p.resizeCanvas(
+          container.clientWidth || window.innerWidth,
+          container.clientHeight || window.innerHeight,
+        );
       };
     });
   }
@@ -95,8 +92,8 @@ export class FlowerOfLifeVisualization extends BaseVisualization {
     const volumeBoost = volume * sensitivity;
 
     // Update rotation and expansion
-    this.rotation += (rotationSpeed * 0.01 + volumeBoost * 0.02) * p.deltaTime / 16.67;
-    this.expansion += (expansionRate * 0.01 + bassBoost * 0.02) * p.deltaTime / 16.67;
+    this.rotation += ((rotationSpeed * 0.01 + volumeBoost * 0.02) * p.deltaTime) / 16.67;
+    this.expansion += ((expansionRate * 0.01 + bassBoost * 0.02) * p.deltaTime) / 16.67;
 
     const centerX = p.width / 2;
     const centerY = p.height / 2;

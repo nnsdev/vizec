@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -112,7 +107,11 @@ export class GraffitiSprayVisualization extends BaseVisualization {
     }
 
     // Also spawn on high mid/treble
-    if ((mid > 0.6 || treble > 0.6) && Math.random() < 0.02 * sensitivity && this.bursts.length < 8) {
+    if (
+      (mid > 0.6 || treble > 0.6) &&
+      Math.random() < 0.02 * sensitivity &&
+      this.bursts.length < 8
+    ) {
       this.createBurst(colors);
     }
 
@@ -165,7 +164,10 @@ export class GraffitiSprayVisualization extends BaseVisualization {
 
       // Spawn new particles while spray is active - always spawn some
       if (burst.progress < 2) {
-        const spawnCount = Math.max(5, Math.floor(15 * sprayDensity * (0.3 + mid + treble) * sensitivity));
+        const spawnCount = Math.max(
+          5,
+          Math.floor(15 * sprayDensity * (0.3 + mid + treble) * sensitivity),
+        );
         for (let j = 0; j < spawnCount; j++) {
           this.addSprayParticle(burst, colors, Math.max(0.3, volume));
         }
@@ -222,7 +224,7 @@ export class GraffitiSprayVisualization extends BaseVisualization {
   private addSprayParticle(
     burst: SprayBurst,
     _colors: { start: string; mid: string; end: string },
-    volume: number
+    volume: number,
   ): void {
     const angle = Math.random() * Math.PI * 2;
     const speed = 1 + Math.random() * 3 * volume;

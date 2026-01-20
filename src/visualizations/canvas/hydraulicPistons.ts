@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -151,7 +146,12 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
     const platformHeight = 20;
 
     // Platform base
-    const platformGradient = ctx.createLinearGradient(0, this.height - platformHeight, 0, this.height);
+    const platformGradient = ctx.createLinearGradient(
+      0,
+      this.height - platformHeight,
+      0,
+      this.height,
+    );
     platformGradient.addColorStop(0, "#555555");
     platformGradient.addColorStop(0.5, "#444444");
     platformGradient.addColorStop(1, "#333333");
@@ -179,7 +179,7 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
   private drawPiston(
     piston: Piston,
     colors: { start: string; end: string; glow: string },
-    intensity: number
+    intensity: number,
   ): void {
     if (!this.ctx) return;
 
@@ -203,7 +203,12 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
       glowGradient.addColorStop(1, this.hexToRgba(colors.glow, 0));
 
       ctx.fillStyle = glowGradient;
-      ctx.fillRect(x - cylinderWidth / 2 - 5, pistonHeadY, cylinderWidth + 10, cylinderY - pistonHeadY);
+      ctx.fillRect(
+        x - cylinderWidth / 2 - 5,
+        pistonHeadY,
+        cylinderWidth + 10,
+        cylinderY - pistonHeadY,
+      );
     }
 
     // Draw piston rod (chrome)
@@ -219,7 +224,12 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
 
     // Draw piston head
     const headHeight = 15;
-    const headGradient = ctx.createLinearGradient(x - cylinderWidth * 0.4, 0, x + cylinderWidth * 0.4, 0);
+    const headGradient = ctx.createLinearGradient(
+      x - cylinderWidth * 0.4,
+      0,
+      x + cylinderWidth * 0.4,
+      0,
+    );
     headGradient.addColorStop(0, "#555555");
     headGradient.addColorStop(0.3, "#888888");
     headGradient.addColorStop(0.5, "#999999");
@@ -228,7 +238,13 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
 
     ctx.fillStyle = headGradient;
     ctx.beginPath();
-    ctx.roundRect(x - cylinderWidth * 0.4, pistonHeadY - headHeight, cylinderWidth * 0.8, headHeight, 3);
+    ctx.roundRect(
+      x - cylinderWidth * 0.4,
+      pistonHeadY - headHeight,
+      cylinderWidth * 0.8,
+      headHeight,
+      3,
+    );
     ctx.fill();
 
     // Piston head highlight
@@ -236,7 +252,12 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
     ctx.fillRect(x - cylinderWidth * 0.3, pistonHeadY - headHeight + 2, cylinderWidth * 0.6, 2);
 
     // Draw cylinder body
-    const cylinderGradient = ctx.createLinearGradient(x - cylinderWidth / 2, 0, x + cylinderWidth / 2, 0);
+    const cylinderGradient = ctx.createLinearGradient(
+      x - cylinderWidth / 2,
+      0,
+      x + cylinderWidth / 2,
+      0,
+    );
     cylinderGradient.addColorStop(0, "#444444");
     cylinderGradient.addColorStop(0.15, "#666666");
     cylinderGradient.addColorStop(0.5, "#777777");
@@ -249,7 +270,12 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
     ctx.fill();
 
     // Cylinder top cap
-    const capGradient = ctx.createLinearGradient(x - cylinderWidth * 0.6, 0, x + cylinderWidth * 0.6, 0);
+    const capGradient = ctx.createLinearGradient(
+      x - cylinderWidth * 0.6,
+      0,
+      x + cylinderWidth * 0.6,
+      0,
+    );
     capGradient.addColorStop(0, "#555555");
     capGradient.addColorStop(0.5, "#777777");
     capGradient.addColorStop(1, "#555555");
@@ -294,8 +320,12 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
 
     // Glow
     const glowGradient = ctx.createRadialGradient(
-      x + cylinderWidth * 0.3, cylinderY + cylinderHeight * 0.3, 0,
-      x + cylinderWidth * 0.3, cylinderY + cylinderHeight * 0.3, 15
+      x + cylinderWidth * 0.3,
+      cylinderY + cylinderHeight * 0.3,
+      0,
+      x + cylinderWidth * 0.3,
+      cylinderY + cylinderHeight * 0.3,
+      15,
     );
     glowGradient.addColorStop(0, this.hexToRgba(indicatorColor, indicatorGlow));
     glowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
@@ -341,7 +371,7 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
       firstPiston.x - firstPiston.width / 2 - 10,
       beamY,
       lastPiston.x - firstPiston.x + lastPiston.width + 20,
-      beamHeight
+      beamHeight,
     );
 
     // Beam highlights
@@ -350,7 +380,7 @@ export class HydraulicPistonsVisualization extends BaseVisualization {
       firstPiston.x - firstPiston.width / 2 - 10,
       beamY,
       lastPiston.x - firstPiston.x + lastPiston.width + 20,
-      2
+      2,
     );
   }
 

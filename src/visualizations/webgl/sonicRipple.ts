@@ -1,16 +1,7 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_HEX,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_HEX, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface SonicRippleConfig extends VisualizationConfig {
   sensitivity: number;
@@ -97,7 +88,12 @@ export class SonicRippleVisualization extends BaseVisualization {
       radius: 0.1,
       speed: rippleSize * (0.5 + Math.random() * 0.5),
       opacity: 0.8,
-      color: Math.random() < 0.33 ? colors.primary : Math.random() < 0.5 ? colors.secondary : colors.glow,
+      color:
+        Math.random() < 0.33
+          ? colors.primary
+          : Math.random() < 0.5
+            ? colors.secondary
+            : colors.glow,
       rotationSpeed: (Math.random() - 0.5) * 0.02,
     };
 
@@ -139,7 +135,7 @@ export class SonicRippleVisualization extends BaseVisualization {
       ripple.radius += ripple.speed * rippleSpeed * (1 + bassBoost * 0.5);
 
       // Fade out
-      ripple.opacity = Math.max(0, 0.8 - (ripple.radius / 50));
+      ripple.opacity = Math.max(0, 0.8 - ripple.radius / 50);
 
       // Update mesh
       const scale = ripple.radius;

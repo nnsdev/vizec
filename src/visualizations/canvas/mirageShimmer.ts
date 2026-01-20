@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface MirageShimmerConfig extends VisualizationConfig {
@@ -41,13 +36,16 @@ interface Sparkle {
 }
 
 // Desert color palettes
-const DESERT_PALETTES: Record<string, {
-  sky: string[];
-  sun: string;
-  sand: string[];
-  silhouette: string;
-  heat: string;
-}> = {
+const DESERT_PALETTES: Record<
+  string,
+  {
+    sky: string[];
+    sun: string;
+    sand: string[];
+    silhouette: string;
+    heat: string;
+  }
+> = {
   sunset: {
     sky: ["#FF6B35", "#FF8C42", "#FFD166", "#F8E16C"],
     sun: "#FFE66D",
@@ -135,7 +133,8 @@ export class MirageShimmerVisualization extends BaseVisualization {
 
     for (let i = 0; i < silhouetteCount; i++) {
       const type = types[Math.floor(Math.random() * types.length)];
-      let width = 0, height = 0;
+      let width = 0,
+        height = 0;
 
       switch (type) {
         case "pyramid":
@@ -225,7 +224,7 @@ export class MirageShimmerVisualization extends BaseVisualization {
   private renderSun(
     palette: typeof DESERT_PALETTES.sunset,
     sunIntensity: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -259,10 +258,7 @@ export class MirageShimmerVisualization extends BaseVisualization {
     ctx.fill();
   }
 
-  private renderSilhouettes(
-    palette: typeof DESERT_PALETTES.sunset,
-    sensitivity: number
-  ): void {
+  private renderSilhouettes(palette: typeof DESERT_PALETTES.sunset, sensitivity: number): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
 
@@ -380,7 +376,7 @@ export class MirageShimmerVisualization extends BaseVisualization {
     palette: typeof DESERT_PALETTES.sunset,
     shimmerIntensity: number,
     heatWaveSpeed: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -419,7 +415,7 @@ export class MirageShimmerVisualization extends BaseVisualization {
   private updateSparkles(
     deltaTime: number,
     palette: typeof DESERT_PALETTES.sunset,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -441,8 +437,12 @@ export class MirageShimmerVisualization extends BaseVisualization {
 
       // Draw sparkle with glow
       const glowGradient = ctx.createRadialGradient(
-        sparkle.x, sparkle.y, 0,
-        sparkle.x, sparkle.y, size * 2
+        sparkle.x,
+        sparkle.y,
+        0,
+        sparkle.x,
+        sparkle.y,
+        size * 2,
       );
       glowGradient.addColorStop(0, this.hexToRgba(palette.sun, alpha));
       glowGradient.addColorStop(0.5, this.hexToRgba(palette.heat, alpha * 0.5));

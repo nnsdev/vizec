@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -142,7 +137,10 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
     this.ctx.globalAlpha = 1.0;
   }
 
-  private drawHorizonGlow(colors: { start: string; end: string; glow: string }, intensity: number): void {
+  private drawHorizonGlow(
+    colors: { start: string; end: string; glow: string },
+    intensity: number,
+  ): void {
     if (!this.ctx) return;
 
     const horizonY = this.height * 0.7;
@@ -150,8 +148,12 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
     const glowIntensity = 0.3 + this.smoothedMid * 0.4 * intensity;
 
     const gradient = this.ctx.createRadialGradient(
-      this.width / 2, horizonY, 0,
-      this.width / 2, horizonY, this.width * 0.6
+      this.width / 2,
+      horizonY,
+      0,
+      this.width / 2,
+      horizonY,
+      this.width * 0.6,
     );
 
     gradient.addColorStop(0, this.colorWithAlpha(colors.glow, glowIntensity * 0.6));
@@ -182,7 +184,7 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
   private drawCactus(
     cactus: Cactus,
     colors: { start: string; end: string; glow: string },
-    pulseIntensity: number
+    pulseIntensity: number,
   ): void {
     if (!this.ctx) return;
 
@@ -200,8 +202,10 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
       this.ctx.moveTo(cactus.x - bodyWidth / 2, groundY);
       this.ctx.lineTo(cactus.x - bodyWidth / 2, groundY - height);
       this.ctx.quadraticCurveTo(
-        cactus.x, groundY - height - bodyWidth / 2,
-        cactus.x + bodyWidth / 2, groundY - height
+        cactus.x,
+        groundY - height - bodyWidth / 2,
+        cactus.x + bodyWidth / 2,
+        groundY - height,
       );
       this.ctx.lineTo(cactus.x + bodyWidth / 2, groundY);
       this.ctx.closePath();
@@ -215,7 +219,7 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
 
         this.ctx.beginPath();
         // Horizontal part
-        const startX = cactus.x + direction * bodyWidth / 2;
+        const startX = cactus.x + (direction * bodyWidth) / 2;
         const endX = startX + direction * armLength * 0.6;
 
         this.ctx.moveTo(startX, armY);
@@ -223,8 +227,10 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
         // Vertical part going up
         this.ctx.lineTo(endX, armY - armLength * 0.4);
         this.ctx.quadraticCurveTo(
-          endX + direction * 5, armY - armLength * 0.5,
-          endX, armY - armLength * 0.4
+          endX + direction * 5,
+          armY - armLength * 0.5,
+          endX,
+          armY - armLength * 0.4,
         );
         this.ctx.lineWidth = bodyWidth * 0.6;
         this.ctx.strokeStyle = colors.start;
@@ -246,7 +252,9 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
         groundY - barrelHeight / 2,
         radius,
         barrelHeight / 2,
-        0, 0, Math.PI * 2
+        0,
+        0,
+        Math.PI * 2,
       );
       this.ctx.fill();
     } else {
@@ -256,7 +264,15 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
 
       // Bottom pad
       this.ctx.beginPath();
-      this.ctx.ellipse(cactus.x, groundY - padHeight / 2, padWidth / 2, padHeight / 2, 0, 0, Math.PI * 2);
+      this.ctx.ellipse(
+        cactus.x,
+        groundY - padHeight / 2,
+        padWidth / 2,
+        padHeight / 2,
+        0,
+        0,
+        Math.PI * 2,
+      );
       this.ctx.fill();
 
       // Top pads
@@ -266,7 +282,9 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
         groundY - padHeight * 1.2,
         padWidth * 0.4,
         padHeight * 0.4,
-        -0.3, 0, Math.PI * 2
+        -0.3,
+        0,
+        Math.PI * 2,
       );
       this.ctx.fill();
 
@@ -276,7 +294,9 @@ export class CactusSilhouetteVisualization extends BaseVisualization {
         groundY - padHeight * 1.3,
         padWidth * 0.35,
         padHeight * 0.35,
-        0.2, 0, Math.PI * 2
+        0.2,
+        0,
+        Math.PI * 2,
       );
       this.ctx.fill();
     }

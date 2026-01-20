@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -77,26 +72,26 @@ export class SkylineEqVisualization extends BaseVisualization {
 
     this.buildings = [];
     const { buildingCount, cityDepth, windowSize, windowGap } = this.config;
-    
+
     // We want buildings to cover the width.
     // Front layer covers full width. Back layers might be offset or parallaxed in a real game,
     // but here we just want density.
-    
+
     for (let layer = 0; layer < cityDepth; layer++) {
       let currentX = 0;
-      // Depending on layer, we might want more or fewer buildings? 
+      // Depending on layer, we might want more or fewer buildings?
       // Let's just try to fill the width roughly.
-      
+
       const layerBuildingCount = Math.floor(buildingCount * (layer === 0 ? 1 : 1.5));
       const avgWidth = this.width / layerBuildingCount;
-      
+
       for (let i = 0; i < layerBuildingCount; i++) {
         // Randomize dimensions
         const buildingWidth = avgWidth * (0.8 + Math.random() * 0.4);
-        
-        // Height: Back layers are taller/higher (simulate distance or density) 
-        // OR front layers are shorter? 
-        // Let's make varied heights. 
+
+        // Height: Back layers are taller/higher (simulate distance or density)
+        // OR front layers are shorter?
+        // Let's make varied heights.
         // Layer 0 (front): shorter to medium
         // Layer 1 (back): medium to tall
         const heightScale = layer === 0 ? 0.3 + Math.random() * 0.3 : 0.4 + Math.random() * 0.4;
@@ -104,12 +99,15 @@ export class SkylineEqVisualization extends BaseVisualization {
 
         // Calculate windows
         const totalWindowWidth = windowSize + windowGap;
-        const windowsPerFloor = Math.max(1, Math.floor((buildingWidth - windowGap) / totalWindowWidth));
-        
+        const windowsPerFloor = Math.max(
+          1,
+          Math.floor((buildingWidth - windowGap) / totalWindowWidth),
+        );
+
         const totalWindowHeight = windowSize + windowGap;
         const floors = Math.max(1, Math.floor((buildingHeight - windowGap) / totalWindowHeight));
 
-        // Assign frequency index. 
+        // Assign frequency index.
         // Map left-to-right to low-to-high frequencies? Or random?
         // Left-to-right looks like a standard EQ.
         // We use 60-70% of the spectrum (low-mids) mostly for buildings.
@@ -122,16 +120,16 @@ export class SkylineEqVisualization extends BaseVisualization {
           floors,
           windowsPerFloor,
           layer,
-          freqIndex
+          freqIndex,
         });
 
         currentX += buildingWidth;
-        
+
         // If we exceeded width significantly, stop (for this layer)
         if (currentX > this.width + 50) break;
       }
     }
-    
+
     // Sort by layer (back first, then front) so we draw back-to-front
     this.buildings.sort((a, b) => b.layer - a.layer);
   }
@@ -148,63 +146,63 @@ export class SkylineEqVisualization extends BaseVisualization {
     const windowBlockH = windowSize + windowGap;
     const windowBlockW = windowSize + windowGap;
 
-    this.buildings.forEach(b => {
-        // Layer styling
-        const layerAlpha = b.layer === 0 ? 0.9 : 0.5;
-        const buildingBaseAlpha = b.layer === 0 ? 0.3 : 0.15;
+    this.buildings.forEach((b) => {
+      // Layer styling
+      const layerAlpha = b.layer === 0 ? 0.9 : 0.5;
+      const buildingBaseAlpha = b.layer === 0 ? 0.3 : 0.15;
 
-        // Draw Building Body (Background)
-        this.ctx!.fillStyle = `rgba(10, 10, 15, ${buildingBaseAlpha})`;
-        const yPos = this.height - b.height;
-        this.ctx!.fillRect(b.x, yPos, b.width, b.height);
+      // Draw Building Body (Background)
+      this.ctx!.fillStyle = `rgba(10, 10, 15, ${buildingBaseAlpha})`;
+      const yPos = this.height - b.height;
+      this.ctx!.fillRect(b.x, yPos, b.width, b.height);
 
-        // Calculate Lit Floors
-        const val = frequencyData[b.freqIndex] || 0;
-        const normalized = (val / 255) * sensitivity;
-        const litFloors = Math.floor(Math.pow(normalized, 1.2) * b.floors);
+      // Calculate Lit Floors
+      const val = frequencyData[b.freqIndex] || 0;
+      const normalized = (val / 255) * sensitivity;
+      const litFloors = Math.floor(Math.pow(normalized, 1.2) * b.floors);
 
-        if (litFloors <= 0) return;
+      if (litFloors <= 0) return;
 
-        // OPTIMIZATION 1: Batch Glow Effect
-        // Instead of applying shadowBlur to every single window (thousands of calls),
-        // we draw a SINGLE glowing rectangle behind the lit area of the building.
-        if (glow) {
-            const litHeight = litFloors * windowBlockH;
-            const glowY = (this.height - windowGap) - litHeight + windowGap; // approx top of lit area
-            
-            this.ctx!.save();
-            this.ctx!.shadowBlur = 20;
-            this.ctx!.shadowColor = colors.glow;
-            this.ctx!.globalAlpha = 0.3 * layerAlpha;
-            this.ctx!.fillStyle = colors.end; // Use the "hot" color for glow
-            this.ctx!.fillRect(b.x, glowY, b.width, litHeight);
-            this.ctx!.restore();
+      // OPTIMIZATION 1: Batch Glow Effect
+      // Instead of applying shadowBlur to every single window (thousands of calls),
+      // we draw a SINGLE glowing rectangle behind the lit area of the building.
+      if (glow) {
+        const litHeight = litFloors * windowBlockH;
+        const glowY = this.height - windowGap - litHeight + windowGap; // approx top of lit area
+
+        this.ctx!.save();
+        this.ctx!.shadowBlur = 20;
+        this.ctx!.shadowColor = colors.glow;
+        this.ctx!.globalAlpha = 0.3 * layerAlpha;
+        this.ctx!.fillStyle = colors.end; // Use the "hot" color for glow
+        this.ctx!.fillRect(b.x, glowY, b.width, litHeight);
+        this.ctx!.restore();
+      }
+
+      // OPTIMIZATION 2: Batch Window Drawing
+      // We group windows by floor (color) to reduce context state changes and fill calls.
+
+      for (let f = 0; f < litFloors; f++) {
+        // Gradient mapping
+        const ratio = f / b.floors;
+        this.ctx!.fillStyle = ratio > 0.5 ? colors.end : colors.start;
+        this.ctx!.globalAlpha = layerAlpha;
+
+        // Begin a path for ALL windows on this floor
+        this.ctx!.beginPath();
+
+        const floorY = this.height - windowGap - f * windowBlockH - windowSize;
+
+        for (let w = 0; w < b.windowsPerFloor; w++) {
+          const winX = b.x + windowGap + w * windowBlockW;
+          this.ctx!.rect(winX, floorY, windowSize, windowSize);
         }
 
-        // OPTIMIZATION 2: Batch Window Drawing
-        // We group windows by floor (color) to reduce context state changes and fill calls.
-        
-        for (let f = 0; f < litFloors; f++) {
-             // Gradient mapping
-             const ratio = f / b.floors;
-             this.ctx!.fillStyle = ratio > 0.5 ? colors.end : colors.start;
-             this.ctx!.globalAlpha = layerAlpha;
-
-             // Begin a path for ALL windows on this floor
-             this.ctx!.beginPath();
-             
-             const floorY = (this.height - windowGap) - (f * windowBlockH) - windowSize;
-             
-             for (let w = 0; w < b.windowsPerFloor; w++) {
-                 const winX = b.x + windowGap + (w * windowBlockW);
-                 this.ctx!.rect(winX, floorY, windowSize, windowSize);
-             }
-             
-             // Single fill for the whole row
-             this.ctx!.fill();
-        }
+        // Single fill for the whole row
+        this.ctx!.fill();
+      }
     });
-    
+
     this.ctx.globalAlpha = 1.0;
   }
 
@@ -216,7 +214,7 @@ export class SkylineEqVisualization extends BaseVisualization {
       this.canvas.width = width;
       this.canvas.height = height;
     }
-    
+
     // Regenerate buildings on resize to fit new dimensions
     this.generateBuildings();
   }
@@ -224,9 +222,9 @@ export class SkylineEqVisualization extends BaseVisualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     const oldCounts = this.config.buildingCount;
     this.config = { ...this.config, ...config } as SkylineEqConfig;
-    
+
     if (this.config.buildingCount !== oldCounts) {
-        this.generateBuildings();
+      this.generateBuildings();
     }
   }
 

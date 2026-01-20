@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_HEX_ACCENT,
@@ -93,7 +88,7 @@ export class CrushingGearsVisualization extends BaseVisualization {
     outerRadius: number,
     teeth: number,
     thickness: number,
-    colors: { primary: number; accent: number; glow: number }
+    colors: { primary: number; accent: number; glow: number },
   ): THREE.Group {
     const gearGroup = new THREE.Group();
 
@@ -102,7 +97,7 @@ export class CrushingGearsVisualization extends BaseVisualization {
       innerRadius * 0.9,
       innerRadius * 0.9,
       thickness,
-      32
+      32,
     );
     const bodyMaterial = new THREE.MeshBasicMaterial({
       color: colors.primary,
@@ -141,7 +136,7 @@ export class CrushingGearsVisualization extends BaseVisualization {
       innerRadius * 0.3,
       innerRadius * 0.3,
       thickness * 1.1,
-      16
+      16,
     );
     const holeMaterial = new THREE.MeshBasicMaterial({
       color: colors.glow,
@@ -183,8 +178,8 @@ export class CrushingGearsVisualization extends BaseVisualization {
     const colors = getColorScheme(COLOR_SCHEMES_HEX_ACCENT, colorScheme);
 
     // Clear existing gears
-    this.gears.forEach(gear => {
-      gear.mesh.traverse(child => {
+    this.gears.forEach((gear) => {
+      gear.mesh.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.geometry.dispose();
           (child.material as THREE.Material).dispose();
@@ -209,13 +204,7 @@ export class CrushingGearsVisualization extends BaseVisualization {
       const innerRadius = cfg.radius * 0.8 * gearSize;
       const outerRadius = cfg.radius * gearSize;
 
-      const gearMesh = this.createGearMesh(
-        innerRadius,
-        outerRadius,
-        cfg.teeth,
-        2,
-        colors
-      );
+      const gearMesh = this.createGearMesh(innerRadius, outerRadius, cfg.teeth, 2, colors);
 
       gearMesh.position.set(cfg.x * gearSize, cfg.y * gearSize, 0);
 
@@ -252,14 +241,15 @@ export class CrushingGearsVisualization extends BaseVisualization {
     const audioSpeedBoost = 1 + this.smoothedMid * 2;
 
     for (const gear of this.gears) {
-      gear.mesh.rotation.z += gear.rotationDir * gear.baseSpeed * rotationSpeed * audioSpeedBoost * deltaTime;
+      gear.mesh.rotation.z +=
+        gear.rotationDir * gear.baseSpeed * rotationSpeed * audioSpeedBoost * deltaTime;
 
       // Pulse gear scale with bass
       const pulse = 1 + this.smoothedBass * 0.1;
       gear.mesh.scale.setScalar(pulse);
 
       // Update opacity based on audio
-      gear.mesh.traverse(child => {
+      gear.mesh.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           const material = child.material as THREE.MeshBasicMaterial;
           material.opacity = 0.4 + this.smoothedBass * 0.3;
@@ -299,19 +289,20 @@ export class CrushingGearsVisualization extends BaseVisualization {
 
     this.config = { ...this.config, ...config } as CrushingGearsConfig;
 
-    if (this.scene && (
-      this.config.gearCount !== oldGearCount ||
-      this.config.colorScheme !== oldColorScheme ||
-      this.config.gearSize !== oldGearSize
-    )) {
+    if (
+      this.scene &&
+      (this.config.gearCount !== oldGearCount ||
+        this.config.colorScheme !== oldColorScheme ||
+        this.config.gearSize !== oldGearSize)
+    ) {
       this.createGears();
     }
   }
 
   destroy(): void {
     // Clean up gears
-    this.gears.forEach(gear => {
-      gear.mesh.traverse(child => {
+    this.gears.forEach((gear) => {
+      gear.mesh.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.geometry.dispose();
           (child.material as THREE.Material).dispose();

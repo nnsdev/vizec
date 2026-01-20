@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface FountainConfig extends VisualizationConfig {
@@ -78,12 +73,14 @@ export class FountainVisualization extends BaseVisualization {
     this.ctx.globalCompositeOperation = "screen";
 
     // Spawn particles based on bass
-    const spawnRate = Math.floor((bass * this.config.sensitivity * 15) + 2);
-    
+    const spawnRate = Math.floor(bass * this.config.sensitivity * 15 + 2);
+
     // Main jet
     for (let i = 0; i < spawnRate; i++) {
       if (this.particles.length < this.config.particleCount) {
-        this.particles.push(this.createParticle(this.width / 2, -Math.PI / 2, bass, treble, "main"));
+        this.particles.push(
+          this.createParticle(this.width / 2, -Math.PI / 2, bass, treble, "main"),
+        );
       }
     }
 
@@ -93,9 +90,13 @@ export class FountainVisualization extends BaseVisualization {
       for (let i = 0; i < sideRate; i++) {
         if (this.particles.length < this.config.particleCount) {
           // Left jet
-          this.particles.push(this.createParticle(this.width / 2 - 20, -Math.PI / 2 - 0.3, bass, treble, "side"));
+          this.particles.push(
+            this.createParticle(this.width / 2 - 20, -Math.PI / 2 - 0.3, bass, treble, "side"),
+          );
           // Right jet
-          this.particles.push(this.createParticle(this.width / 2 + 20, -Math.PI / 2 + 0.3, bass, treble, "side"));
+          this.particles.push(
+            this.createParticle(this.width / 2 + 20, -Math.PI / 2 + 0.3, bass, treble, "side"),
+          );
         }
       }
     }
@@ -113,11 +114,17 @@ export class FountainVisualization extends BaseVisualization {
         this.particles.splice(i, 1);
       }
     }
-    
+
     this.ctx.globalCompositeOperation = "source-over";
   }
 
-  private createParticle(x: number, angleBase: number, bass: number, treble: number, type: "main" | "side"): FountainParticle {
+  private createParticle(
+    x: number,
+    angleBase: number,
+    bass: number,
+    treble: number,
+    type: "main" | "side",
+  ): FountainParticle {
     const baseY = this.height * 0.85;
 
     // Angle spread
@@ -136,7 +143,7 @@ export class FountainVisualization extends BaseVisualization {
     const vy = Math.sin(angle) * speed;
 
     const size = this.config.dropletSize * (0.5 + Math.random() * 2);
-    
+
     // Determine color
     let colorType: "primary" | "secondary" | "accent" = "secondary";
     if (Math.random() < 0.2) colorType = "primary";
@@ -145,7 +152,10 @@ export class FountainVisualization extends BaseVisualization {
     return new FountainParticle(x, baseY, vx, vy, size, colorType);
   }
 
-  private drawPool(colors: { primary: string; secondary: string; accent: string }, volume: number): void {
+  private drawPool(
+    colors: { primary: string; secondary: string; accent: string },
+    volume: number,
+  ): void {
     if (!this.ctx) return;
 
     const centerX = this.width / 2;
@@ -153,8 +163,12 @@ export class FountainVisualization extends BaseVisualization {
 
     // Pool glow
     const poolGradient = this.ctx.createRadialGradient(
-      centerX, poolY, 0,
-      centerX, poolY, 100 + volume * 50,
+      centerX,
+      poolY,
+      0,
+      centerX,
+      poolY,
+      100 + volume * 50,
     );
     poolGradient.addColorStop(0, colors.primary + "40");
     poolGradient.addColorStop(0.5, colors.secondary + "20");
@@ -265,7 +279,14 @@ class FountainParticle {
   decay: number = 0.003 + Math.random() * 0.005;
   colorType: "primary" | "secondary" | "accent";
 
-  constructor(x: number, y: number, vx: number, vy: number, size: number, colorType: "primary" | "secondary" | "accent" = "secondary") {
+  constructor(
+    x: number,
+    y: number,
+    vx: number,
+    vy: number,
+    size: number,
+    colorType: "primary" | "secondary" | "accent" = "secondary",
+  ) {
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -287,14 +308,17 @@ class FountainParticle {
     this.life -= this.decay;
   }
 
-  draw(ctx: CanvasRenderingContext2D, colors: { primary: string; secondary: string; accent: string }): void {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    colors: { primary: string; secondary: string; accent: string },
+  ): void {
     const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
     const angle = Math.atan2(this.vy, this.vx);
     const stretch = Math.min(3, 1 + speed * 0.2);
 
     ctx.globalAlpha = this.life * (0.5 + Math.min(0.5, speed * 0.1));
     ctx.fillStyle = colors[this.colorType];
-    
+
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(angle);

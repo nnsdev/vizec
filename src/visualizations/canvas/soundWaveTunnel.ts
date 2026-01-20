@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_STRING,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_STRING, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface SoundWaveTunnelConfig extends VisualizationConfig {
   sensitivity: number;
@@ -123,12 +114,14 @@ export class SoundWaveTunnelVisualization extends BaseVisualization {
       this.ctx.globalAlpha = audioAlpha * depthAlpha * glowIntensity;
 
       // Outer glow
-      this.ctx.shadowBlur = 15 + (isBassRing ? bassBoost * 10 : isMidRing ? midBoost * 8 : trebleBoost * 5);
+      this.ctx.shadowBlur =
+        15 + (isBassRing ? bassBoost * 10 : isMidRing ? midBoost * 8 : trebleBoost * 5);
       this.ctx.shadowColor = glowColor;
 
       // Draw the ring
       this.ctx.strokeStyle = ringColor;
-      this.ctx.lineWidth = 2 + (isBassRing ? bassBoost * 2 : isMidRing ? midBoost * 1.5 : trebleBoost);
+      this.ctx.lineWidth =
+        2 + (isBassRing ? bassBoost * 2 : isMidRing ? midBoost * 1.5 : trebleBoost);
 
       this.ctx.beginPath();
       this.ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2);

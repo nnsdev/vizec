@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -122,14 +117,29 @@ export class VendingMachineVisualization extends BaseVisualization {
     // Machine glow
     const glowRadius = 150 + bass * 50 * sensitivity;
     const machineGlow = this.ctx.createRadialGradient(
-      machineX + machineWidth / 2, machineY + machineHeight / 2, 0,
-      machineX + machineWidth / 2, machineY + machineHeight / 2, glowRadius
+      machineX + machineWidth / 2,
+      machineY + machineHeight / 2,
+      0,
+      machineX + machineWidth / 2,
+      machineY + machineHeight / 2,
+      glowRadius,
     );
-    machineGlow.addColorStop(0, `rgba(${this.hexToRgb(colors.start)}, ${0.3 * glowIntensity * this.machineFlicker})`);
-    machineGlow.addColorStop(0.5, `rgba(${this.hexToRgb(colors.mid)}, ${0.15 * glowIntensity * this.machineFlicker})`);
+    machineGlow.addColorStop(
+      0,
+      `rgba(${this.hexToRgb(colors.start)}, ${0.3 * glowIntensity * this.machineFlicker})`,
+    );
+    machineGlow.addColorStop(
+      0.5,
+      `rgba(${this.hexToRgb(colors.mid)}, ${0.15 * glowIntensity * this.machineFlicker})`,
+    );
     machineGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
     this.ctx.fillStyle = machineGlow;
-    this.ctx.fillRect(machineX - glowRadius, machineY - glowRadius, machineWidth + glowRadius * 2, machineHeight + glowRadius * 2);
+    this.ctx.fillRect(
+      machineX - glowRadius,
+      machineY - glowRadius,
+      machineWidth + glowRadius * 2,
+      machineHeight + glowRadius * 2,
+    );
 
     // Machine body (semi-transparent)
     this.ctx.fillStyle = `rgba(30, 35, 45, 0.85)`;
@@ -169,7 +179,8 @@ export class VendingMachineVisualization extends BaseVisualization {
       product.flickerPhase += deltaTime * (5 + treble * 10);
 
       const flicker = Math.sin(product.flickerPhase) * 0.2 * flickerAmount + 1;
-      const brightness = product.brightness * flicker * this.machineFlicker * (0.7 + mid * 0.3 * sensitivity);
+      const brightness =
+        product.brightness * flicker * this.machineFlicker * (0.7 + mid * 0.3 * sensitivity);
 
       const px = windowX + product.col * cellW + cellW / 2;
       const py = windowY + product.row * cellH + cellH / 2;

@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_HEX_ACCENT,
@@ -129,7 +124,7 @@ export class DataNexusVisualization extends BaseVisualization {
     const colors = getColorScheme(COLOR_SCHEMES_HEX_ACCENT, colorScheme);
 
     // Clear existing streams
-    this.streams.forEach(stream => {
+    this.streams.forEach((stream) => {
       stream.geometry.dispose();
       (stream.particles.material as THREE.Material).dispose();
       this.scene?.remove(stream.particles);
@@ -140,7 +135,7 @@ export class DataNexusVisualization extends BaseVisualization {
 
     for (let i = 0; i < streamCount; i++) {
       // Distribute streams in a sphere pattern
-      const phi = Math.acos(1 - 2 * (i + 0.5) / streamCount);
+      const phi = Math.acos(1 - (2 * (i + 0.5)) / streamCount);
       const theta = Math.PI * (1 + Math.sqrt(5)) * i;
 
       const positions = new Float32Array(particlesPerStream * 3);
@@ -177,7 +172,7 @@ export class DataNexusVisualization extends BaseVisualization {
       const colorRatio = i / streamCount;
       const streamColor = new THREE.Color(colors.primary).lerp(
         new THREE.Color(colors.accent),
-        colorRatio
+        colorRatio,
       );
 
       const material = new THREE.PointsMaterial({
@@ -253,9 +248,7 @@ export class DataNexusVisualization extends BaseVisualization {
 
         // Reset if too old or too far
         const distance = Math.sqrt(
-          positions[i * 3] ** 2 +
-          positions[i * 3 + 1] ** 2 +
-          positions[i * 3 + 2] ** 2
+          positions[i * 3] ** 2 + positions[i * 3 + 1] ** 2 + positions[i * 3 + 2] ** 2,
         );
 
         if (lifetimes[i] > 1 || distance > 25) {
@@ -316,13 +309,14 @@ export class DataNexusVisualization extends BaseVisualization {
     this.config = { ...this.config, ...config } as DataNexusConfig;
 
     if (this.scene) {
-      if (this.config.streamCount !== oldStreamCount ||
-          this.config.colorScheme !== oldColorScheme) {
+      if (
+        this.config.streamCount !== oldStreamCount ||
+        this.config.colorScheme !== oldColorScheme
+      ) {
         this.createStreams();
       }
 
-      if (this.config.coreSize !== oldCoreSize ||
-          this.config.colorScheme !== oldColorScheme) {
+      if (this.config.coreSize !== oldCoreSize || this.config.colorScheme !== oldColorScheme) {
         // Recreate core
         if (this.coreNode) {
           this.coreNode.geometry.dispose();
@@ -341,7 +335,7 @@ export class DataNexusVisualization extends BaseVisualization {
 
   destroy(): void {
     // Clean up streams
-    this.streams.forEach(stream => {
+    this.streams.forEach((stream) => {
       stream.geometry.dispose();
       (stream.particles.material as THREE.Material).dispose();
     });

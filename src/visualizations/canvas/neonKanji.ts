@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -74,8 +69,14 @@ export class NeonKanjiVisualization extends BaseVisualization {
   ];
 
   private signColors = [
-    "#ff0066", "#00ffcc", "#ff6600", "#ff00ff",
-    "#00ccff", "#ffcc00", "#ff3366", "#66ff66"
+    "#ff0066",
+    "#00ffcc",
+    "#ff6600",
+    "#ff00ff",
+    "#00ccff",
+    "#ffcc00",
+    "#ff3366",
+    "#66ff66",
   ];
 
   init(container: HTMLElement, config: VisualizationConfig): void {

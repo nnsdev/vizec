@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_HEX_ACCENT,
@@ -117,10 +112,7 @@ export class ForgeSparksVisualization extends BaseVisualization {
 
       // Warm colors for sparks
       const t = Math.random();
-      const color = new THREE.Color(colors.primary).lerp(
-        new THREE.Color(colors.accent),
-        t
-      );
+      const color = new THREE.Color(colors.primary).lerp(new THREE.Color(colors.accent), t);
       this.sparkColors[i * 3] = color.r;
       this.sparkColors[i * 3 + 1] = color.g;
       this.sparkColors[i * 3 + 2] = color.b;
@@ -128,14 +120,8 @@ export class ForgeSparksVisualization extends BaseVisualization {
 
     // Create geometry
     this.sparksGeometry = new THREE.BufferGeometry();
-    this.sparksGeometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(this.sparkPositions, 3)
-    );
-    this.sparksGeometry.setAttribute(
-      "color",
-      new THREE.BufferAttribute(this.sparkColors, 3)
-    );
+    this.sparksGeometry.setAttribute("position", new THREE.BufferAttribute(this.sparkPositions, 3));
+    this.sparksGeometry.setAttribute("color", new THREE.BufferAttribute(this.sparkColors, 3));
 
     // Create material - larger sparks for visibility
     const material = new THREE.PointsMaterial({
@@ -308,10 +294,7 @@ export class ForgeSparksVisualization extends BaseVisualization {
 
       for (let i = 0; i < this.maxSparks; i++) {
         const t = Math.random();
-        const color = new THREE.Color(colors.primary).lerp(
-          new THREE.Color(colors.accent),
-          t
-        );
+        const color = new THREE.Color(colors.primary).lerp(new THREE.Color(colors.accent), t);
         this.sparkColors[i * 3] = color.r;
         this.sparkColors[i * 3 + 1] = color.g;
         this.sparkColors[i * 3 + 2] = color.b;

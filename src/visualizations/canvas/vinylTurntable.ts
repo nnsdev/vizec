@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_STRING,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_STRING, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface VinylTurntableConfig extends VisualizationConfig {
   sensitivity: number;
@@ -83,12 +74,12 @@ export class VinylTurntableVisualization extends BaseVisualization {
 
     // Update platter rotation
     const baseRotation = deltaTime * 0.0035;
-    const audioBoost = 1 + (volume * this.config.sensitivity);
+    const audioBoost = 1 + volume * this.config.sensitivity;
     this.rotation += baseRotation * this.config.platterSpeed * audioBoost;
 
     // Update tonearm position based on frequency distribution
     const freqCenter = this.calculateFrequencyCenter(frequencyData);
-    const targetArmAngle = Math.PI / 6 + (freqCenter / frequencyData.length) * Math.PI / 3;
+    const targetArmAngle = Math.PI / 6 + ((freqCenter / frequencyData.length) * Math.PI) / 3;
     this.armAngle += (targetArmAngle - this.armAngle) * 0.05 * this.config.armSwing;
 
     // Draw turntable base
@@ -123,8 +114,10 @@ export class VinylTurntableVisualization extends BaseVisualization {
 
     // Turntable base (semi-transparent for overlay)
     const gradient = this.ctx.createLinearGradient(
-      centerX - size, centerY - size,
-      centerX + size, centerY + size,
+      centerX - size,
+      centerY - size,
+      centerX + size,
+      centerY + size,
     );
     gradient.addColorStop(0, "rgba(74, 74, 74, 0.5)");
     gradient.addColorStop(0.3, "rgba(42, 42, 42, 0.5)");
@@ -141,9 +134,12 @@ export class VinylTurntableVisualization extends BaseVisualization {
       this.ctx.beginPath();
       this.ctx.moveTo(centerX - size, centerY - size + i);
       this.ctx.bezierCurveTo(
-        centerX - size + 20, centerY - size + i + 10,
-        centerX + size - 20, centerY - size + i + 10,
-        centerX + size, centerY - size + i,
+        centerX - size + 20,
+        centerY - size + i + 10,
+        centerX + size - 20,
+        centerY - size + i + 10,
+        centerX + size,
+        centerY - size + i,
       );
       this.ctx.stroke();
     }
@@ -202,8 +198,12 @@ export class VinylTurntableVisualization extends BaseVisualization {
 
     // Platter rubber mat (semi-transparent)
     const matGradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, platterRadius,
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      platterRadius,
     );
     matGradient.addColorStop(0, "rgba(42, 42, 42, 0.6)");
     matGradient.addColorStop(0.9, "rgba(26, 26, 26, 0.6)");
@@ -229,8 +229,12 @@ export class VinylTurntableVisualization extends BaseVisualization {
 
     const vinylRadius = platterRadius * 0.93;
     const vinylGradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, vinylRadius,
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      vinylRadius,
     );
     vinylGradient.addColorStop(0, "rgba(17, 17, 17, 0.4)");
     vinylGradient.addColorStop(0.85, "rgba(0, 0, 0, 0.5)");
@@ -265,8 +269,12 @@ export class VinylTurntableVisualization extends BaseVisualization {
     // Label (semi-transparent)
     const labelRadius = vinylRadius * 0.26;
     const labelGradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, labelRadius,
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      labelRadius,
     );
     labelGradient.addColorStop(0, this.hexToRgba(colors.primary, 0.6));
     labelGradient.addColorStop(0.7, this.hexToRgba(colors.secondary, 0.5));

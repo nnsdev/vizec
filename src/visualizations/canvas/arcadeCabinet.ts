@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -105,7 +100,11 @@ export class ArcadeCabinetVisualization extends BaseVisualization {
     this.lastBass = bass;
 
     // Spawn on bass hit or randomly based on time
-    if (bassHit || (Math.random() < 0.02 * sensitivity && this.elements.filter(e => e.type === "enemy").length < 8)) {
+    if (
+      bassHit ||
+      (Math.random() < 0.02 * sensitivity &&
+        this.elements.filter((e) => e.type === "enemy").length < 8)
+    ) {
       this.spawnEnemy(screenX, screenY, screenW, screenH, colors);
     }
 
@@ -172,8 +171,12 @@ export class ArcadeCabinetVisualization extends BaseVisualization {
       el.frame += deltaTime * 10;
 
       // Boundary check
-      if (el.x < screenX - 50 || el.x > screenX + screenW + 50 ||
-          el.y < screenY - 50 || el.y > screenY + screenH + 50) {
+      if (
+        el.x < screenX - 50 ||
+        el.x > screenX + screenW + 50 ||
+        el.y < screenY - 50 ||
+        el.y > screenY + screenH + 50
+      ) {
         this.elements.splice(i, 1);
         continue;
       }
@@ -222,7 +225,7 @@ export class ArcadeCabinetVisualization extends BaseVisualization {
     screenY: number,
     screenW: number,
     screenH: number,
-    _colors: { start: string; mid: string; end: string }
+    _colors: { start: string; mid: string; end: string },
   ): void {
     this.elements.push({
       type: "enemy",
@@ -240,15 +243,23 @@ export class ArcadeCabinetVisualization extends BaseVisualization {
     y: number,
     colors: { start: string; mid: string; end: string },
     pixelSize: number,
-    volume: number
+    volume: number,
   ): void {
     if (!this.ctx) return;
 
     // Simple ship shape
     const shipPixels = [
-      [0, 0], [1, 0], [2, 0],
-      [-1, 1], [0, 1], [1, 1], [2, 1], [3, 1],
-      [0, 2], [1, 2], [2, 2],
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [-1, 1],
+      [0, 1],
+      [1, 1],
+      [2, 1],
+      [3, 1],
+      [0, 2],
+      [1, 2],
+      [2, 2],
     ];
 
     // Engine glow
@@ -257,12 +268,7 @@ export class ArcadeCabinetVisualization extends BaseVisualization {
 
     this.ctx.fillStyle = colors.start;
     for (const [px, py] of shipPixels) {
-      this.ctx.fillRect(
-        x + px * pixelSize,
-        y + (py - 1) * pixelSize,
-        pixelSize - 1,
-        pixelSize - 1
-      );
+      this.ctx.fillRect(x + px * pixelSize, y + (py - 1) * pixelSize, pixelSize - 1, pixelSize - 1);
     }
 
     // Engine flame
@@ -280,16 +286,21 @@ export class ArcadeCabinetVisualization extends BaseVisualization {
   private drawGameElement(
     el: GameElement,
     colors: { start: string; mid: string; end: string },
-    pixelSize: number
+    pixelSize: number,
   ): void {
     if (!this.ctx) return;
 
     switch (el.type) {
       case "enemy": {
         const enemyPixels = [
-          [0, -1], [1, -1],
-          [-1, 0], [0, 0], [1, 0], [2, 0],
-          [0, 1], [1, 1],
+          [0, -1],
+          [1, -1],
+          [-1, 0],
+          [0, 0],
+          [1, 0],
+          [2, 0],
+          [0, 1],
+          [1, 1],
         ];
         this.ctx.fillStyle = colors.end;
         for (const [px, py] of enemyPixels) {
@@ -297,7 +308,7 @@ export class ArcadeCabinetVisualization extends BaseVisualization {
             el.x + px * pixelSize,
             el.y + py * pixelSize,
             pixelSize - 1,
-            pixelSize - 1
+            pixelSize - 1,
           );
         }
         break;

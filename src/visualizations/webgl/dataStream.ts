@@ -1,16 +1,7 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_HEX,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_HEX, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface DataStreamConfig extends VisualizationConfig {
   sensitivity: number;
@@ -116,11 +107,9 @@ export class DataStreamVisualization extends BaseVisualization {
         positions[i3 + 1] = this.packetData[stream].y + (Math.random() - 0.5) * 2;
         positions[i3 + 2] = (Math.random() - 0.5) * 10;
 
-        const color = new THREE.Color(stream % 3 === 0
-          ? colors.primary
-          : stream % 3 === 1
-            ? colors.secondary
-            : colors.glow);
+        const color = new THREE.Color(
+          stream % 3 === 0 ? colors.primary : stream % 3 === 1 ? colors.secondary : colors.glow,
+        );
 
         colorsArray[i3] = color.r;
         colorsArray[i3 + 1] = color.g;
@@ -220,7 +209,11 @@ export class DataStreamVisualization extends BaseVisualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     this.config = { ...this.config, ...config } as DataStreamConfig;
 
-    if (config.streamCount !== undefined || config.packetSize !== undefined || config.colorScheme !== undefined) {
+    if (
+      config.streamCount !== undefined ||
+      config.packetSize !== undefined ||
+      config.colorScheme !== undefined
+    ) {
       this.createParticles();
     }
   }

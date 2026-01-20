@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -112,7 +107,8 @@ export class TelegraphSparksVisualization extends BaseVisualization {
     // Smooth audio values - faster response, boosted sensitivity
     const smoothing = 0.3;
     this.smoothedMid = this.smoothedMid * (1 - smoothing) + mid * sensitivity * 2 * smoothing;
-    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
+    this.smoothedTreble =
+      this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
 
     this.time += deltaTime * 0.001;
 
@@ -131,7 +127,7 @@ export class TelegraphSparksVisualization extends BaseVisualization {
       // Each key has its own spark timer
       const shouldSpark = key.pressed && this.time - key.lastSparkTime > 0.02;
       const ambientSpark = this.time - key.lastSparkTime > 0.2;
-      
+
       if (shouldSpark || ambientSpark) {
         this.createSpark(key, sparkIntensity);
         key.lastSparkTime = this.time;
@@ -208,7 +204,10 @@ export class TelegraphSparksVisualization extends BaseVisualization {
     }
   }
 
-  private drawSparks(colors: { start: string; end: string; glow: string }, glowStrength: number): void {
+  private drawSparks(
+    colors: { start: string; end: string; glow: string },
+    glowStrength: number,
+  ): void {
     if (!this.ctx) return;
 
     for (const spark of this.sparks) {
@@ -247,7 +246,7 @@ export class TelegraphSparksVisualization extends BaseVisualization {
         this.ctx.moveTo(branchSeg.x, branchSeg.y);
         this.ctx.lineTo(
           branchSeg.x + (Math.random() - 0.5) * 30,
-          branchSeg.y + (Math.random() - 0.5) * 20
+          branchSeg.y + (Math.random() - 0.5) * 20,
         );
         this.ctx.stroke();
       }
@@ -264,39 +263,25 @@ export class TelegraphSparksVisualization extends BaseVisualization {
     // Key base
     this.ctx.globalAlpha = 0.5;
     this.ctx.fillStyle = colors.start;
-    this.ctx.fillRect(
-      key.x - key.width / 2,
-      key.y + pressOffset,
-      key.width,
-      key.height
-    );
+    this.ctx.fillRect(key.x - key.width / 2, key.y + pressOffset, key.width, key.height);
 
     // Key top
     const gradient = this.ctx.createLinearGradient(
-      key.x - key.width / 2, key.y + pressOffset,
-      key.x + key.width / 2, key.y + pressOffset
+      key.x - key.width / 2,
+      key.y + pressOffset,
+      key.x + key.width / 2,
+      key.y + pressOffset,
     );
     gradient.addColorStop(0, colors.start);
     gradient.addColorStop(0.5, colors.end);
     gradient.addColorStop(1, colors.start);
 
     this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(
-      key.x - key.width / 2 + 5,
-      key.y - 5 + pressOffset,
-      key.width - 10,
-      8
-    );
+    this.ctx.fillRect(key.x - key.width / 2 + 5, key.y - 5 + pressOffset, key.width - 10, 8);
 
     // Knob on top
     this.ctx.beginPath();
-    this.ctx.ellipse(
-      key.x,
-      key.y - 8 + pressOffset,
-      15,
-      8,
-      0, 0, Math.PI * 2
-    );
+    this.ctx.ellipse(key.x, key.y - 8 + pressOffset, 15, 8, 0, 0, Math.PI * 2);
     this.ctx.fillStyle = colors.end;
     this.ctx.fill();
   }
@@ -304,7 +289,7 @@ export class TelegraphSparksVisualization extends BaseVisualization {
   private drawContactPoint(
     key: TelegraphKey,
     colors: { start: string; end: string; glow: string },
-    glowStrength: number
+    glowStrength: number,
   ): void {
     if (!this.ctx) return;
 

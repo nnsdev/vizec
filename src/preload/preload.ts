@@ -95,8 +95,7 @@ const vizecAPI: Window["vizecAPI"] = {
   initSpeech: (options: SpeechInitOptions) => ipcRenderer.send(IPC_CHANNELS.SPEECH_INIT, options),
   enableSpeech: () => ipcRenderer.send(IPC_CHANNELS.SPEECH_ENABLE),
   disableSpeech: () => ipcRenderer.send(IPC_CHANNELS.SPEECH_DISABLE),
-  sendSpeechAudio: (chunk: SpeechAudioChunk) =>
-    ipcRenderer.send(IPC_CHANNELS.SPEECH_AUDIO, chunk),
+  sendSpeechAudio: (chunk: SpeechAudioChunk) => ipcRenderer.send(IPC_CHANNELS.SPEECH_AUDIO, chunk),
   onSpeechStatus: (callback: (event: SpeechStatusEvent) => void): Unsubscribe => {
     const handler = (_event: IpcRendererEvent, event: SpeechStatusEvent) => callback(event);
     ipcRenderer.on(IPC_CHANNELS.SPEECH_STATUS, handler);

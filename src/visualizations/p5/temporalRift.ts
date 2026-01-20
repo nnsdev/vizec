@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface TemporalRiftConfig extends VisualizationConfig {
   ringCount: number;
@@ -183,7 +174,7 @@ export class TemporalRiftVisualization extends BaseVisualization {
     centerY: number,
     colors: { primary: string; secondary: string; accent: string },
     chromaticIntensity: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     const maxRadius = Math.max(this.width, this.height) * 0.6;
 
@@ -216,7 +207,7 @@ export class TemporalRiftVisualization extends BaseVisualization {
             ring,
             color,
             fadeAlpha * 0.55, // Alpha for covering elements
-            sensitivity
+            sensitivity,
           );
         }
       }
@@ -230,7 +221,7 @@ export class TemporalRiftVisualization extends BaseVisualization {
     ring: TimeRing,
     colorStr: string,
     alpha: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     const color = p.color(colorStr);
     color.setAlpha(alpha * 255);
@@ -244,8 +235,8 @@ export class TemporalRiftVisualization extends BaseVisualization {
       const angle = (i / segments) * p.TWO_PI;
 
       // Add distortion based on treble and phase
-      const distortion = p.sin(angle * 6 + ring.distortionPhase) *
-        this.trebleSmooth * sensitivity * 20;
+      const distortion =
+        p.sin(angle * 6 + ring.distortionPhase) * this.trebleSmooth * sensitivity * 20;
       const wobble = p.sin(angle * 3 + this.time * 2) * 5;
 
       const r = ring.radius + distortion + wobble;
@@ -263,7 +254,7 @@ export class TemporalRiftVisualization extends BaseVisualization {
     cy: number,
     colors: { primary: string; secondary: string; accent: string },
     vortexStrength: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     const vortexSize = 30 + this.bassSmooth * 40 * sensitivity;
 
@@ -307,7 +298,7 @@ export class TemporalRiftVisualization extends BaseVisualization {
     p: p5,
     dt: number,
     colors: { primary: string; secondary: string; accent: string },
-    sensitivity: number
+    sensitivity: number,
   ): void {
     // Update existing echoes
     for (let i = this.echoes.length - 1; i >= 0; i--) {
@@ -368,7 +359,7 @@ export class TemporalRiftVisualization extends BaseVisualization {
     cx: number,
     cy: number,
     colors: { primary: string; secondary: string; accent: string },
-    sensitivity: number
+    sensitivity: number,
   ): void {
     p.textAlign(p.CENTER, p.CENTER);
     p.textSize(14 + this.midSmooth * 10);

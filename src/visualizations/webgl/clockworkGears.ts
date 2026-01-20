@@ -1,16 +1,7 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_HEX,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_HEX, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface ClockworkGearsConfig extends VisualizationConfig {
   gearCount: number;
@@ -130,7 +121,7 @@ export class ClockworkGearsVisualization extends BaseVisualization {
         gearConfig.y,
         gearConfig.direction,
         colors,
-        index
+        index,
       );
       this.gears.push(gear);
       this.scene!.add(gear.mesh);
@@ -144,7 +135,13 @@ export class ClockworkGearsVisualization extends BaseVisualization {
     y: number;
     direction: number;
   }> {
-    const layouts: Array<{ radius: number; teeth: number; x: number; y: number; direction: number }> = [];
+    const layouts: Array<{
+      radius: number;
+      teeth: number;
+      x: number;
+      y: number;
+      direction: number;
+    }> = [];
 
     // Central gear
     const centerRadius = 4;
@@ -212,7 +209,7 @@ export class ClockworkGearsVisualization extends BaseVisualization {
     y: number,
     direction: number,
     colors: { primary: number; secondary: number; glow: number },
-    index: number
+    index: number,
   ): Gear {
     const group = new THREE.Group();
 

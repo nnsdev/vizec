@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -134,7 +129,8 @@ export class ConstructionCraneVisualization extends BaseVisualization {
     const counterJibLength = 100;
 
     // Crane rotation based on audio
-    const targetAngle = Math.sin(this.time * swingSpeed * 0.3) * 0.15 + (mid - 0.5) * 0.1 * sensitivity;
+    const targetAngle =
+      Math.sin(this.time * swingSpeed * 0.3) * 0.15 + (mid - 0.5) * 0.1 * sensitivity;
     this.craneAngle += (targetAngle - this.craneAngle) * 0.02;
 
     // Hook movement
@@ -163,8 +159,8 @@ export class ConstructionCraneVisualization extends BaseVisualization {
     for (let i = 0; i < sections; i++) {
       const y1 = towerTop + (this.height - towerTop) * (i / sections);
       const y2 = towerTop + (this.height - towerTop) * ((i + 1) / sections);
-      const w1 = towerWidth / 2 * (0.5 + (i / sections) * 0.5);
-      const w2 = towerWidth / 2 * (0.5 + ((i + 1) / sections) * 0.5);
+      const w1 = (towerWidth / 2) * (0.5 + (i / sections) * 0.5);
+      const w2 = (towerWidth / 2) * (0.5 + ((i + 1) / sections) * 0.5);
 
       // Cross braces
       this.ctx.beginPath();
@@ -247,7 +243,7 @@ export class ConstructionCraneVisualization extends BaseVisualization {
 
     // Trolley position (moves with mid frequency)
     const trolleyX = jibLength * 0.3 + jibLength * 0.5 * mid;
-    const trolleyY = -5 + (10 / jibLength) * trolleyX / 2;
+    const trolleyY = -5 + ((10 / jibLength) * trolleyX) / 2;
 
     // Trolley
     this.ctx.fillStyle = "rgba(100, 100, 110, 0.9)";
@@ -263,7 +259,7 @@ export class ConstructionCraneVisualization extends BaseVisualization {
       trolleyX + Math.sin(this.cableSwing) * this.hookY * 0.5,
       trolleyY + this.hookY / 2,
       cableEndX,
-      trolleyY + this.hookY
+      trolleyY + this.hookY,
     );
     this.ctx.stroke();
 

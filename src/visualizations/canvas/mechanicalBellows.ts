@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -92,7 +87,7 @@ export class MechanicalBellowsVisualization extends BaseVisualization {
       this.bellows.push({
         x: (this.width / (bellowsCount + 1)) * (i + 1),
         y: this.height * 0.6,
-        width: Math.min(150, this.width / (bellowsCount + 1) * 0.7),
+        width: Math.min(150, (this.width / (bellowsCount + 1)) * 0.7),
         height: 120,
         compression: 0.5,
         targetCompression: 0.5,
@@ -111,7 +106,8 @@ export class MechanicalBellowsVisualization extends BaseVisualization {
     // Smooth audio values - increased smoothing factor and doubled sensitivity multiplier
     const smoothing = 0.35;
     this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * 2 * smoothing;
-    this.smoothedTreble = this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
+    this.smoothedTreble =
+      this.smoothedTreble * (1 - smoothing) + treble * sensitivity * 2 * smoothing;
 
     this.time += deltaTime * 0.001;
 
@@ -197,7 +193,11 @@ export class MechanicalBellowsVisualization extends BaseVisualization {
     }
   }
 
-  private drawBellows(bellows: Bellows, colors: { start: string; end: string; glow: string }, index: number): void {
+  private drawBellows(
+    bellows: Bellows,
+    colors: { start: string; end: string; glow: string },
+    index: number,
+  ): void {
     if (!this.ctx) return;
 
     const { x, y, width, height, compression } = bellows;

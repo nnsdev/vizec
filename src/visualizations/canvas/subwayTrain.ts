@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -132,7 +127,12 @@ export class SubwayTrainVisualization extends BaseVisualization {
       }
 
       // Car body - more visible with gradient
-      const carGradient = this.ctx.createLinearGradient(car.x, trainY - carHeight / 2, car.x, trainY + carHeight / 2);
+      const carGradient = this.ctx.createLinearGradient(
+        car.x,
+        trainY - carHeight / 2,
+        car.x,
+        trainY + carHeight / 2,
+      );
       carGradient.addColorStop(0, "rgba(70, 75, 85, 0.95)");
       carGradient.addColorStop(0.5, "rgba(50, 55, 65, 0.95)");
       carGradient.addColorStop(1, "rgba(40, 45, 55, 0.95)");
@@ -195,7 +195,12 @@ export class SubwayTrainVisualization extends BaseVisualization {
           this.ctx.fillRect(windowX, windowY, windowWidth, windowHeight);
 
           // Interior warm light
-          const gradient = this.ctx.createLinearGradient(windowX, windowY, windowX, windowY + windowHeight);
+          const gradient = this.ctx.createLinearGradient(
+            windowX,
+            windowY,
+            windowX,
+            windowY + windowHeight,
+          );
           gradient.addColorStop(0, `rgba(255, 220, 150, ${brightness * 0.5})`);
           gradient.addColorStop(1, `rgba(255, 180, 100, ${brightness * 0.3})`);
           this.ctx.fillStyle = gradient;

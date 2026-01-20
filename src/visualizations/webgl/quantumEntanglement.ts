@@ -1,16 +1,7 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_HEX,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_HEX, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface QuantumEntanglementConfig extends VisualizationConfig {
   sensitivity: number;
@@ -120,14 +111,11 @@ export class QuantumEntanglementVisualization extends BaseVisualization {
 
       // Assign to pairs
       const pairIndex = i % pairCount;
-      this.pairPartner[i] = i < particleCount / 2
-        ? pairIndex + particleCount / 2
-        : pairIndex;
+      this.pairPartner[i] = i < particleCount / 2 ? pairIndex + particleCount / 2 : pairIndex;
 
       // Set colors based on pair
-      const color = i < particleCount / 2
-        ? new THREE.Color(colors.primary)
-        : new THREE.Color(colors.secondary);
+      const color =
+        i < particleCount / 2 ? new THREE.Color(colors.primary) : new THREE.Color(colors.secondary);
 
       colorArray[i * 3] = color.r;
       colorArray[i * 3 + 1] = color.g;

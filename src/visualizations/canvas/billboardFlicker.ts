@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import { COLOR_SCHEME_OPTIONS } from "../shared/colorSchemes";
 
@@ -52,8 +47,20 @@ export class BillboardFlickerVisualization extends BaseVisualization {
   private time = 0;
 
   private signTexts = [
-    "OPEN", "24/7", "BAR", "HOTEL", "DINER", "PIZZA", "CAFE",
-    "CLUB", "SHOP", "BEER", "LIVE", "JAZZ", "TAXI", "ATM"
+    "OPEN",
+    "24/7",
+    "BAR",
+    "HOTEL",
+    "DINER",
+    "PIZZA",
+    "CAFE",
+    "CLUB",
+    "SHOP",
+    "BEER",
+    "LIVE",
+    "JAZZ",
+    "TAXI",
+    "ATM",
   ];
 
   init(container: HTMLElement, config: VisualizationConfig): void {
@@ -84,7 +91,10 @@ export class BillboardFlickerVisualization extends BaseVisualization {
       const signHeight = 40 + Math.random() * 30;
 
       // Avoid overlap by spacing them out
-      const x = (this.width / (this.config.signCount + 1)) * (i + 1) - signWidth / 2 + (Math.random() - 0.5) * 100;
+      const x =
+        (this.width / (this.config.signCount + 1)) * (i + 1) -
+        signWidth / 2 +
+        (Math.random() - 0.5) * 100;
       const y = 50 + Math.random() * (this.height - 150);
 
       const brokenSegments: boolean[] = [];
@@ -125,7 +135,7 @@ export class BillboardFlickerVisualization extends BaseVisualization {
       if (sign.broken) {
         // Broken signs have erratic flicker
         const noise = Math.sin(sign.flickerPhase) * Math.cos(sign.flickerPhase * 2.3);
-        flicker = noise > 0.3 ? 1 : (noise > -0.2 ? 0.3 : 0);
+        flicker = noise > 0.3 ? 1 : noise > -0.2 ? 0.3 : 0;
       } else {
         // Normal signs have subtle flicker
         flicker = 0.85 + Math.sin(sign.flickerPhase) * 0.15;

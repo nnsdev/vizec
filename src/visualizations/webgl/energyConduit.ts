@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_HEX_ACCENT,
@@ -103,7 +98,7 @@ export class EnergyConduitVisualization extends BaseVisualization {
     const colors = getColorScheme(COLOR_SCHEMES_HEX_ACCENT, colorScheme);
 
     // Clear existing
-    this.conduits.forEach(c => {
+    this.conduits.forEach((c) => {
       c.tube.geometry.dispose();
       (c.tube.material as THREE.Material).dispose();
       this.scene?.remove(c.tube);
@@ -136,7 +131,7 @@ export class EnergyConduitVisualization extends BaseVisualization {
       const colorRatio = i / conduitCount;
       const tubeColor = new THREE.Color(colors.primary).lerp(
         new THREE.Color(colors.accent),
-        colorRatio
+        colorRatio,
       );
 
       const tubeMaterial = new THREE.MeshBasicMaterial({
@@ -209,7 +204,8 @@ export class EnergyConduitVisualization extends BaseVisualization {
       material.opacity = 0.3 + this.smoothedBass * 0.4 * glowIntensity;
 
       // Update energy flow offset
-      conduit.energyOffset += conduit.energySpeed * flowSpeed * deltaTime * 0.001 * (1 + this.smoothedBass);
+      conduit.energyOffset +=
+        conduit.energySpeed * flowSpeed * deltaTime * 0.001 * (1 + this.smoothedBass);
     }
 
     // Update particles
@@ -277,24 +273,24 @@ export class EnergyConduitVisualization extends BaseVisualization {
 
     this.config = { ...this.config, ...config } as EnergyConduitConfig;
 
-    if (this.scene && (
-      this.config.conduitCount !== oldConduitCount ||
-      this.config.colorScheme !== oldColorScheme
-    )) {
+    if (
+      this.scene &&
+      (this.config.conduitCount !== oldConduitCount || this.config.colorScheme !== oldColorScheme)
+    ) {
       this.createConduits();
     }
   }
 
   destroy(): void {
     // Clean up conduits
-    this.conduits.forEach(c => {
+    this.conduits.forEach((c) => {
       c.tube.geometry.dispose();
       (c.tube.material as THREE.Material).dispose();
     });
     this.conduits = [];
 
     // Clean up particles
-    this.particles.forEach(p => {
+    this.particles.forEach((p) => {
       p.mesh.geometry.dispose();
       (p.mesh.material as THREE.Material).dispose();
     });

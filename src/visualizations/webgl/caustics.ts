@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface CausticsConfig extends VisualizationConfig {
@@ -138,11 +133,11 @@ export class CausticsVisualization extends BaseVisualization {
           float c = 0.0;
           float scale = 8.0;
 
-          // Multiple wave layers
+          // Multiple wave layers - slowed down
           for (int i = 0; i < 5; i++) {
             float fi = float(i);
-            vec2 dir = vec2(cos(fi * 1.3 + t * 0.1), sin(fi * 2.1 - t * 0.15));
-            float wave = sin(dot(uv * scale + distortion * t * 0.2, dir) * 2.0 + t);
+            vec2 dir = vec2(cos(fi * 1.3 + t * 0.05), sin(fi * 2.1 - t * 0.075));
+            float wave = sin(dot(uv * scale + distortion * t * 0.1, dir) * 2.0 + t * 0.5);
             c += 0.5 + 0.5 * wave;
           }
 
@@ -159,7 +154,7 @@ export class CausticsVisualization extends BaseVisualization {
             for (int y = -1; y <= 1; y++) {
               vec2 neighbor = vec2(float(x), float(y));
               vec2 point = hash(grid + neighbor);
-              point = 0.5 + 0.5 * sin(t * 0.5 + 6.2831 * point);
+              point = 0.5 + 0.5 * sin(t * 0.25 + 6.2831 * point);
               vec2 diff = neighbor + point - frac;
               float dist = length(diff);
               minDist = min(minDist, dist);
@@ -177,22 +172,22 @@ export class CausticsVisualization extends BaseVisualization {
           // Audio-reactive time modifier
           float audioFactor = sensitivity;
 
-          // Base caustic pattern
-          float caustics = caustic(centeredUv, time * 0.3);
+          // Base caustic pattern - slowed down
+          float caustics = caustic(centeredUv, time * 0.15);
 
-          // Light ray interference
-          float rays = lightRays(centeredUv, time * 0.5);
+          // Light ray interference - slowed down
+          float rays = lightRays(centeredUv, time * 0.25);
 
           // Combine patterns
           float intensity = caustics * (0.5 + rays * 0.5);
 
-          // Animate the light sources
+          // Animate the light sources - slowed down
           float lightActivity = 0.0;
           for (int i = 0; i < 5; i++) {
             float fi = float(i);
             vec2 lightPos = vec2(
-              0.5 + 0.3 * sin(time * 0.2 + fi * 1.5),
-              0.5 + 0.2 * cos(time * 0.15 + fi * 2.0)
+              0.5 + 0.3 * sin(time * 0.1 + fi * 1.5),
+              0.5 + 0.2 * cos(time * 0.075 + fi * 2.0)
             );
             float lightDist = length((uv - lightPos) * aspect);
             lightActivity += 0.1 / (lightDist + 0.1);

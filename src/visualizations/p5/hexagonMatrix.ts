@@ -1,10 +1,5 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface HexagonMatrixConfig extends VisualizationConfig {
@@ -150,20 +145,27 @@ export class HexagonMatrixVisualization extends BaseVisualization {
     const colors = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.cyberpunk;
     const { sensitivity, hexSize, bassWaveIntensity, showGrid } = this.config;
 
+    const maxDist = Math.sqrt((p.width / 2) ** 2 + (p.height / 2) ** 2);
+    const bottomCutoff = p.height * 0.67; // Only render top 2/3
+
     this.hexesFlat.forEach((hex) => {
+      // Skip hexes in bottom third
+      if (hex.y > bottomCutoff) return;
       // Calculate distance from center for radial wave
       const dx = hex.x - p.width / 2;
       const dy = hex.y - p.height / 2;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      // Apply bass wave
-      const bassWave = Math.sin(dist * 0.02 - this.time * 5) * 0.5 + 0.5;
-      const waveEffect = bassWave * bassWaveIntensity;
+      // Radial wave pulse effect (matches render logic)
+      const waveTime = this.time * 3;
+      const waveRadius = (waveTime % 2) * maxDist;
+      const waveProximity = 1 - Math.min(1, Math.abs(dist - waveRadius) / 150);
+      const waveEffect = waveProximity * bassWaveIntensity;
 
       // Color based on energy and wave
-      const energyLevel = Math.min(1, hex.energy * sensitivity * (1 + waveEffect * 2));
+      const energyLevel = Math.min(1, hex.energy * sensitivity * (1 + waveEffect * 1.5));
 
-      if (energyLevel > 0.1) {
+      if (energyLevel > 0.02) {
         // Color interpolation based on energy
         const c1 = p.color(colors.primary);
         const c2 = p.color(colors.secondary);
@@ -181,18 +183,25 @@ export class HexagonMatrixVisualization extends BaseVisualization {
           color = c4;
         }
 
-        // Apply brightness based on energy
-        const brightness = 20 + energyLevel * 80;
+        // Apply brightness based on energy - more vibrant
+        const brightness = 40 + energyLevel * 60;
         const hue = p.hue(color);
-        const saturation = p.saturation(color);
+        const saturation = Math.min(100, p.saturation(color) * 1.2);
         p.colorMode(p.HSB, 360, 100, 100, 100);
-        color = p.color(hue, saturation, brightness, 60 + energyLevel * 40);
+        color = p.color(hue, saturation, brightness, 40 + energyLevel * 60);
 
         p.fill(color);
-        p.noStroke();
 
-        // Draw hexagon
-        this.drawHexagon(p, hex.x, hex.y, hexSize * (0.8 + energyLevel * 0.4));
+        // Add glow effect on high energy
+        if (energyLevel > 0.5) {
+          p.stroke(hue, saturation * 0.8, 100, energyLevel * 30);
+          p.strokeWeight(2);
+        } else {
+          p.noStroke();
+        }
+
+        // Draw hexagon - more size variation
+        this.drawHexagon(p, hex.x, hex.y, hexSize * (0.6 + energyLevel * 0.6));
       } else if (showGrid) {
         // Draw faint grid
         p.stroke(220, 20, 30, 10);
@@ -218,19 +227,37 @@ export class HexagonMatrixVisualization extends BaseVisualization {
     const { frequencyData, bass } = audioData;
     const { sensitivity, bassWaveIntensity } = this.config;
 
-    this.time += deltaTime;
+    // Normalize deltaTime to seconds
+    let dt = deltaTime || 0.016;
+    if (dt > 1) dt = dt / 1000;
+    dt = Math.max(0.001, Math.min(0.1, dt));
 
-    // Update hexes with frequency data
-    this.hexesFlat.forEach((hex, index) => {
-      // Map hex to frequency band
-      const freqIndex = Math.floor((index / this.hexesFlat.length) * frequencyData.length);
-      const freqValue = frequencyData[freqIndex];
+    this.time += dt;
 
-      // Add bass wave effect to target energy
-      const bassWave = Math.sin(hex.wavePhase - this.time * 5) * 0.5 + 0.5;
-      const waveBoost = bassWave * bassWaveIntensity * sensitivity * bass;
+    // Calculate center and max distance for normalization
+    const centerX = this.sketch ? this.sketch.width / 2 : 960;
+    const centerY = this.sketch ? this.sketch.height / 2 : 540;
+    const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
 
-      hex.update(freqValue * (1 + waveBoost), bass, deltaTime);
+    // Update hexes with frequency data based on distance from center
+    this.hexesFlat.forEach((hex) => {
+      // Calculate distance from center
+      const dx = hex.x - centerX;
+      const dy = hex.y - centerY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const normalizedDist = dist / maxDist;
+
+      // Map distance to frequency band (center = bass, edges = treble)
+      const freqIndex = Math.floor(normalizedDist * frequencyData.length * 0.8);
+      const freqValue = frequencyData[Math.min(freqIndex, frequencyData.length - 1)];
+
+      // Radial wave that pulses outward from center
+      const waveTime = this.time * 3;
+      const waveRadius = (waveTime % 2) * maxDist; // Wave expands outward
+      const waveProximity = 1 - Math.min(1, Math.abs(dist - waveRadius) / 150);
+      const bassWave = waveProximity * bass * bassWaveIntensity * sensitivity;
+
+      hex.update(freqValue * (1 + bassWave * 2), bass, dt);
     });
   }
 

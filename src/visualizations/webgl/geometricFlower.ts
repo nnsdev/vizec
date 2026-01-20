@@ -1,16 +1,7 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_HEX,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_HEX, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface GeometricFlowerConfig extends VisualizationConfig {
   sensitivity: number;
@@ -99,9 +90,13 @@ export class GeometricFlowerVisualization extends BaseVisualization {
     // Create petals for each layer
     for (let layer = 0; layer < layerCount; layer++) {
       const layerT = layer / (layerCount - 1);
-      const color = layerT < 0.5
-        ? new THREE.Color(colors.primary).lerp(new THREE.Color(colors.secondary), layerT * 2)
-        : new THREE.Color(colors.secondary).lerp(new THREE.Color(colors.glow), (layerT - 0.5) * 2);
+      const color =
+        layerT < 0.5
+          ? new THREE.Color(colors.primary).lerp(new THREE.Color(colors.secondary), layerT * 2)
+          : new THREE.Color(colors.secondary).lerp(
+              new THREE.Color(colors.glow),
+              (layerT - 0.5) * 2,
+            );
 
       const material = new THREE.MeshPhongMaterial({
         color,
@@ -179,7 +174,7 @@ export class GeometricFlowerVisualization extends BaseVisualization {
     const volumeBoost = volume * sensitivity;
 
     // Update bloom phase
-    this.bloomPhase += (bloomSpeed * 0.01 + volumeBoost * 0.02) * deltaTime / 16.67;
+    this.bloomPhase += ((bloomSpeed * 0.01 + volumeBoost * 0.02) * deltaTime) / 16.67;
 
     // Update each petal
     for (const mesh of this.petalMeshes) {
@@ -197,7 +192,9 @@ export class GeometricFlowerVisualization extends BaseVisualization {
       const { layer, petalIndex, baseAngle } = mesh.userData;
 
       // Get frequency data for this petal
-      const freqIndex = Math.floor((petalIndex / this.petalMeshes.length) * frequencyData.length * 0.3);
+      const freqIndex = Math.floor(
+        (petalIndex / this.petalMeshes.length) * frequencyData.length * 0.3,
+      );
       const freqValue = frequencyData[freqIndex] / 255;
 
       // Calculate petal expansion based on layer and audio
@@ -253,7 +250,11 @@ export class GeometricFlowerVisualization extends BaseVisualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     this.config = { ...this.config, ...config } as GeometricFlowerConfig;
 
-    if (config.petalCount !== undefined || config.layerCount !== undefined || config.colorScheme !== undefined) {
+    if (
+      config.petalCount !== undefined ||
+      config.layerCount !== undefined ||
+      config.colorScheme !== undefined
+    ) {
       this.createFlower();
     }
   }
@@ -269,7 +270,7 @@ export class GeometricFlowerVisualization extends BaseVisualization {
     for (const mesh of this.petalMeshes) {
       mesh.geometry.dispose();
       if (Array.isArray(mesh.material)) {
-        mesh.material.forEach(m => m.dispose());
+        mesh.material.forEach((m) => m.dispose());
       } else {
         mesh.material?.dispose();
       }

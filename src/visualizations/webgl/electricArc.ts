@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface ElectricArcConfig extends VisualizationConfig {
@@ -88,11 +83,9 @@ export class ElectricArcVisualization extends BaseVisualization {
     for (let i = 0; i < nodeCount; i++) {
       const angle = (i / nodeCount) * Math.PI * 2;
       const radius = 3;
-      this.nodePositions.push(new THREE.Vector3(
-        Math.cos(angle) * radius,
-        Math.sin(angle) * radius,
-        0
-      ));
+      this.nodePositions.push(
+        new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius, 0),
+      );
     }
 
     // Add center node
@@ -158,7 +151,11 @@ export class ElectricArcVisualization extends BaseVisualization {
     }
   }
 
-  private generateArcPoints(start: THREE.Vector3, end: THREE.Vector3, segments: number): THREE.Vector3[] {
+  private generateArcPoints(
+    start: THREE.Vector3,
+    end: THREE.Vector3,
+    segments: number,
+  ): THREE.Vector3[] {
     const points: THREE.Vector3[] = [];
     const direction = end.clone().sub(start);
     const length = direction.length();
@@ -215,7 +212,7 @@ export class ElectricArcVisualization extends BaseVisualization {
           targetNode,
           segments,
           this.time,
-          this.bassSmooth * sensitivity * intensity
+          this.bassSmooth * sensitivity * intensity,
         );
 
         const curve = new THREE.CatmullRomCurve3(points);
@@ -296,7 +293,7 @@ export class ElectricArcVisualization extends BaseVisualization {
     end: THREE.Vector3,
     segments: number,
     time: number,
-    audioIntensity: number
+    audioIntensity: number,
   ): THREE.Vector3[] {
     const points: THREE.Vector3[] = [];
     const direction = end.clone().sub(start);
@@ -347,7 +344,10 @@ export class ElectricArcVisualization extends BaseVisualization {
 
     this.config = { ...this.config, ...config } as ElectricArcConfig;
 
-    if (this.scene && (this.config.arcCount !== oldArcCount || this.config.colorScheme !== oldColorScheme)) {
+    if (
+      this.scene &&
+      (this.config.arcCount !== oldArcCount || this.config.colorScheme !== oldColorScheme)
+    ) {
       this.createArcs();
     }
   }

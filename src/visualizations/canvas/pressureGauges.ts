@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -72,7 +67,12 @@ export class PressureGaugesVisualization extends BaseVisualization {
     this.gauges = [];
     const { gaugeCount, gaugeSize } = this.config;
 
-    const audioSources: Array<"bass" | "mid" | "treble" | "volume"> = ["bass", "mid", "treble", "volume"];
+    const audioSources: Array<"bass" | "mid" | "treble" | "volume"> = [
+      "bass",
+      "mid",
+      "treble",
+      "volume",
+    ];
     const labels = ["BASS", "MID", "TREBLE", "VOLUME"];
 
     // Calculate gauge layout
@@ -144,10 +144,7 @@ export class PressureGaugesVisualization extends BaseVisualization {
     this.drawConnectingPipes(colors);
   }
 
-  private drawGauge(
-    gauge: Gauge,
-    colors: { start: string; end: string; glow: string }
-  ): void {
+  private drawGauge(gauge: Gauge, colors: { start: string; end: string; glow: string }): void {
     if (!this.ctx) return;
 
     const ctx = this.ctx;
@@ -174,7 +171,14 @@ export class PressureGaugesVisualization extends BaseVisualization {
     ctx.stroke();
 
     // Glass face background
-    const glassGradient = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
+    const glassGradient = ctx.createRadialGradient(
+      x - radius * 0.3,
+      y - radius * 0.3,
+      0,
+      x,
+      y,
+      radius,
+    );
     glassGradient.addColorStop(0, "rgba(255, 255, 255, 0.15)");
     glassGradient.addColorStop(0.5, "rgba(200, 200, 200, 0.08)");
     glassGradient.addColorStop(1, "rgba(150, 150, 150, 0.05)");
@@ -201,8 +205,22 @@ export class PressureGaugesVisualization extends BaseVisualization {
 
     // Yellow zone
     ctx.beginPath();
-    ctx.arc(x, y, radius * 0.85, startAngle + angleRange * dangerZone * 0.7, startAngle + angleRange * dangerZone, false);
-    ctx.arc(x, y, radius * 0.65, startAngle + angleRange * dangerZone, startAngle + angleRange * dangerZone * 0.7, true);
+    ctx.arc(
+      x,
+      y,
+      radius * 0.85,
+      startAngle + angleRange * dangerZone * 0.7,
+      startAngle + angleRange * dangerZone,
+      false,
+    );
+    ctx.arc(
+      x,
+      y,
+      radius * 0.65,
+      startAngle + angleRange * dangerZone,
+      startAngle + angleRange * dangerZone * 0.7,
+      true,
+    );
     ctx.closePath();
     ctx.fillStyle = "rgba(220, 180, 50, 0.4)";
     ctx.fill();
@@ -272,7 +290,7 @@ export class PressureGaugesVisualization extends BaseVisualization {
       ctx.moveTo(x, y);
       ctx.lineTo(
         x + Math.cos(needleAngle) * radius * 0.75,
-        y + Math.sin(needleAngle) * radius * 0.75
+        y + Math.sin(needleAngle) * radius * 0.75,
       );
       ctx.strokeStyle = `rgba(255, 50, 50, ${glowIntensity * 0.5})`;
       ctx.lineWidth = 8;
@@ -285,7 +303,7 @@ export class PressureGaugesVisualization extends BaseVisualization {
     ctx.moveTo(x + 2, y + 2);
     ctx.lineTo(
       x + Math.cos(needleAngle) * radius * 0.7 + 2,
-      y + Math.sin(needleAngle) * radius * 0.7 + 2
+      y + Math.sin(needleAngle) * radius * 0.7 + 2,
     );
     ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
     ctx.lineWidth = 4;
@@ -295,10 +313,7 @@ export class PressureGaugesVisualization extends BaseVisualization {
     // Draw needle
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(
-      x + Math.cos(needleAngle) * radius * 0.7,
-      y + Math.sin(needleAngle) * radius * 0.7
-    );
+    ctx.lineTo(x + Math.cos(needleAngle) * radius * 0.7, y + Math.sin(needleAngle) * radius * 0.7);
     ctx.strokeStyle = currentValue > dangerZone ? "#ff3333" : colors.end;
     ctx.lineWidth = 3;
     ctx.lineCap = "round";
@@ -309,7 +324,7 @@ export class PressureGaugesVisualization extends BaseVisualization {
     ctx.moveTo(x, y);
     ctx.lineTo(
       x + Math.cos(needleAngle + Math.PI) * radius * 0.15,
-      y + Math.sin(needleAngle + Math.PI) * radius * 0.15
+      y + Math.sin(needleAngle + Math.PI) * radius * 0.15,
     );
     ctx.strokeStyle = currentValue > dangerZone ? "#ff3333" : colors.end;
     ctx.lineWidth = 4;
@@ -335,7 +350,15 @@ export class PressureGaugesVisualization extends BaseVisualization {
 
     // Glass reflection
     ctx.beginPath();
-    ctx.ellipse(x - radius * 0.3, y - radius * 0.3, radius * 0.4, radius * 0.2, -Math.PI / 4, 0, Math.PI * 2);
+    ctx.ellipse(
+      x - radius * 0.3,
+      y - radius * 0.3,
+      radius * 0.4,
+      radius * 0.2,
+      -Math.PI / 4,
+      0,
+      Math.PI * 2,
+    );
     ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
     ctx.fill();
   }
@@ -413,7 +436,10 @@ export class PressureGaugesVisualization extends BaseVisualization {
     const oldSize = this.config.gaugeSize;
     this.config = { ...this.config, ...config } as PressureGaugesConfig;
 
-    if ((this.config.gaugeCount !== oldCount || this.config.gaugeSize !== oldSize) && this.width > 0) {
+    if (
+      (this.config.gaugeCount !== oldCount || this.config.gaugeSize !== oldSize) &&
+      this.width > 0
+    ) {
       this.initGauges();
     }
   }

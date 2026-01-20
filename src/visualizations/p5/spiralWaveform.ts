@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface SpiralWaveformConfig extends VisualizationConfig {
   spiralTightness: number;
@@ -124,46 +115,54 @@ export class SpiralWaveformVisualization extends BaseVisualization {
       this.currentAngle += tightnessFactor * expansionSpeed;
     }
 
-    // Age and remove old points
-    for (let i = this.spiralPoints.length - 1; i >= 0; i--) {
-      this.spiralPoints[i].age += expansionSpeed * 0.5;
-      this.spiralPoints[i].radius += expansionSpeed * 0.3;
+    // Age points and mark for removal (avoid splice in loop)
+    let writeIndex = 0;
+    for (let i = 0; i < this.spiralPoints.length; i++) {
+      const point = this.spiralPoints[i];
+      point.age += expansionSpeed * 0.5;
+      point.radius += expansionSpeed * 0.3;
 
-      if (this.spiralPoints[i].age > trailLength || this.spiralPoints[i].radius > maxRadius) {
-        this.spiralPoints.splice(i, 1);
+      // Keep point if still valid
+      if (point.age <= trailLength && point.radius <= maxRadius) {
+        this.spiralPoints[writeIndex++] = point;
       }
     }
+    // Truncate array efficiently
+    this.spiralPoints.length = writeIndex;
 
-    // Limit total points
-    while (this.spiralPoints.length > trailLength * 2) {
-      this.spiralPoints.shift();
+    // Hard cap on points for performance
+    const maxPoints = Math.min(trailLength, 400);
+    if (this.spiralPoints.length > maxPoints) {
+      this.spiralPoints = this.spiralPoints.slice(-maxPoints);
     }
 
     p.push();
     p.translate(centerX, centerY);
 
-    // Draw spiral trail
+    // Draw spiral trail - batch by color segments for performance
     if (this.spiralPoints.length > 1) {
       p.noFill();
-      p.strokeWeight(2 + volume * 2);
+      const baseWeight = 2 + volume * 2;
+      p.strokeWeight(baseWeight);
+
+      // Draw in segments with less frequent color updates
+      const segmentSize = 8; // Update color every N points
+      const primaryColor = p.color(colors.primary);
+      const secondaryColor = p.color(colors.secondary);
 
       for (let i = 1; i < this.spiralPoints.length; i++) {
         const point = this.spiralPoints[i];
         const prevPoint = this.spiralPoints[i - 1];
 
-        // Calculate age-based alpha (newer = more opaque)
-        const ageProgress = point.age / trailLength;
-        const alpha = (1 - ageProgress) * 70;
-
-        // Color interpolation based on position and value
-        const colorProgress = i / this.spiralPoints.length;
-        const strokeColor = p.lerpColor(
-          p.color(colors.primary),
-          p.color(colors.secondary),
-          colorProgress,
-        );
-        strokeColor.setAlpha(alpha);
-        p.stroke(strokeColor);
+        // Only recalculate color every segmentSize points
+        if (i % segmentSize === 1 || i === 1) {
+          const ageProgress = point.age / trailLength;
+          const alpha = (1 - ageProgress) * 70;
+          const colorProgress = i / this.spiralPoints.length;
+          const strokeColor = p.lerpColor(primaryColor, secondaryColor, colorProgress);
+          strokeColor.setAlpha(alpha);
+          p.stroke(strokeColor);
+        }
 
         const x1 = Math.cos(prevPoint.angle) * prevPoint.radius;
         const y1 = Math.sin(prevPoint.angle) * prevPoint.radius;
@@ -174,8 +173,12 @@ export class SpiralWaveformVisualization extends BaseVisualization {
       }
     }
 
-    // Draw accent highlights at peak values
-    for (let i = 0; i < this.spiralPoints.length; i++) {
+    // Draw accent highlights - only check every few points for performance
+    const highlightStep = Math.max(1, Math.floor(this.spiralPoints.length / 50));
+    p.noStroke();
+    const accentColor = p.color(colors.accent);
+
+    for (let i = 0; i < this.spiralPoints.length; i += highlightStep) {
       const point = this.spiralPoints[i];
       if (Math.abs(point.value) > 0.5) {
         const x = Math.cos(point.angle) * point.radius;
@@ -184,10 +187,8 @@ export class SpiralWaveformVisualization extends BaseVisualization {
         const ageProgress = point.age / trailLength;
         const alpha = (1 - ageProgress) * 50 * Math.abs(point.value);
 
-        const accentColor = p.color(colors.accent);
         accentColor.setAlpha(alpha);
         p.fill(accentColor);
-        p.noStroke();
 
         const size = 3 + Math.abs(point.value) * 8;
         p.ellipse(x, y, size, size);
@@ -268,7 +269,7 @@ export class SpiralWaveformVisualization extends BaseVisualization {
         label: "Trail Length",
         default: 200,
         min: 50,
-        max: 500,
+        max: 350,
         step: 25,
       },
       rotationSpeed: {

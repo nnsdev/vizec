@@ -69,7 +69,6 @@ Renderer Process (src/renderer/)
 ## Adding a New Visualization
 
 1. Create class in appropriate folder:
-
    - `src/visualizations/canvas/` - Canvas2D
    - `src/visualizations/webgl/` - Three.js/WebGL
    - `src/visualizations/p5/` - p5.js
@@ -77,20 +76,15 @@ Renderer Process (src/renderer/)
 2. Extend `BaseVisualization` from `src/visualizations/base.ts` with a `static meta` property:
 
    ```typescript
-   import { BaseVisualization } from '../base';
-   import {
-     VisualizationMeta,
-     VisualizationConfig,
-     AudioData,
-     ConfigSchema,
-   } from '../types';
+   import { BaseVisualization } from "../base";
+   import { VisualizationMeta, VisualizationConfig, AudioData, ConfigSchema } from "../types";
 
    export class MyVisualization extends BaseVisualization {
      static readonly meta: VisualizationMeta = {
-       id: 'myViz',
-       name: 'My Visualization',
-       renderer: 'canvas2d', // or "webgl", "p5", "threejs"
-       transitionType: 'crossfade', // or "cut", "zoom"
+       id: "myViz",
+       name: "My Visualization",
+       renderer: "canvas2d", // or "webgl", "p5", "threejs"
+       transitionType: "crossfade", // or "cut", "zoom"
      };
 
      init(container: HTMLElement, config: VisualizationConfig): void {

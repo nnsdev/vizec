@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -142,7 +137,7 @@ export class FactorySparksVisualization extends BaseVisualization {
       if (this.smoothedVolume * sensitivity > 0.15 && Math.random() < 0.4 * sparkIntensity) {
         this.createSpark(emitter, this.smoothedVolume * sensitivity * 0.8, colors);
       }
-      
+
       // Extra mid-frequency sparks for more activity
       if (mid * sensitivity > 0.2 && Math.random() < 0.25 * sparkIntensity) {
         this.createSpark(emitter, mid * sensitivity * 0.7, colors);
@@ -172,7 +167,7 @@ export class FactorySparksVisualization extends BaseVisualization {
   private createSparkBurst(
     emitter: Emitter,
     intensity: number,
-    colors: { start: string; end: string; glow: string }
+    colors: { start: string; end: string; glow: string },
   ): void {
     // More sparks per burst
     const sparkCount = Math.floor((35 + Math.random() * 50) * intensity);
@@ -185,7 +180,7 @@ export class FactorySparksVisualization extends BaseVisualization {
   private createSpark(
     emitter: Emitter,
     intensity: number,
-    _colors: { start: string; end: string; glow: string }
+    _colors: { start: string; end: string; glow: string },
   ): void {
     const spreadAngle = Math.PI * 0.6; // Wider spread
     const angle = emitter.angle + (Math.random() - 0.5) * spreadAngle;
@@ -236,13 +231,15 @@ export class FactorySparksVisualization extends BaseVisualization {
       spark.brightness = Math.max(0.3, spark.life * 0.8 + 0.2);
 
       // Remove if dead or off screen
-      return spark.life > 0 && spark.y < this.height + 50 && spark.x > -50 && spark.x < this.width + 50;
+      return (
+        spark.life > 0 && spark.y < this.height + 50 && spark.x > -50 && spark.x < this.width + 50
+      );
     });
   }
 
   private drawEmitterGlow(
     emitter: Emitter,
-    colors: { start: string; end: string; glow: string }
+    colors: { start: string; end: string; glow: string },
   ): void {
     if (!this.ctx || !emitter.active) return;
 
@@ -251,8 +248,12 @@ export class FactorySparksVisualization extends BaseVisualization {
     // Draw welding point glow
     const glowSize = 30 + Math.random() * 20;
     const glowGradient = ctx.createRadialGradient(
-      emitter.x, emitter.y, 0,
-      emitter.x, emitter.y, glowSize
+      emitter.x,
+      emitter.y,
+      0,
+      emitter.x,
+      emitter.y,
+      glowSize,
     );
     glowGradient.addColorStop(0, this.hexToRgba("#ffffff", 0.9));
     glowGradient.addColorStop(0.2, this.hexToRgba(colors.glow, 0.6));
@@ -274,10 +275,7 @@ export class FactorySparksVisualization extends BaseVisualization {
     ctx.fill();
   }
 
-  private drawSparks(
-    emitter: Emitter,
-    colors: { start: string; end: string; glow: string }
-  ): void {
+  private drawSparks(emitter: Emitter, colors: { start: string; end: string; glow: string }): void {
     if (!this.ctx) return;
 
     const ctx = this.ctx;
@@ -290,7 +288,7 @@ export class FactorySparksVisualization extends BaseVisualization {
         for (let i = 1; i < spark.trail.length; i++) {
           const segmentAlpha = (i / spark.trail.length) * spark.life * spark.brightness * 0.8;
           const segmentWidth = spark.size * (0.3 + (i / spark.trail.length) * 0.7);
-          
+
           ctx.beginPath();
           ctx.moveTo(spark.trail[i - 1].x, spark.trail[i - 1].y);
           ctx.lineTo(spark.trail[i].x, spark.trail[i].y);
@@ -299,7 +297,7 @@ export class FactorySparksVisualization extends BaseVisualization {
           ctx.lineCap = "round";
           ctx.stroke();
         }
-        
+
         // Final segment to current position
         const lastTrail = spark.trail[spark.trail.length - 1];
         ctx.beginPath();
@@ -314,8 +312,12 @@ export class FactorySparksVisualization extends BaseVisualization {
       // Draw spark glow
       const glowSize = spark.size * 4;
       const glowGradient = ctx.createRadialGradient(
-        spark.x, spark.y, 0,
-        spark.x, spark.y, glowSize
+        spark.x,
+        spark.y,
+        0,
+        spark.x,
+        spark.y,
+        glowSize,
       );
       const glowAlpha = spark.life * spark.brightness * 0.5;
       glowGradient.addColorStop(0, this.hexToRgba(colors.glow, glowAlpha));
@@ -330,8 +332,12 @@ export class FactorySparksVisualization extends BaseVisualization {
       // Draw spark core
       const coreAlpha = spark.life * spark.brightness;
       const coreGradient = ctx.createRadialGradient(
-        spark.x, spark.y, 0,
-        spark.x, spark.y, spark.size * 1.5
+        spark.x,
+        spark.y,
+        0,
+        spark.x,
+        spark.y,
+        spark.size * 1.5,
       );
 
       // Hot core (white/yellow) to cooler edge (orange/red)
@@ -351,7 +357,7 @@ export class FactorySparksVisualization extends BaseVisualization {
 
   private drawWeldingFlash(
     colors: { start: string; end: string; glow: string },
-    intensity: number
+    intensity: number,
   ): void {
     if (!this.ctx) return;
 
@@ -363,8 +369,12 @@ export class FactorySparksVisualization extends BaseVisualization {
 
       const flashSize = 100 + intensity * 150;
       const flashGradient = ctx.createRadialGradient(
-        emitter.x, emitter.y, 0,
-        emitter.x, emitter.y, flashSize
+        emitter.x,
+        emitter.y,
+        0,
+        emitter.x,
+        emitter.y,
+        flashSize,
       );
 
       const flashAlpha = 0.1 + Math.random() * 0.1;

@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface BlobsConfig extends VisualizationConfig {
@@ -234,13 +229,7 @@ export class BlobsVisualization extends BaseVisualization {
       }
     }
 
-    this.positionsTexture = new THREE.DataTexture(
-      data,
-      size,
-      1,
-      THREE.RGBAFormat,
-      THREE.FloatType,
-    );
+    this.positionsTexture = new THREE.DataTexture(data, size, 1, THREE.RGBAFormat, THREE.FloatType);
     this.positionsTexture.needsUpdate = true;
 
     if (this.material) {

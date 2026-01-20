@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -74,49 +69,49 @@ export class BloomingMandalaVisualization extends BaseVisualization {
     const rotation = this.time * rotationSpeed + bass * sensitivity * 0.5;
 
     for (let l = 0; l < layers; l++) {
+      this.ctx.save();
+      this.ctx.translate(centerX, centerY);
+
+      const layerDir = l % 2 === 0 ? 1 : -1;
+      this.ctx.rotate(rotation * layerDir + l * 0.2);
+
+      const freqIndex = Math.floor((l / layers) * 20);
+      const val = frequencyData[freqIndex] || 0;
+      const intensity = (val / 255) * sensitivity;
+      const layerRadius = (maxRadius / layers) * (l + 1) * (1 + intensity * 0.2);
+
+      const colorRatio = l / (layers - 1);
+      this.ctx.fillStyle = colorRatio < 0.5 ? colors.start : colors.end;
+      this.ctx.globalAlpha = 0.2 + intensity * 0.4;
+
+      const petalCount = petals + l * 2;
+      const angleStep = (Math.PI * 2) / petalCount;
+
+      for (let p = 0; p < petalCount; p++) {
         this.ctx.save();
-        this.ctx.translate(centerX, centerY);
-        
-        const layerDir = l % 2 === 0 ? 1 : -1;
-        this.ctx.rotate(rotation * layerDir + l * 0.2);
+        this.ctx.rotate(p * angleStep);
+        this.ctx.beginPath();
 
-        const freqIndex = Math.floor((l / layers) * 20);
-        const val = frequencyData[freqIndex] || 0;
-        const intensity = (val / 255) * sensitivity;
-        const layerRadius = (maxRadius / layers) * (l + 1) * (1 + intensity * 0.2);
-        
-        const colorRatio = l / (layers - 1);
-        this.ctx.fillStyle = colorRatio < 0.5 ? colors.start : colors.end;
-        this.ctx.globalAlpha = 0.2 + intensity * 0.4;
+        const petalSize = (maxRadius / layers) * 0.8;
+        const stretch = 1.0 + volume * 0.5;
 
-        const petalCount = petals + l * 2;
-        const angleStep = (Math.PI * 2) / petalCount;
+        this.ctx.ellipse(
+          layerRadius * 0.6,
+          0,
+          petalSize * stretch,
+          petalSize * 0.4,
+          0,
+          0,
+          Math.PI * 2,
+        );
 
-        for (let p = 0; p < petalCount; p++) {
-            this.ctx.save();
-            this.ctx.rotate(p * angleStep);
-            this.ctx.beginPath();
-            
-            const petalSize = (maxRadius / layers) * 0.8;
-            const stretch = 1.0 + volume * 0.5;
-            
-            this.ctx.ellipse(
-                layerRadius * 0.6,
-                0, 
-                petalSize * stretch,
-                petalSize * 0.4,
-                0, 
-                0, 
-                Math.PI * 2
-            );
-            
-            this.ctx.fill();
-            this.ctx.restore();
-        }
-
+        this.ctx.fill();
         this.ctx.restore();
+      }
+
+      this.ctx.restore();
     }
-    
+
     this.ctx.globalAlpha = 0.4;
     const centerGlow = volume * sensitivity * 50;
     const grad = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerGlow);

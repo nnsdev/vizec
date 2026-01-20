@@ -1,11 +1,6 @@
-import * as THREE from 'three';
-import { BaseVisualization } from '../base';
-import type {
-  AudioData,
-  VisualizationConfig,
-  VisualizationMeta,
-  ConfigSchema,
-} from '../types';
+import * as THREE from "three";
+import { BaseVisualization } from "../base";
+import type { AudioData, VisualizationConfig, VisualizationMeta, ConfigSchema } from "../types";
 
 /**
  * GPU Particle Flow Field Visualization
@@ -18,13 +13,13 @@ import type {
  */
 export class GPUParticleFlowFieldVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
-    id: 'gpuParticleFlowField',
-    name: 'GPU Particle Flow Field',
-    author: 'Vizec',
+    id: "gpuParticleFlowField",
+    name: "GPU Particle Flow Field",
+    author: "Vizec",
     description:
-      'Millions of particles flowing through audio-reactive 3D noise fields with GPU acceleration',
-    renderer: 'threejs',
-    transitionType: 'crossfade',
+      "Millions of particles flowing through audio-reactive 3D noise fields with GPU acceleration",
+    renderer: "threejs",
+    transitionType: "crossfade",
   };
 
   private container: HTMLElement | null = null;
@@ -55,7 +50,7 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
   // Configuration
   private baseSpeed = 2.0;
   private turbulence = 0.5;
-  private colorScheme: 'neon' | 'fire' | 'ice' | 'rainbow' = 'neon';
+  private colorScheme: "neon" | "fire" | "ice" | "rainbow" = "neon";
   private trailLength = 0.95;
   private fieldScale = 0.008;
 
@@ -99,7 +94,7 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
       75,
       container.clientWidth / container.clientHeight,
       0.1,
-      2000
+      2000,
     );
     this.camera.position.z = 400;
 
@@ -159,10 +154,8 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
           const nz = z * scale + time * 0.12;
 
           // Generate flow direction from noise - more dramatic angles
-          const angle1 =
-            Math.sin(nx) * Math.cos(ny * 1.3) * Math.PI * 2 * turbulenceScale;
-          const angle2 =
-            Math.cos(nz * 1.1) * Math.sin(nx * 0.9) * Math.PI * turbulenceScale;
+          const angle1 = Math.sin(nx) * Math.cos(ny * 1.3) * Math.PI * 2 * turbulenceScale;
+          const angle2 = Math.cos(nz * 1.1) * Math.sin(nx * 0.9) * Math.PI * turbulenceScale;
 
           const vec = this.flowField[x][y][z];
           vec.x = Math.cos(angle1) * Math.cos(angle2);
@@ -241,12 +234,9 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
     }
 
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute(
-      'position',
-      new THREE.BufferAttribute(this.positions, 3)
-    );
-    geometry.setAttribute('color', new THREE.BufferAttribute(this.colors, 3));
-    geometry.setAttribute('size', new THREE.BufferAttribute(this.sizes, 1));
+    geometry.setAttribute("position", new THREE.BufferAttribute(this.positions, 3));
+    geometry.setAttribute("color", new THREE.BufferAttribute(this.colors, 3));
+    geometry.setAttribute("size", new THREE.BufferAttribute(this.sizes, 1));
 
     // Custom shader material for particles
     const material = new THREE.ShaderMaterial({
@@ -393,20 +383,17 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
   }
 
   private updateParticles(deltaTime: number): void {
-    if (!this.positions || !this.velocities || !this.particles || !this.colors)
-      return;
+    if (!this.positions || !this.velocities || !this.particles || !this.colors) return;
 
     const bounds = 300;
     // More dramatic speed response to volume
-    const speed =
-      this.baseSpeed * (1 + this.volumeLevel * 4) * Math.min(deltaTime * 60, 2);
+    const speed = this.baseSpeed * (1 + this.volumeLevel * 4) * Math.min(deltaTime * 60, 2);
     const damping = this.trailLength;
     const palette = this.colorPalettes[this.colorScheme];
 
     // Bass creates burst effect - temporarily reduce damping
-    const effectiveDamping = this.bassEnergy > 0.3
-      ? damping * (1 - this.bassEnergy * 0.3)
-      : damping;
+    const effectiveDamping =
+      this.bassEnergy > 0.3 ? damping * (1 - this.bassEnergy * 0.3) : damping;
 
     for (let i = 0; i < this.particleCount; i++) {
       const i3 = i * 3;
@@ -451,15 +438,14 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
 
     // Update geometry
     const geometry = this.particles.geometry;
-    const positionAttr = geometry.getAttribute('position');
-    const colorAttr = geometry.getAttribute('color');
+    const positionAttr = geometry.getAttribute("position");
+    const colorAttr = geometry.getAttribute("color");
     positionAttr.needsUpdate = true;
     colorAttr.needsUpdate = true;
   }
 
   render(audioData: AudioData, deltaTime: number): void {
-    if (!this.scene || !this.camera || !this.rendererThree || !this.particles)
-      return;
+    if (!this.scene || !this.camera || !this.rendererThree || !this.particles) return;
 
     // Smooth audio values - faster response for better reactivity
     const smoothing = 0.25;
@@ -470,7 +456,8 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
 
     // Update flow field less frequently for better performance
     this.flowFieldTime += deltaTime;
-    if (this.flowFieldTime > 0.066) { // ~15fps for flow field updates
+    if (this.flowFieldTime > 0.066) {
+      // ~15fps for flow field updates
       this.updateFlowField(performance.now() * 0.001);
       this.flowFieldTime = 0;
     }
@@ -519,7 +506,7 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
       this.turbulence = config.intensity as number;
     }
     if (config.colorScheme !== undefined) {
-      const scheme = config.colorScheme as 'neon' | 'fire' | 'ice' | 'rainbow';
+      const scheme = config.colorScheme as "neon" | "fire" | "ice" | "rainbow";
       if (this.colorPalettes[scheme]) {
         this.colorScheme = scheme;
         this.recolorParticles();
@@ -543,7 +530,7 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
       this.colors[i3 + 2] = color.b;
     }
 
-    const colorAttr = this.particles.geometry.getAttribute('color');
+    const colorAttr = this.particles.geometry.getAttribute("color");
     colorAttr.needsUpdate = true;
   }
 
@@ -557,9 +544,7 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
     if (this.rendererThree) {
       this.rendererThree.dispose();
       if (this.rendererThree.domElement.parentElement) {
-        this.rendererThree.domElement.parentElement.removeChild(
-          this.rendererThree.domElement
-        );
+        this.rendererThree.domElement.parentElement.removeChild(this.rendererThree.domElement);
       }
     }
 
@@ -579,31 +564,31 @@ export class GPUParticleFlowFieldVisualization extends BaseVisualization {
   getConfigSchema(): ConfigSchema {
     return {
       speed: {
-        type: 'number',
-        label: 'Flow Speed',
+        type: "number",
+        label: "Flow Speed",
         min: 0.1,
         max: 3,
         step: 0.1,
         default: 1,
       },
       intensity: {
-        type: 'number',
-        label: 'Turbulence',
+        type: "number",
+        label: "Turbulence",
         min: 0.1,
         max: 2,
         step: 0.1,
         default: 0.5,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
+        type: "select",
+        label: "Color Scheme",
         options: [
-          { value: 'neon', label: 'Neon' },
-          { value: 'fire', label: 'Fire' },
-          { value: 'ice', label: 'Ice' },
-          { value: 'rainbow', label: 'Rainbow' },
+          { value: "neon", label: "Neon" },
+          { value: "fire", label: "Fire" },
+          { value: "ice", label: "Ice" },
+          { value: "rainbow", label: "Rainbow" },
         ],
-        default: 'neon',
+        default: "neon",
       },
     };
   }

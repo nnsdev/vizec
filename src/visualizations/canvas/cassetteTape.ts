@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -179,8 +174,26 @@ export class CassetteTapeVisualization extends BaseVisualization {
     this.ctx.stroke();
 
     // Draw reels
-    this.drawReel(leftReelX, reelY, reelRadius, leftSpoolRadius, this.leftReelAngle, colors, bass, mid);
-    this.drawReel(rightReelX, reelY, reelRadius, rightSpoolRadius, this.rightReelAngle, colors, bass, mid);
+    this.drawReel(
+      leftReelX,
+      reelY,
+      reelRadius,
+      leftSpoolRadius,
+      this.leftReelAngle,
+      colors,
+      bass,
+      mid,
+    );
+    this.drawReel(
+      rightReelX,
+      reelY,
+      reelRadius,
+      rightSpoolRadius,
+      this.rightReelAngle,
+      colors,
+      bass,
+      mid,
+    );
 
     // Tape head glow (reacts to audio)
     const headGlow = 0.3 + volume * 0.7 * sensitivity;
@@ -232,7 +245,7 @@ export class CassetteTapeVisualization extends BaseVisualization {
     angle: number,
     colors: { start: string; mid: string; end: string },
     bass: number,
-    _mid: number
+    _mid: number,
   ): void {
     if (!this.ctx) return;
 
@@ -306,7 +319,7 @@ export class CassetteTapeVisualization extends BaseVisualization {
     width: number,
     height: number,
     level: number,
-    color: string
+    color: string,
   ): void {
     if (!this.ctx) return;
 

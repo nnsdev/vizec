@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_STRING,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_STRING, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface VinylRecordConfig extends VisualizationConfig {
   sensitivity: number;
@@ -86,7 +77,7 @@ export class VinylRecordVisualization extends BaseVisualization {
     // Update rotation based on audio
     // Base 33⅓ RPM = ~0.56 rotations/second = ~3.5 radians/second
     const baseRotation = deltaTime * 0.0035;
-    const audioBoost = 1 + (bass * this.config.sensitivity);
+    const audioBoost = 1 + bass * this.config.sensitivity;
     const directionMultiplier = this.config.rotationDirection === "clockwise" ? 1 : -1;
     this.rotation += baseRotation * this.config.spinSpeed * audioBoost * directionMultiplier;
 
@@ -127,8 +118,12 @@ export class VinylRecordVisualization extends BaseVisualization {
 
     // Vinyl disc gradient (shiny black vinyl look)
     const gradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, maxRadius,
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      maxRadius,
     );
     gradient.addColorStop(0, "#1a1a1a");
     gradient.addColorStop(0.85, "#0a0a0a");
@@ -142,8 +137,10 @@ export class VinylRecordVisualization extends BaseVisualization {
 
     // Add subtle rainbow sheen effect (light reflection on vinyl)
     const sheenGradient = this.ctx.createLinearGradient(
-      centerX - maxRadius, centerY - maxRadius,
-      centerX + maxRadius, centerY + maxRadius,
+      centerX - maxRadius,
+      centerY - maxRadius,
+      centerX + maxRadius,
+      centerY + maxRadius,
     );
     sheenGradient.addColorStop(0, "rgba(255, 255, 255, 0)");
     sheenGradient.addColorStop(0.45, "rgba(255, 255, 255, 0)");
@@ -194,7 +191,7 @@ export class VinylRecordVisualization extends BaseVisualization {
         const wobble = Math.sin(angle * 15 + this.rotation * 3) * depth;
         const r = radius + wobble;
         const x = centerX + Math.cos(angle) * r * ellipseRatio;
-        const y = centerY + Math.sin(angle) * r / ellipseRatio;
+        const y = centerY + (Math.sin(angle) * r) / ellipseRatio;
 
         if (angle === 0) {
           this.ctx.moveTo(x, y);
@@ -242,8 +239,12 @@ export class VinylRecordVisualization extends BaseVisualization {
 
     // Label background with gradient
     const gradient = this.ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, pulseRadius,
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      pulseRadius,
     );
     gradient.addColorStop(0, colors.primary);
     gradient.addColorStop(0.6, colors.secondary);

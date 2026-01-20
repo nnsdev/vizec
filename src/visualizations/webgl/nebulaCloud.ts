@@ -1,16 +1,7 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_HEX,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_HEX, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface NebulaCloudConfig extends VisualizationConfig {
   sensitivity: number;
@@ -108,11 +99,7 @@ export class NebulaCloudVisualization extends BaseVisualization {
     for (let i = 0; i < cloudCount; i++) {
       const material = new THREE.SpriteMaterial({
         map: texture,
-        color: i % 3 === 0
-          ? colors.primary
-          : i % 3 === 1
-            ? colors.secondary
-            : colors.glow,
+        color: i % 3 === 0 ? colors.primary : i % 3 === 1 ? colors.secondary : colors.glow,
         transparent: true,
         opacity: 0.3,
         blending: THREE.AdditiveBlending,

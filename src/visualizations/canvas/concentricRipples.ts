@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -82,7 +77,8 @@ export class ConcentricRipplesVisualization extends BaseVisualization {
     // Smooth audio values - faster response
     const smoothing = 0.3;
     this.smoothedBass = this.smoothedBass * (1 - smoothing) + bass * sensitivity * 2 * smoothing;
-    this.smoothedVolume = this.smoothedVolume * (1 - smoothing) + volume * sensitivity * 2 * smoothing;
+    this.smoothedVolume =
+      this.smoothedVolume * (1 - smoothing) + volume * sensitivity * 2 * smoothing;
 
     this.time += deltaTime * 0.001;
 
@@ -91,12 +87,12 @@ export class ConcentricRipplesVisualization extends BaseVisualization {
 
     // Detect bass hit and create new ripple
     const cooldownPassed = this.time - this.lastBassHit > 0.08;
-    
+
     if (cooldownPassed && this.ripples.length < maxRipples) {
       // Spawn on bass hits OR periodically for ambient ripples
       const bassHit = bass * sensitivity > 0.15;
       const ambientSpawn = this.time - this.lastBassHit > 0.5;
-      
+
       if (bassHit || ambientSpawn) {
         this.createRipple(colors, lineWidth);
         this.lastBassHit = this.time;
@@ -111,7 +107,10 @@ export class ConcentricRipplesVisualization extends BaseVisualization {
     this.ctx.globalAlpha = 1.0;
   }
 
-  private createRipple(colors: { start: string; end: string; glow: string }, lineWidth: number): void {
+  private createRipple(
+    colors: { start: string; end: string; glow: string },
+    lineWidth: number,
+  ): void {
     // Alternate between center and random positions
     const useCenter = this.ripples.length % 3 === 0;
     const x = useCenter ? this.width / 2 : Math.random() * this.width;

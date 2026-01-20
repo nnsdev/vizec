@@ -444,7 +444,7 @@ function setupEventListeners() {
 
   vizSearch.addEventListener("keydown", (e) => {
     const filtered = getFilteredVisualizations();
-    
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
       if (!vizCombobox.classList.contains("open")) {

@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_STRING,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_STRING, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface WinampSpectrumConfig extends VisualizationConfig {
   sensitivity: number;
@@ -81,7 +72,7 @@ export class WinampSpectrumVisualization extends BaseVisualization {
     const availableWidth = this.width - margin * 2;
     const barWidth = (availableWidth - (totalBars - 1) * 2) / totalBars;
     const centerY = this.height / 2;
-    const maxBarHeight = (this.height / 2) - margin - 10;
+    const maxBarHeight = this.height / 2 - margin - 10;
 
     const step = Math.floor(frequencyData.length / barCount);
 
@@ -92,10 +83,11 @@ export class WinampSpectrumVisualization extends BaseVisualization {
       }
 
       const freqPosition = i / totalBars;
-      const freqCompensation = 1 + freqPosition * 2;
+      const freqCompensation = 1 + freqPosition * 1;
 
-      const rawValue = (sum / step) / 255;
-      const compensatedValue = Math.pow(rawValue, 0.5) * freqCompensation * sensitivity;
+      const rawValue = sum / step / 255;
+      // Reduced intensity by ~50%: higher power dampens peaks, lower compensation
+      const compensatedValue = Math.pow(rawValue, 0.7) * freqCompensation * sensitivity * 0.7;
 
       const smoothing = 0.7;
       this.smoothedData[i] = this.smoothedData[i] * smoothing + compensatedValue * (1 - smoothing);
@@ -158,7 +150,7 @@ export class WinampSpectrumVisualization extends BaseVisualization {
 
   private getBarColor(
     freqPosition: number,
-    colors: { primary: string; secondary: string; glow: string }
+    colors: { primary: string; secondary: string; glow: string },
   ): string {
     if (freqPosition < 0.33) {
       return colors.primary;

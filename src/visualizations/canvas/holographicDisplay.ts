@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -42,7 +37,10 @@ const DATA_CHARS = "01";
 function generateDataLine(length: number): string {
   let line = "";
   for (let i = 0; i < length; i++) {
-    line += Math.random() > 0.7 ? HEX_CHARS[Math.floor(Math.random() * 16)] : DATA_CHARS[Math.floor(Math.random() * 2)];
+    line +=
+      Math.random() > 0.7
+        ? HEX_CHARS[Math.floor(Math.random() * 16)]
+        : DATA_CHARS[Math.floor(Math.random() * 2)];
   }
   return line;
 }
@@ -140,7 +138,8 @@ export class HolographicDisplayVisualization extends BaseVisualization {
     if (!this.ctx || !this.canvas) return;
 
     this.time += deltaTime * 0.001;
-    const { sensitivity, glitchIntensity, scanlineSpeed, dataStreamDensity, colorScheme } = this.config;
+    const { sensitivity, glitchIntensity, scanlineSpeed, dataStreamDensity, colorScheme } =
+      this.config;
     const { bass, mid, treble, volume } = audioData;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
@@ -156,7 +155,14 @@ export class HolographicDisplayVisualization extends BaseVisualization {
     // Update and render each panel
     for (const panel of this.panels) {
       this.updatePanel(panel, deltaTime, sensitivity);
-      this.renderPanel(panel, colors, glitchIntensity, scanlineSpeed, dataStreamDensity, sensitivity);
+      this.renderPanel(
+        panel,
+        colors,
+        glitchIntensity,
+        scanlineSpeed,
+        dataStreamDensity,
+        sensitivity,
+      );
     }
 
     // Add global scanlines effect
@@ -216,7 +222,7 @@ export class HolographicDisplayVisualization extends BaseVisualization {
     glitchIntensity: number,
     scanlineSpeed: number,
     dataStreamDensity: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
 
@@ -237,7 +243,8 @@ export class HolographicDisplayVisualization extends BaseVisualization {
     ctx.fillRect(-panel.width / 2, -panel.height / 2, panel.width, panel.height);
 
     // Glowing border
-    const borderAlpha = 0.4 + Math.sin(panel.borderPulse) * 0.2 + this.bassSmooth * 0.3 * sensitivity;
+    const borderAlpha =
+      0.4 + Math.sin(panel.borderPulse) * 0.2 + this.bassSmooth * 0.3 * sensitivity;
     ctx.strokeStyle = hexToRgba(colors.start, borderAlpha * alpha);
     ctx.lineWidth = 2;
     ctx.strokeRect(-panel.width / 2, -panel.height / 2, panel.width, panel.height);
@@ -262,7 +269,7 @@ export class HolographicDisplayVisualization extends BaseVisualization {
   private drawCornerAccents(
     panel: HoloPanel,
     colors: { start: string; end: string; glow: string },
-    alpha: number
+    alpha: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -304,7 +311,7 @@ export class HolographicDisplayVisualization extends BaseVisualization {
     panel: HoloPanel,
     colors: { start: string; end: string; glow: string },
     alpha: number,
-    density: number
+    density: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -324,10 +331,10 @@ export class HolographicDisplayVisualization extends BaseVisualization {
 
     for (let i = 0; i < panel.dataLines.length; i++) {
       const line = panel.dataLines[i];
-      const y = startY + (i * lineHeight + panel.dataOffset) % (panel.height - 20);
+      const y = startY + ((i * lineHeight + panel.dataOffset) % (panel.height - 20));
 
       // Fade in/out based on position
-      const fadeY = Math.sin((y + panel.height / 2) / panel.height * Math.PI);
+      const fadeY = Math.sin(((y + panel.height / 2) / panel.height) * Math.PI);
       const lineAlpha = fadeY * alpha * 0.55 * density;
 
       if (lineAlpha > 0.05) {
@@ -358,7 +365,7 @@ export class HolographicDisplayVisualization extends BaseVisualization {
     panel: HoloPanel,
     colors: { start: string; end: string; glow: string },
     alpha: number,
-    speed: number
+    speed: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -380,7 +387,7 @@ export class HolographicDisplayVisualization extends BaseVisualization {
     panel: HoloPanel,
     colors: { start: string; end: string; glow: string },
     alpha: number,
-    intensity: number
+    intensity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -400,7 +407,10 @@ export class HolographicDisplayVisualization extends BaseVisualization {
     }
   }
 
-  private renderGlobalScanlines(colors: { start: string; end: string; glow: string }, volumeBoost: number): void {
+  private renderGlobalScanlines(
+    colors: { start: string; end: string; glow: string },
+    volumeBoost: number,
+  ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
 

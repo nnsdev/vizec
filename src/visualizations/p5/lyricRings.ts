@@ -7,11 +7,7 @@ import {
   WordEvent,
 } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface LyricRingsConfig extends VisualizationConfig {
   sensitivity: number;
@@ -192,7 +188,10 @@ export class LyricRingsVisualization extends BaseVisualization {
         this.config.ringRadius + ringIndex * this.config.ringSpacing * (1 + bass * 0.25);
       const spinDir = ringIndex % 2 === 0 ? 1 : -1;
       const spin =
-        this.time * this.config.spinSpeed * spinDir * (0.4 + treble * 1.2 * this.config.sensitivity);
+        this.time *
+        this.config.spinSpeed *
+        spinDir *
+        (0.4 + treble * 1.2 * this.config.sensitivity);
       const count = ring.length;
 
       ring.forEach((entry, wordIndex) => {

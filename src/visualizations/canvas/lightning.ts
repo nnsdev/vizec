@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -159,7 +154,11 @@ export class LightningVisualization extends BaseVisualization {
     }
   }
 
-  private createBranch(startX: number, startY: number, intensity: number): { x: number; y: number }[] {
+  private createBranch(
+    startX: number,
+    startY: number,
+    intensity: number,
+  ): { x: number; y: number }[] {
     const branch: { x: number; y: number }[] = [];
     const length = 50 + Math.random() * 100 * intensity;
     const angle = Math.random() * Math.PI * 2;
@@ -183,7 +182,12 @@ export class LightningVisualization extends BaseVisualization {
     this.generateBoltPath(bolt);
   }
 
-  private drawPath(points: { x: number; y: number }[], alpha: number, lineWidth: number, color: string): void {
+  private drawPath(
+    points: { x: number; y: number }[],
+    alpha: number,
+    lineWidth: number,
+    color: string,
+  ): void {
     if (!this.ctx || points.length < 2) return;
 
     this.ctx.beginPath();
@@ -201,7 +205,10 @@ export class LightningVisualization extends BaseVisualization {
     this.ctx.stroke();
   }
 
-  private drawBolt(bolt: LightningBolt, colors: { start: string; end: string; glow: string }): void {
+  private drawBolt(
+    bolt: LightningBolt,
+    colors: { start: string; end: string; glow: string },
+  ): void {
     if (!this.ctx) return;
 
     const alpha = bolt.life * 0.8;
@@ -231,7 +238,10 @@ export class LightningVisualization extends BaseVisualization {
     this.ctx.globalAlpha = 1;
   }
 
-  private drawCenterOrb(colors: { start: string; end: string; glow: string }, energy: number): void {
+  private drawCenterOrb(
+    colors: { start: string; end: string; glow: string },
+    energy: number,
+  ): void {
     if (!this.ctx) return;
 
     const centerX = this.width / 2;
@@ -239,7 +249,14 @@ export class LightningVisualization extends BaseVisualization {
     const baseSize = 30 + energy * 50;
 
     // Outer glow
-    const gradient = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, baseSize * 2);
+    const gradient = this.ctx.createRadialGradient(
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      baseSize * 2,
+    );
     gradient.addColorStop(0, this.hexToRgba(colors.glow, 0.3 * energy));
     gradient.addColorStop(0.5, this.hexToRgba(colors.start, 0.1 * energy));
     gradient.addColorStop(1, "rgba(0,0,0,0)");
@@ -250,7 +267,14 @@ export class LightningVisualization extends BaseVisualization {
     this.ctx.fill();
 
     // Inner core
-    const coreGradient = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, baseSize * 0.5);
+    const coreGradient = this.ctx.createRadialGradient(
+      centerX,
+      centerY,
+      0,
+      centerX,
+      centerY,
+      baseSize * 0.5,
+    );
     coreGradient.addColorStop(0, this.hexToRgba("#ffffff", 0.4 * energy));
     coreGradient.addColorStop(1, this.hexToRgba(colors.start, 0.1 * energy));
 

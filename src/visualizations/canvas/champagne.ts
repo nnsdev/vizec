@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface ChampagneConfig extends VisualizationConfig {
@@ -114,11 +109,7 @@ export class ChampagneVisualization extends BaseVisualization {
       // Sparkle effect on bass hits
       if (bass > 0.7 && Math.random() < 0.05 * this.config.sparkleIntensity) {
         this.sparkles.push(
-          new Sparkle(
-            bubble.x + (Math.random() - 0.5) * 10,
-            bubble.y,
-            bubble.size,
-          ),
+          new Sparkle(bubble.x + (Math.random() - 0.5) * 10, bubble.y, bubble.size),
         );
       }
 
@@ -300,12 +291,12 @@ class ChampagneBubble {
     if (this.size < 0.5) this.size = 0.5;
   }
 
-  draw(ctx: CanvasRenderingContext2D, colors: { primary: string; secondary: string; accent: string }): void {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    colors: { primary: string; secondary: string; accent: string },
+  ): void {
     // Outer glow
-    const glowGradient = ctx.createRadialGradient(
-      this.x, this.y, 0,
-      this.x, this.y, this.size * 2,
-    );
+    const glowGradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
     glowGradient.addColorStop(0, colors.primary + "60");
     glowGradient.addColorStop(0.5, colors.secondary + "30");
     glowGradient.addColorStop(1, "transparent");
@@ -317,8 +308,12 @@ class ChampagneBubble {
 
     // Bubble body
     const bodyGradient = ctx.createRadialGradient(
-      this.x - this.size * 0.3, this.y - this.size * 0.3, 0,
-      this.x, this.y, this.size,
+      this.x - this.size * 0.3,
+      this.y - this.size * 0.3,
+      0,
+      this.x,
+      this.y,
+      this.size,
     );
     bodyGradient.addColorStop(0, colors.accent + "cc");
     bodyGradient.addColorStop(0.5, colors.primary + "aa");

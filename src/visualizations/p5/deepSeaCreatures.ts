@@ -1,10 +1,5 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface DeepSeaCreaturesConfig extends VisualizationConfig {
@@ -51,11 +46,14 @@ interface Debris {
 }
 
 // Deep sea color palettes
-const DEEP_SEA_PALETTES: Record<string, {
-  glow: string[];
-  body: string;
-  background: string;
-}> = {
+const DEEP_SEA_PALETTES: Record<
+  string,
+  {
+    glow: string[];
+    body: string;
+    background: string;
+  }
+> = {
   abyss: {
     glow: ["#00FFFF", "#0099FF", "#00CCFF", "#66FFFF"],
     body: "#0A1525",
@@ -297,19 +295,28 @@ export class DeepSeaCreaturesVisualization extends BaseVisualization {
       p.beginShape();
       p.vertex(-fish.size, 0);
       p.bezierVertex(
-        -fish.size * 0.5, -fish.size * 0.8,
-        fish.size * 0.5, -fish.size * 0.6,
-        fish.size, -fish.size * 0.2
+        -fish.size * 0.5,
+        -fish.size * 0.8,
+        fish.size * 0.5,
+        -fish.size * 0.6,
+        fish.size,
+        -fish.size * 0.2,
       );
       p.bezierVertex(
-        fish.size * 1.2, 0,
-        fish.size * 1.2, fish.size * 0.3,
-        fish.size, fish.size * 0.4
+        fish.size * 1.2,
+        0,
+        fish.size * 1.2,
+        fish.size * 0.3,
+        fish.size,
+        fish.size * 0.4,
       );
       p.bezierVertex(
-        fish.size * 0.5, fish.size * 0.6,
-        -fish.size * 0.5, fish.size * 0.5,
-        -fish.size, 0
+        fish.size * 0.5,
+        fish.size * 0.6,
+        -fish.size * 0.5,
+        fish.size * 0.5,
+        -fish.size,
+        0,
       );
       p.endShape(p.CLOSE);
 
@@ -329,10 +336,14 @@ export class DeepSeaCreaturesVisualization extends BaseVisualization {
       p.strokeWeight(1);
       p.noFill();
       p.bezier(
-        fish.size * 0.3, -fish.size * 0.5,
-        fish.size * 0.5, -fish.size * 1,
-        lureX - 10, lureY - 10,
-        lureX, lureY
+        fish.size * 0.3,
+        -fish.size * 0.5,
+        fish.size * 0.5,
+        -fish.size * 1,
+        lureX - 10,
+        lureY - 10,
+        lureX,
+        lureY,
       );
 
       // Lure glow
@@ -355,7 +366,6 @@ export class DeepSeaCreaturesVisualization extends BaseVisualization {
       p.ellipse(fish.size * 0.5, -fish.size * 0.1, fish.size * 0.3, fish.size * 0.25);
       p.fill(255, 255, 255);
       p.ellipse(fish.size * 0.55, -fish.size * 0.1, fish.size * 0.1, fish.size * 0.1);
-
     } else {
       // Draw small bioluminescent fish
       // Body glow
@@ -373,14 +383,20 @@ export class DeepSeaCreaturesVisualization extends BaseVisualization {
       p.beginShape();
       p.vertex(-fish.size, 0);
       p.bezierVertex(
-        -fish.size * 0.5, -fish.size * 0.4,
-        fish.size * 0.5, -fish.size * 0.4,
-        fish.size, 0
+        -fish.size * 0.5,
+        -fish.size * 0.4,
+        fish.size * 0.5,
+        -fish.size * 0.4,
+        fish.size,
+        0,
       );
       p.bezierVertex(
-        fish.size * 0.5, fish.size * 0.4,
-        -fish.size * 0.5, fish.size * 0.4,
-        -fish.size, 0
+        fish.size * 0.5,
+        fish.size * 0.4,
+        -fish.size * 0.5,
+        fish.size * 0.4,
+        -fish.size,
+        0,
       );
       p.endShape(p.CLOSE);
 
@@ -429,7 +445,7 @@ export class DeepSeaCreaturesVisualization extends BaseVisualization {
     jelly: Jellyfish,
     pulse: number,
     glowIntensity: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     const bellPulse = 1 + pulse * 0.15;
     const bellWidth = jelly.size * bellPulse;
@@ -476,7 +492,8 @@ export class DeepSeaCreaturesVisualization extends BaseVisualization {
 
     // Tentacles
     for (let i = 0; i < jelly.tentacleCount; i++) {
-      const tentacleX = jelly.x + (i - (jelly.tentacleCount - 1) / 2) * (bellWidth * 2 / jelly.tentacleCount);
+      const tentacleX =
+        jelly.x + (i - (jelly.tentacleCount - 1) / 2) * ((bellWidth * 2) / jelly.tentacleCount);
       this.drawTentacle(p, tentacleX, jelly.y + bellHeight * 0.2, jelly, i, glowAlpha);
     }
   }
@@ -487,7 +504,7 @@ export class DeepSeaCreaturesVisualization extends BaseVisualization {
     startY: number,
     jelly: Jellyfish,
     index: number,
-    glowAlpha: number
+    glowAlpha: number,
   ): void {
     const segments = 8;
     const segmentLength = jelly.tentacleLength / segments;

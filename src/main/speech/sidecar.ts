@@ -34,11 +34,9 @@ export class SpeechSidecar {
   private initializing = false;
   private readonly broadcast: SpeechBroadcast;
 
-
   constructor(broadcast: SpeechBroadcast) {
     this.broadcast = broadcast;
   }
-
 
   start(): void {
     if (this.process) return;

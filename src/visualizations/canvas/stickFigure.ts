@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface StickFigureConfig extends VisualizationConfig {
   sensitivity: number;
@@ -139,7 +130,7 @@ export class StickFigureVisualization extends BaseVisualization {
     mid: number,
     treble: number,
     volume: number,
-    deltaTime: number
+    deltaTime: number,
   ): void {
     const { sensitivity, movementIntensity, jointFlexibility } = this.config;
     const intensity = (0.3 + volume * 0.7) * sensitivity * movementIntensity;
@@ -233,7 +224,7 @@ export class StickFigureVisualization extends BaseVisualization {
   private drawStickFigure(
     ctx: CanvasRenderingContext2D,
     colors: { primary: string; secondary: string; accent: string },
-    volume: number
+    volume: number,
   ): void {
     ctx.strokeStyle = colors.primary;
     ctx.fillStyle = colors.primary;
@@ -277,9 +268,11 @@ export class StickFigureVisualization extends BaseVisualization {
 
   private drawArm(ctx: CanvasRenderingContext2D, side: "left" | "right"): void {
     const shoulder = side === "left" ? this.joints.leftShoulder : this.joints.rightShoulder;
-    const upperArmAngle = side === "left" ? this.jointAngles.leftUpperArm : this.jointAngles.rightUpperArm;
-    const lowerArmBend = side === "left" ? this.jointAngles.leftLowerArm : this.jointAngles.rightLowerArm;
-    const armLength = 50 * Math.min(this.height, this.width) / 600;
+    const upperArmAngle =
+      side === "left" ? this.jointAngles.leftUpperArm : this.jointAngles.rightUpperArm;
+    const lowerArmBend =
+      side === "left" ? this.jointAngles.leftLowerArm : this.jointAngles.rightLowerArm;
+    const armLength = (50 * Math.min(this.height, this.width)) / 600;
 
     if (!shoulder) return;
 
@@ -316,9 +309,11 @@ export class StickFigureVisualization extends BaseVisualization {
 
   private drawLeg(ctx: CanvasRenderingContext2D, side: "left" | "right"): void {
     const hip = side === "left" ? this.joints.leftHip : this.joints.rightHip;
-    const upperLegAngle = side === "left" ? this.jointAngles.leftUpperLeg : this.jointAngles.rightUpperLeg;
-    const lowerLegBend = side === "left" ? this.jointAngles.leftLowerLeg : this.jointAngles.rightLowerLeg;
-    const legLength = 70 * Math.min(this.height, this.width) / 600;
+    const upperLegAngle =
+      side === "left" ? this.jointAngles.leftUpperLeg : this.jointAngles.rightUpperLeg;
+    const lowerLegBend =
+      side === "left" ? this.jointAngles.leftLowerLeg : this.jointAngles.rightLowerLeg;
+    const legLength = (70 * Math.min(this.height, this.width)) / 600;
 
     if (!hip) return;
 

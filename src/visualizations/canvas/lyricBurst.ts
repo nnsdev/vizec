@@ -182,13 +182,13 @@ export class LyricBurstVisualization extends BaseVisualization {
     // Spawn in different screen regions to avoid overlap
     // Rotate through 8 zones around the screen
     const zones = [
-      { x: 0.2, y: 0.2 },  // top-left
+      { x: 0.2, y: 0.2 }, // top-left
       { x: 0.5, y: 0.15 }, // top-center
-      { x: 0.8, y: 0.2 },  // top-right
+      { x: 0.8, y: 0.2 }, // top-right
       { x: 0.85, y: 0.5 }, // right-center
-      { x: 0.8, y: 0.8 },  // bottom-right
+      { x: 0.8, y: 0.8 }, // bottom-right
       { x: 0.5, y: 0.85 }, // bottom-center
-      { x: 0.2, y: 0.8 },  // bottom-left
+      { x: 0.2, y: 0.8 }, // bottom-left
       { x: 0.15, y: 0.5 }, // left-center
     ];
 
@@ -372,7 +372,8 @@ export class LyricBurstVisualization extends BaseVisualization {
   private updateMainWord(deltaTime: number, bass: number): void {
     // Animate scale
     const scaleSpeed = 5;
-    this.currentWordScale += (this.targetWordScale - this.currentWordScale) * scaleSpeed * deltaTime;
+    this.currentWordScale +=
+      (this.targetWordScale - this.currentWordScale) * scaleSpeed * deltaTime;
 
     // Pulse with bass
     this.targetWordScale = 1 + bass * 0.2;
@@ -430,7 +431,7 @@ export class LyricBurstVisualization extends BaseVisualization {
         0,
         this.width / 2,
         this.height / 2,
-        radius
+        radius,
       );
       gradient.addColorStop(0, `hsla(${hue}, 100%, 50%, ${bass * 0.1})`);
       gradient.addColorStop(1, "transparent");
@@ -454,7 +455,11 @@ export class LyricBurstVisualization extends BaseVisualization {
 
     this.ctx.font = `14px Arial, sans-serif`;
     this.ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-    this.ctx.fillText("(Whisper model required - ~75MB download)", this.width / 2, this.height / 2 + 30);
+    this.ctx.fillText(
+      "(Whisper model required - ~75MB download)",
+      this.width / 2,
+      this.height / 2 + 30,
+    );
 
     this.ctx.restore();
   }

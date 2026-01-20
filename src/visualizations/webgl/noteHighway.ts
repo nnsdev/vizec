@@ -1,11 +1,6 @@
-import * as THREE from 'three';
-import { BaseVisualization } from '../base';
-import {
-  VisualizationMeta,
-  VisualizationConfig,
-  AudioData,
-  ConfigSchema,
-} from '../types';
+import * as THREE from "three";
+import { BaseVisualization } from "../base";
+import { VisualizationMeta, VisualizationConfig, AudioData, ConfigSchema } from "../types";
 
 interface Note {
   mesh: THREE.Mesh;
@@ -44,10 +39,10 @@ const LANE_GLOW_COLORS = [
 
 export class NoteHighway extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
-    id: 'noteHighway',
-    name: 'Note Highway',
-    renderer: 'webgl',
-    transitionType: 'zoom',
+    id: "noteHighway",
+    name: "Note Highway",
+    renderer: "webgl",
+    transitionType: "zoom",
   };
 
   private scene!: THREE.Scene;
@@ -79,13 +74,14 @@ export class NoteHighway extends BaseVisualization {
   private historySize: number = 8;
   private laneCooldowns: number[] = [0, 0, 0, 0, 0];
 
-  private config: VisualizationConfig & { speed: number; glowIntensity: number; noteSize: number } = {
-    sensitivity: 1.0,
-    colorScheme: 'cyanMagenta',
-    speed: 1.2,
-    glowIntensity: 1.2,
-    noteSize: 1.0,
-  };
+  private config: VisualizationConfig & { speed: number; glowIntensity: number; noteSize: number } =
+    {
+      sensitivity: 1.0,
+      colorScheme: "cyanMagenta",
+      speed: 0.6,
+      glowIntensity: 1.2,
+      noteSize: 1.0,
+    };
 
   init(container: HTMLElement, config: VisualizationConfig): void {
     this.updateConfig(config);
@@ -192,10 +188,7 @@ export class NoteHighway extends BaseVisualization {
 
     for (let i = 1; i < this.lanes; i++) {
       const x = (i - this.lanes / 2) * this.laneWidth;
-      const points = [
-        new THREE.Vector3(x, 0.01, 5),
-        new THREE.Vector3(x, 0.01, -lineLength + 5),
-      ];
+      const points = [new THREE.Vector3(x, 0.01, 5), new THREE.Vector3(x, 0.01, -lineLength + 5)];
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       const material = new THREE.LineBasicMaterial({
         color: 0x3333aa,
@@ -213,11 +206,7 @@ export class NoteHighway extends BaseVisualization {
     this.strikeZone.position.z = 3;
 
     // Strike line (the "fret") - glowing bar
-    const strikeLineGeometry = new THREE.BoxGeometry(
-      this.lanes * this.laneWidth + 1.5,
-      0.08,
-      0.15
-    );
+    const strikeLineGeometry = new THREE.BoxGeometry(this.lanes * this.laneWidth + 1.5, 0.08, 0.15);
     const strikeLineMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       transparent: true,
@@ -270,32 +259,32 @@ export class NoteHighway extends BaseVisualization {
   getConfigSchema(): ConfigSchema {
     return {
       sensitivity: {
-        type: 'number',
-        label: 'Sensitivity',
+        type: "number",
+        label: "Sensitivity",
         min: 0.5,
         max: 3.0,
         default: 1.0,
         step: 0.1,
       },
       speed: {
-        type: 'number',
-        label: 'Highway Speed',
-        min: 0.5,
-        max: 3.0,
-        default: 1.2,
+        type: "number",
+        label: "Highway Speed",
+        min: 0.3,
+        max: 2.0,
+        default: 0.6,
         step: 0.1,
       },
       glowIntensity: {
-        type: 'number',
-        label: 'Glow Intensity',
+        type: "number",
+        label: "Glow Intensity",
         min: 0.0,
         max: 2.0,
         default: 1.2,
         step: 0.1,
       },
       noteSize: {
-        type: 'number',
-        label: 'Note Size',
+        type: "number",
+        label: "Note Size",
         min: 0.5,
         max: 2.0,
         default: 1.0,
@@ -308,7 +297,7 @@ export class NoteHighway extends BaseVisualization {
     const avg = history.reduce((a, b) => a + b, 0) / history.length;
     const variance = history.reduce((a, b) => a + (b - avg) ** 2, 0) / history.length;
     const stdDev = Math.sqrt(variance);
-    
+
     // Beat detected if current value exceeds average + threshold * stdDev
     // Lowered minimum threshold for more responsive detection
     return current > avg + threshold * Math.max(stdDev, 0.03) && current > 0.1;
@@ -318,10 +307,15 @@ export class NoteHighway extends BaseVisualization {
     const { sensitivity, speed, glowIntensity, noteSize } = this.config;
     const { bass, mid, treble, volume, frequencyData } = audioData;
 
-    this.time += deltaTime * 1000; // time in ms for internal use
-    // deltaTime is in SECONDS (from engine), scale by speed
-    // Notes should travel ~28 units in about 2 seconds at speed=1
-    const moveSpeed = deltaTime * speed * 15;
+    // Normalize deltaTime - handle both seconds and milliseconds formats
+    let dt = deltaTime || 0.016;
+    if (dt > 1) dt = dt / 1000; // Convert ms to seconds if needed
+    dt = Math.max(0.001, Math.min(0.05, dt)); // Clamp to reasonable range
+
+    this.time += dt * 1000; // time in ms for internal use
+    // dt is in SECONDS, scale by speed
+    // Notes should travel ~28 units in about 2-3 seconds at speed=1
+    const moveSpeed = dt * speed * 12;
 
     // Update histories
     this.bassHistory.push(bass);
@@ -331,16 +325,16 @@ export class NoteHighway extends BaseVisualization {
     if (this.midHistory.length > this.historySize) this.midHistory.shift();
     if (this.trebleHistory.length > this.historySize) this.trebleHistory.shift();
 
-    // Update lane cooldowns (stored in ms, deltaTime is seconds)
-    const deltaMs = deltaTime * 1000;
+    // Update lane cooldowns (stored in ms, dt is seconds)
+    const deltaMs = dt * 1000;
     for (let i = 0; i < this.laneCooldowns.length; i++) {
       this.laneCooldowns[i] = Math.max(0, this.laneCooldowns[i] - deltaMs);
     }
 
-    // Beat detection with adaptive thresholds (higher = fewer notes)
-    const bassThreshold = 1.8 / sensitivity;
-    const midThreshold = 1.6 / sensitivity;
-    const trebleThreshold = 1.5 / sensitivity;
+    // Beat detection with adaptive thresholds (lower = more notes)
+    const bassThreshold = 1.5 / sensitivity;
+    const midThreshold = 1.4 / sensitivity;
+    const trebleThreshold = 1.3 / sensitivity;
 
     const bassHit = this.detectBeat(bass, this.bassHistory, bassThreshold);
     const midHit = this.detectBeat(mid, this.midHistory, midThreshold);
@@ -348,16 +342,16 @@ export class NoteHighway extends BaseVisualization {
 
     // Beat-based spawning - distribute across all lanes more evenly
     // Use combined energy to decide WHEN to spawn, then pick lanes based on frequency character
-    
-    if (bassHit && bass > 0.35) {
+
+    if (bassHit && bass > 0.25) {
       // Strong bass = green (lane 0)
       if (this.laneCooldowns[0] <= 0) {
         this.spawnNote(0, bass);
-        this.laneCooldowns[0] = 350 / sensitivity;
+        this.laneCooldowns[0] = 320 / sensitivity;
       }
     }
 
-    if (midHit && mid > 0.3) {
+    if (midHit && mid > 0.2) {
       // Mid frequencies = red (lane 1)
       if (this.laneCooldowns[1] <= 0) {
         this.spawnNote(1, mid);
@@ -365,7 +359,7 @@ export class NoteHighway extends BaseVisualization {
       }
     }
 
-    if (trebleHit && treble > 0.25) {
+    if (trebleHit && treble > 0.2) {
       // Treble = yellow center (lane 2)
       if (this.laneCooldowns[2] <= 0) {
         this.spawnNote(2, treble);
@@ -376,39 +370,39 @@ export class NoteHighway extends BaseVisualization {
     // Use frequency data for right side lanes (blue=3, orange=4)
     // Higher frequency bins mapped to these lanes with lower thresholds
     const bandSize = Math.floor(frequencyData.length / 5);
-    
+
     // Lane 3 (blue) - upper mid frequencies
     let band3Energy = 0;
     for (let j = 0; j < bandSize; j++) {
-      band3Energy += frequencyData[bandSize * 2 + j] / 255;  // Mid-high range
+      band3Energy += frequencyData[bandSize * 2 + j] / 255; // Mid-high range
     }
     band3Energy /= bandSize;
-    if (this.laneCooldowns[3] <= 0 && band3Energy > 0.3 * (1 / sensitivity)) {
+    if (this.laneCooldowns[3] <= 0 && band3Energy > 0.25 * (1 / sensitivity)) {
       if (Math.random() < 0.4) {
         this.spawnNote(3, band3Energy);
         this.laneCooldowns[3] = 320 / sensitivity;
       }
     }
-    
+
     // Lane 4 (orange) - high frequencies
     let band4Energy = 0;
     for (let j = 0; j < bandSize; j++) {
-      band4Energy += frequencyData[bandSize * 3 + j] / 255;  // High range
+      band4Energy += frequencyData[bandSize * 3 + j] / 255; // High range
     }
     band4Energy /= bandSize;
-    if (this.laneCooldowns[4] <= 0 && band4Energy > 0.25 * (1 / sensitivity)) {
+    if (this.laneCooldowns[4] <= 0 && band4Energy > 0.2 * (1 / sensitivity)) {
       if (Math.random() < 0.4) {
         this.spawnNote(4, band4Energy);
         this.laneCooldowns[4] = 320 / sensitivity;
       }
     }
-    
+
     // Occasional random lane to fill gaps when music is playing
-    if (volume > 0.2 && Math.random() < 0.008 * sensitivity) {
+    if (volume > 0.15 && Math.random() < 0.012 * sensitivity) {
       const randomLane = Math.floor(Math.random() * 5);
       if (this.laneCooldowns[randomLane] <= 0) {
         this.spawnNote(randomLane, volume);
-        this.laneCooldowns[randomLane] = 400 / sensitivity;
+        this.laneCooldowns[randomLane] = 350 / sensitivity;
       }
     }
 
@@ -438,15 +432,15 @@ export class NoteHighway extends BaseVisualization {
       if (!note.hit && note.mesh.position.z > 2.5) {
         note.hit = true;
         this.createHitEffect(note.lane, note.energy);
-        
+
         // Flash the button
         const button = this.strikeButtons[note.lane];
         const buttonMat = button.material as THREE.MeshBasicMaterial;
         buttonMat.opacity = 0.9;
-        
+
         const ring = this.strikeRings[note.lane];
         ring.scale.setScalar(1.3);
-        
+
         // Remove note immediately when it hits the strike zone
         this.scene.remove(note.mesh);
         this.scene.remove(note.glow);
@@ -465,13 +459,13 @@ export class NoteHighway extends BaseVisualization {
     // Update hit effects
     for (let i = this.hitEffects.length - 1; i >= 0; i--) {
       const effect = this.hitEffects[i];
-      effect.age += deltaTime;
-      
+      effect.age += deltaMs;
+
       // Expand ring
       effect.ring.scale.setScalar(1 + effect.age * 0.008);
       const ringMat = effect.ring.material as THREE.MeshBasicMaterial;
       ringMat.opacity = Math.max(0, 0.8 - effect.age * 0.004);
-      
+
       // Move particles outward
       const positions = effect.particles.geometry.attributes.position.array as Float32Array;
       for (let j = 0; j < positions.length; j += 3) {
@@ -480,7 +474,7 @@ export class NoteHighway extends BaseVisualization {
         positions[j + 2] *= 1.02; // z
       }
       effect.particles.geometry.attributes.position.needsUpdate = true;
-      
+
       const particleMat = effect.particles.material as THREE.PointsMaterial;
       particleMat.opacity = Math.max(0, 1 - effect.age * 0.003);
 
@@ -501,7 +495,7 @@ export class NoteHighway extends BaseVisualization {
       const button = this.strikeButtons[i];
       const mat = button.material as THREE.MeshBasicMaterial;
       mat.opacity = Math.max(0.25, mat.opacity - 0.03);
-      
+
       const ring = this.strikeRings[i];
       ring.scale.setScalar(Math.max(1, ring.scale.x - 0.02));
     }
@@ -520,7 +514,10 @@ export class NoteHighway extends BaseVisualization {
 
     // Pulse highway edges with bass
     const edges = this.highwayGroup.children.filter(
-      (c) => c instanceof THREE.Line && !this.laneLines.includes(c as THREE.Line) && !this.scrollMarkers.includes(c as THREE.Line),
+      (c) =>
+        c instanceof THREE.Line &&
+        !this.laneLines.includes(c as THREE.Line) &&
+        !this.scrollMarkers.includes(c as THREE.Line),
     );
     edges.forEach((edge) => {
       if (edge instanceof THREE.Line) {
@@ -565,9 +562,9 @@ export class NoteHighway extends BaseVisualization {
       positions[i * 3 + 1] = 0.1 + Math.random() * 0.2;
       positions[i * 3 + 2] = Math.sin(angle) * radius;
     }
-    
+
     const particleGeometry = new THREE.BufferGeometry();
-    particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     const particleMaterial = new THREE.PointsMaterial({
       color: color,
       size: 0.15 * (0.8 + energy * 0.4),
@@ -699,7 +696,7 @@ export class NoteHighway extends BaseVisualization {
       (button.material as THREE.Material).dispose();
     }
     this.strikeButtons = [];
-    
+
     for (const ring of this.strikeRings) {
       ring.geometry.dispose();
       (ring.material as THREE.Material).dispose();

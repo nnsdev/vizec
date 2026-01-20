@@ -393,7 +393,7 @@ export class VisualizationEngine {
    * Downloads model on first call (~75MB)
    */
   async enableSpeechRecognition(
-    onStatus?: (status: string, progress?: number, message?: string) => void
+    onStatus?: (status: string, progress?: number, message?: string) => void,
   ): Promise<void> {
     if (!this.speechRecognizer.isReady()) {
       await this.speechRecognizer.initialize(this.speechDefaults, onStatus);
@@ -460,7 +460,7 @@ export class VisualizationEngine {
     const now = Date.now();
     const maxAge = 10000; // 10 seconds
     this.speechData.recentWords = this.speechData.recentWords.filter(
-      (w) => now - w.timestamp < maxAge
+      (w) => now - w.timestamp < maxAge,
     );
   }
 

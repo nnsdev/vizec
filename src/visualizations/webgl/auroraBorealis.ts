@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface AuroraBorealisConfig extends VisualizationConfig {
@@ -59,7 +54,7 @@ export class AuroraBorealisVisualization extends BaseVisualization {
     sensitivity: 1.0,
     colorScheme: "classic",
     curtainCount: 5,
-    flowSpeed: 1.0,
+    flowSpeed: 0.4,
     waveIntensity: 1.0,
     verticalSpread: 1.0,
   };
@@ -82,7 +77,7 @@ export class AuroraBorealisVisualization extends BaseVisualization {
       75,
       container.clientWidth / container.clientHeight,
       0.1,
-      1000
+      1000,
     );
     this.camera.position.set(0, -30, 20);
     this.camera.lookAt(0, 0, 40);
@@ -235,20 +230,20 @@ export class AuroraBorealisVisualization extends BaseVisualization {
             float zOffset = uCurtainIndex * 15.0 - (uCurtainCount * 7.5);
             pos.z += zOffset;
             
-            // Horizontal wave motion - flowing curtain effect
+            // Horizontal wave motion - flowing curtain effect (slowed down)
             float phaseOffset = uCurtainIndex * 1.5;
-            float wave1 = sin(pos.x * 0.05 + uTime * 0.8 + phaseOffset) * 8.0;
-            float wave2 = sin(pos.x * 0.1 + uTime * 1.2 + phaseOffset * 0.7) * 4.0;
-            float wave3 = snoise(vec3(pos.x * 0.02, pos.y * 0.02, uTime * 0.3 + phaseOffset)) * 12.0;
-            
-            // Bass creates vertical pulses
-            float bassWave = sin(pos.x * 0.03 + uTime * 2.0) * uBass * 15.0;
-            
-            // Mid frequencies add shimmer
-            float midShimmer = snoise(vec3(pos.x * 0.1, pos.y * 0.1, uTime * 2.0)) * uMid * 5.0;
-            
-            // Treble adds fine detail
-            float trebleDetail = snoise(vec3(pos.x * 0.3, pos.y * 0.3, uTime * 4.0)) * uTreble * 3.0;
+            float wave1 = sin(pos.x * 0.05 + uTime * 0.25 + phaseOffset) * 8.0;
+            float wave2 = sin(pos.x * 0.1 + uTime * 0.4 + phaseOffset * 0.7) * 4.0;
+            float wave3 = snoise(vec3(pos.x * 0.02, pos.y * 0.02, uTime * 0.1 + phaseOffset)) * 12.0;
+
+            // Bass creates vertical pulses (slowed)
+            float bassWave = sin(pos.x * 0.03 + uTime * 0.6) * uBass * 15.0;
+
+            // Mid frequencies add shimmer (slowed)
+            float midShimmer = snoise(vec3(pos.x * 0.1, pos.y * 0.1, uTime * 0.6)) * uMid * 5.0;
+
+            // Treble adds fine detail (slowed)
+            float trebleDetail = snoise(vec3(pos.x * 0.3, pos.y * 0.3, uTime * 1.2)) * uTreble * 3.0;
             
             // Combine waves
             float totalWave = (wave1 + wave2 + wave3 + bassWave + midShimmer + trebleDetail) * uWaveIntensity;
@@ -256,8 +251,8 @@ export class AuroraBorealisVisualization extends BaseVisualization {
             // Apply to Z position (forward/backward movement)
             pos.z += totalWave;
             
-            // Vertical ripple effect
-            float verticalWave = sin(pos.y * 0.1 + uTime * 1.5) * 3.0 * uWaveIntensity;
+            // Vertical ripple effect (slowed)
+            float verticalWave = sin(pos.y * 0.1 + uTime * 0.5) * 3.0 * uWaveIntensity;
             pos.z += verticalWave * (1.0 + uBass);
             
             // Height varies based on audio - more dramatic at top
@@ -286,12 +281,12 @@ export class AuroraBorealisVisualization extends BaseVisualization {
           void main() {
             // Vertical gradient - bright at bottom, fading to top
             float verticalGradient = 1.0 - pow(vUv.y, 0.5);
-            
-            // Horizontal variation
-            float horizontalVar = sin(vUv.x * 20.0 + uTime * 2.0) * 0.1 + 0.9;
-            
-            // Shimmer effect
-            float shimmer = sin(vUv.x * 50.0 + vUv.y * 30.0 + uTime * 5.0) * 0.1 + 0.9;
+
+            // Horizontal variation (slowed)
+            float horizontalVar = sin(vUv.x * 20.0 + uTime * 0.6) * 0.1 + 0.9;
+
+            // Shimmer effect (slowed)
+            float shimmer = sin(vUv.x * 50.0 + vUv.y * 30.0 + uTime * 1.5) * 0.1 + 0.9;
             
             // Color mixing based on height and wave
             vec3 baseColor = mix(uColor, uEmissive, vHeight * 0.5 + vWave);
@@ -333,18 +328,22 @@ export class AuroraBorealisVisualization extends BaseVisualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.scene || !this.camera || !this.rendererThree) return;
 
+    // Normalize deltaTime to seconds
+    let dt = deltaTime || 0.016;
+    if (dt > 1) dt = dt / 1000;
+    dt = Math.max(0.001, Math.min(0.1, dt));
+
     const { bass, mid, treble, volume } = audioData;
     const { sensitivity, flowSpeed } = this.config;
 
-    this.time += deltaTime * flowSpeed;
+    this.time += dt * flowSpeed;
 
     // Update bass history for smoothing
     this.bassHistory.push(bass);
     if (this.bassHistory.length > this.BASS_HISTORY_SIZE) {
       this.bassHistory.shift();
     }
-    const smoothBass =
-      this.bassHistory.reduce((a, b) => a + b, 0) / this.bassHistory.length;
+    const smoothBass = this.bassHistory.reduce((a, b) => a + b, 0) / this.bassHistory.length;
 
     // Update each curtain's shader uniforms
     for (const curtain of this.curtains) {
@@ -388,8 +387,7 @@ export class AuroraBorealisVisualization extends BaseVisualization {
     // Recreate curtains if count or colors changed
     if (
       this.scene &&
-      (this.config.curtainCount !== oldCount ||
-        this.config.colorScheme !== oldScheme)
+      (this.config.curtainCount !== oldCount || this.config.colorScheme !== oldScheme)
     ) {
       this.createCurtains();
     }
@@ -405,9 +403,7 @@ export class AuroraBorealisVisualization extends BaseVisualization {
     if (this.rendererThree) {
       this.rendererThree.dispose();
       if (this.rendererThree.domElement.parentElement) {
-        this.rendererThree.domElement.parentElement.removeChild(
-          this.rendererThree.domElement
-        );
+        this.rendererThree.domElement.parentElement.removeChild(this.rendererThree.domElement);
       }
     }
 
@@ -444,9 +440,9 @@ export class AuroraBorealisVisualization extends BaseVisualization {
       flowSpeed: {
         type: "number",
         label: "Flow Speed",
-        default: 1.0,
-        min: 0.2,
-        max: 3.0,
+        default: 0.4,
+        min: 0.1,
+        max: 2.0,
         step: 0.1,
       },
       waveIntensity: {

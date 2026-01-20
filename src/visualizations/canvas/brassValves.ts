@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface BrassValvesConfig extends VisualizationConfig {
@@ -50,15 +45,18 @@ interface SteamParticle {
 }
 
 // Steampunk color palettes
-const STEAMPUNK_PALETTES: Record<string, {
-  brass: string;
-  copper: string;
-  bronze: string;
-  iron: string;
-  steam: string;
-  glow: string;
-  rivet: string;
-}> = {
+const STEAMPUNK_PALETTES: Record<
+  string,
+  {
+    brass: string;
+    copper: string;
+    bronze: string;
+    iron: string;
+    steam: string;
+    glow: string;
+    rivet: string;
+  }
+> = {
   classic: {
     brass: "#B5A642",
     copper: "#B87333",
@@ -215,7 +213,7 @@ export class BrassValvesVisualization extends BaseVisualization {
     for (let i = 1; i < segments.length; i++) {
       totalLength += Math.hypot(
         segments[i].x - segments[i - 1].x,
-        segments[i].y - segments[i - 1].y
+        segments[i].y - segments[i - 1].y,
       );
     }
 
@@ -236,7 +234,8 @@ export class BrassValvesVisualization extends BaseVisualization {
     if (!this.ctx || !this.canvas) return;
 
     this.time += deltaTime * 0.001;
-    const { sensitivity, steamIntensity, rotationSpeed, pressureReactivity, colorScheme } = this.config;
+    const { sensitivity, steamIntensity, rotationSpeed, pressureReactivity, colorScheme } =
+      this.config;
     const { bass, mid, treble, volume } = audioData;
     const palette = STEAMPUNK_PALETTES[colorScheme] || STEAMPUNK_PALETTES.classic;
 
@@ -262,7 +261,7 @@ export class BrassValvesVisualization extends BaseVisualization {
   private updatePipes(
     palette: typeof STEAMPUNK_PALETTES.classic,
     pressureReactivity: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -271,7 +270,7 @@ export class BrassValvesVisualization extends BaseVisualization {
       // Update pressure based on mid frequencies
       pipe.pressure = 0.3 + this.midSmooth * pressureReactivity * sensitivity * 0.7;
       pipe.glowIntensity = this.midSmooth * pressureReactivity * sensitivity;
-      
+
       // Animate flow - speed based on bass
       pipe.flowOffset += (2 + this.bassSmooth * sensitivity * 8) * 0.016;
 
@@ -303,7 +302,8 @@ export class BrassValvesVisualization extends BaseVisualization {
       this.drawPipeFlow(pipe, palette, sensitivity);
 
       // Pressure glow - pulsing with bass
-      const pulseGlow = pipe.glowIntensity * (0.8 + Math.sin(this.time * 6) * 0.2 * this.bassSmooth);
+      const pulseGlow =
+        pipe.glowIntensity * (0.8 + Math.sin(this.time * 6) * 0.2 * this.bassSmooth);
       if (pulseGlow > 0.15) {
         ctx.strokeStyle = this.hexToRgba(palette.glow, pulseGlow * 0.4);
         ctx.lineWidth = 14 + this.bassSmooth * 6;
@@ -328,7 +328,7 @@ export class BrassValvesVisualization extends BaseVisualization {
   private drawPipeFlow(
     pipe: Pipe,
     palette: typeof STEAMPUNK_PALETTES.classic,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -341,7 +341,7 @@ export class BrassValvesVisualization extends BaseVisualization {
     for (let i = 0; i < particleCount; i++) {
       // Calculate position along pipe as percentage
       let t = ((i * particleSpacing + flowSpeed * 30) % pipe.totalLength) / pipe.totalLength;
-      
+
       // Get position on pipe path
       const pos = this.getPointOnPipe(pipe, t);
       if (!pos) continue;
@@ -350,7 +350,7 @@ export class BrassValvesVisualization extends BaseVisualization {
       const basePulse = Math.sin(t * Math.PI * 4 + this.time * 3) * 0.5 + 0.5;
       const audioPulse = this.midSmooth * sensitivity;
       const size = 2 + basePulse * 2 + audioPulse * 3;
-      
+
       // Alpha based on pressure and pulse
       const alpha = (0.3 + pipe.pressure * 0.4) * (0.5 + basePulse * 0.5);
 
@@ -383,7 +383,7 @@ export class BrassValvesVisualization extends BaseVisualization {
     for (let i = 1; i < pipe.segments.length; i++) {
       const segLength = Math.hypot(
         pipe.segments[i].x - pipe.segments[i - 1].x,
-        pipe.segments[i].y - pipe.segments[i - 1].y
+        pipe.segments[i].y - pipe.segments[i - 1].y,
       );
 
       if (accumulatedDist + segLength >= targetDist) {
@@ -407,7 +407,7 @@ export class BrassValvesVisualization extends BaseVisualization {
     palette: typeof STEAMPUNK_PALETTES.classic,
     rotationSpeed: number,
     pressureReactivity: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -439,7 +439,7 @@ export class BrassValvesVisualization extends BaseVisualization {
   private drawValveWheel(
     valve: ValveWheel,
     palette: typeof STEAMPUNK_PALETTES.classic,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -527,7 +527,7 @@ export class BrassValvesVisualization extends BaseVisualization {
   private drawPressureGauge(
     valve: ValveWheel,
     palette: typeof STEAMPUNK_PALETTES.classic,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -549,9 +549,10 @@ export class BrassValvesVisualization extends BaseVisualization {
     const pressureAngle = -Math.PI * 0.75 + valve.pressureLevel * Math.PI * 1.5;
     ctx.beginPath();
     ctx.arc(gaugeX, gaugeY, gaugeRadius - 3, -Math.PI * 0.75, pressureAngle);
-    ctx.strokeStyle = valve.pressureLevel > 0.7
-      ? this.hexToRgba(palette.glow, 0.7)
-      : this.hexToRgba(palette.copper, 0.6);
+    ctx.strokeStyle =
+      valve.pressureLevel > 0.7
+        ? this.hexToRgba(palette.glow, 0.7)
+        : this.hexToRgba(palette.copper, 0.6);
     ctx.lineWidth = 3;
     ctx.stroke();
 
@@ -560,14 +561,19 @@ export class BrassValvesVisualization extends BaseVisualization {
     ctx.moveTo(gaugeX, gaugeY);
     ctx.lineTo(
       gaugeX + Math.cos(pressureAngle) * (gaugeRadius - 4),
-      gaugeY + Math.sin(pressureAngle) * (gaugeRadius - 4)
+      gaugeY + Math.sin(pressureAngle) * (gaugeRadius - 4),
     );
     ctx.strokeStyle = this.hexToRgba(palette.brass, 0.8);
     ctx.lineWidth = 2;
     ctx.stroke();
   }
 
-  private drawRivet(x: number, y: number, size: number, palette: typeof STEAMPUNK_PALETTES.classic): void {
+  private drawRivet(
+    x: number,
+    y: number,
+    size: number,
+    palette: typeof STEAMPUNK_PALETTES.classic,
+  ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
 
@@ -606,7 +612,7 @@ export class BrassValvesVisualization extends BaseVisualization {
     deltaTime: number,
     palette: typeof STEAMPUNK_PALETTES.classic,
     steamIntensity: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     if (!this.ctx) return;
     const ctx = this.ctx;
@@ -650,8 +656,12 @@ export class BrassValvesVisualization extends BaseVisualization {
       const alpha = progress * 0.35 * steamIntensity;
 
       const gradient = ctx.createRadialGradient(
-        particle.x, particle.y, 0,
-        particle.x, particle.y, particle.size
+        particle.x,
+        particle.y,
+        0,
+        particle.x,
+        particle.y,
+        particle.size,
       );
       gradient.addColorStop(0, this.hexToRgba(palette.steam, alpha));
       gradient.addColorStop(0.5, this.hexToRgba(palette.steam, alpha * 0.5));

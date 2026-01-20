@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -131,7 +126,11 @@ export class AuroraWaterfallVisualization extends BaseVisualization {
     this.ctx.shadowBlur = 0;
   }
 
-  private drawRibbon(ribbon: Ribbon, volume: number, colors: { start: string; end: string; glow: string }): void {
+  private drawRibbon(
+    ribbon: Ribbon,
+    volume: number,
+    colors: { start: string; end: string; glow: string },
+  ): void {
     if (!this.ctx) return;
 
     const segments = 30;
@@ -163,8 +162,10 @@ export class AuroraWaterfallVisualization extends BaseVisualization {
 
       // Color gradient along ribbon
       const gradient = this.ctx.createLinearGradient(
-        x - currentWidth / 2, y,
-        x + currentWidth / 2, y
+        x - currentWidth / 2,
+        y,
+        x + currentWidth / 2,
+        y,
       );
 
       // Parse colors and apply alpha

@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_STRING,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_STRING, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface DigitalRainConfig extends VisualizationConfig {
   sensitivity: number;
@@ -145,7 +136,8 @@ export class DigitalRainVisualization extends BaseVisualization {
 
         // Select glyph
         const charIndex = Math.floor(Math.random() * this.chars.length);
-        const char = this.chars[charIndex] || this.glyphs[Math.floor(Math.random() * this.glyphs.length)];
+        const char =
+          this.chars[charIndex] || this.glyphs[Math.floor(Math.random() * this.glyphs.length)];
 
         // Determine color
         let charColor: string;

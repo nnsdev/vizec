@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 const COLOR_SCHEMES: Record<
@@ -152,7 +147,7 @@ export class BlackHoleVisualization extends BaseVisualization {
     particleCount: 3000,
     lensing: 1.0,
     starCount: 2000,
-    rotationSpeed: 1.0,
+    rotationSpeed: 0.4,
   };
 
   private time = 0;
@@ -361,7 +356,7 @@ export class BlackHoleVisualization extends BaseVisualization {
       const z = Math.sin(angle) * radius;
 
       // Orbital speed: faster closer to center (Keplerian)
-      const orbitalSpeed = 2.0 / Math.pow(radius / innerRadius, 1.5);
+      const orbitalSpeed = 0.8 / Math.pow(radius / innerRadius, 1.5);
 
       // Color based on radius (hotter = whiter near center)
       const color = new THREE.Color().lerpColors(innerColor, outerColor, t);
@@ -1148,9 +1143,9 @@ export class BlackHoleVisualization extends BaseVisualization {
       rotationSpeed: {
         type: "number",
         min: 0.1,
-        max: 3,
+        max: 2,
         step: 0.1,
-        default: 1.0,
+        default: 0.4,
         label: "Rotation Speed",
       },
     };

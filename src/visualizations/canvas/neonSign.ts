@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -116,7 +111,11 @@ export class NeonSignVisualization extends BaseVisualization {
     }
   }
 
-  private createWaveTube(points: Array<{ x: number; y: number }>, centerX: number, centerY: number): void {
+  private createWaveTube(
+    points: Array<{ x: number; y: number }>,
+    centerX: number,
+    centerY: number,
+  ): void {
     const waveWidth = this.width * 0.6;
     const segments = 20;
 
@@ -128,7 +127,13 @@ export class NeonSignVisualization extends BaseVisualization {
     }
   }
 
-  private createArcTube(points: Array<{ x: number; y: number }>, cx: number, cy: number, radius: number, index: number): void {
+  private createArcTube(
+    points: Array<{ x: number; y: number }>,
+    cx: number,
+    cy: number,
+    radius: number,
+    index: number,
+  ): void {
     const startAngle = Math.PI * 0.2 + index * 0.3;
     const endAngle = Math.PI * 0.8 + index * 0.3;
     const segments = 20;
@@ -143,7 +148,11 @@ export class NeonSignVisualization extends BaseVisualization {
     }
   }
 
-  private createZigzagTube(points: Array<{ x: number; y: number }>, centerX: number, centerY: number): void {
+  private createZigzagTube(
+    points: Array<{ x: number; y: number }>,
+    centerX: number,
+    centerY: number,
+  ): void {
     const width = this.width * 0.5;
     const height = 40;
     const zigzags = 5;
@@ -155,7 +164,12 @@ export class NeonSignVisualization extends BaseVisualization {
     }
   }
 
-  private createSpiralTube(points: Array<{ x: number; y: number }>, cx: number, cy: number, index: number): void {
+  private createSpiralTube(
+    points: Array<{ x: number; y: number }>,
+    cx: number,
+    cy: number,
+    index: number,
+  ): void {
     const segments = 30;
     const startRadius = 30;
     const endRadius = 100;

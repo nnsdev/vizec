@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -53,7 +48,7 @@ export class TrafficTrailsVisualization extends BaseVisualization {
     verticalSpread: 0.6,
     perspective: true,
   };
-  
+
   private width = 0;
   private height = 0;
   private lights: TrafficLight[] = [];
@@ -80,29 +75,37 @@ export class TrafficTrailsVisualization extends BaseVisualization {
     if (!this.ctx || !this.canvas) return;
 
     const { bass, treble, mid, volume } = audioData;
-    const { sensitivity, speedMultiplier, density, trailLength, verticalSpread, perspective, colorScheme } = this.config;
+    const {
+      sensitivity,
+      speedMultiplier,
+      density,
+      trailLength,
+      verticalSpread,
+      perspective,
+      colorScheme,
+    } = this.config;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
     this.ctx.clearRect(0, 0, this.width, this.height);
-    
+
     // Spawn logic
     // Bass triggers "tail lights" (usually red/warm - moving away/right)
     // Treble/Mid triggers "head lights" (usually white/cool - moving close/left)
-    
+
     this.spawnTimer += deltaTime;
-    
+
     // Normalize spawn rate based on density
     const spawnThreshold = 0.05 / density;
-    
+
     if (this.spawnTimer > spawnThreshold) {
       this.spawnTimer = 0;
-      
+
       // Calculate spawn probability based on audio
       // Bass is punchy, so it spawns bursts
       if (Math.random() < bass * sensitivity) {
         this.spawnLight(1, colors.end, bass); // Tail light (right)
       }
-      
+
       // Treble is continuous, spawns stream
       if (Math.random() < (treble * 1.5 + mid * 0.5) * sensitivity) {
         this.spawnLight(-1, colors.start, (treble + mid) / 2); // Head light (left)
@@ -118,28 +121,27 @@ export class TrafficTrailsVisualization extends BaseVisualization {
     // Top half: maybe sky? Or we just draw roads on bottom half?
     // "Cityscapes" usually implies we look at a road.
     // Let's use full height or Configurable spread.
-    
+
     const centerY = this.height / 2;
     // Horizon is at centerY
 
-
     // Filter out dead lights
-    this.lights = this.lights.filter(light => {
+    this.lights = this.lights.filter((light) => {
       // Update position
       // Speed scales with audio volume slightly for "turbo boost" feel
-      const boost = 1 + (volume * 0.5 * sensitivity);
+      const boost = 1 + volume * 0.5 * sensitivity;
       light.x += light.speed * light.direction * speedMultiplier * boost * (deltaTime * 60);
 
       // Draw
-      
+
       // Perspective calculations
       let renderY = light.y;
       let renderH = light.thickness;
       let renderX = light.x;
       let renderL = light.length * trailLength * (1 + light.speed * 0.1);
-      
+
       if (perspective) {
-        // Simple perspective: 
+        // Simple perspective:
         // objects closer to horizon (y=0 relative to horizon) are smaller and slower visually?
         // Actually we spawned them with Z.
         // Let's treat 'y' as the Z-depth in a way, or just screen Y.
@@ -149,23 +151,23 @@ export class TrafficTrailsVisualization extends BaseVisualization {
         // "Traffic Trails" usually means side view or angled side view.
         // Let's stick to Side View / Isometric-ish for maximum "Trail" effect across screen.
         // It's cleaner for an overlay.
-        
+
         // So:
         // Top of road (horizon) = slower, smaller, dimmer (far away)
         // Bottom of road = faster, bigger, brighter (close)
-        
+
         // We normalized Y to -1 to 1 range during spawn relative to center?
         // Let's say light.z is 0(far) to 1(close).
-        
+
         // The renderY needs to be calculated from Z.
         // If z=0 (horizon), y = horizonY.
         // If z=1 (close), y = height.
         // But we want to center it.
-        
+
         const roadHeight = this.height * verticalSpread;
         const yOffset = (light.z - 0.5) * roadHeight; // -0.5h to 0.5h
         renderY = centerY + yOffset;
-        
+
         // Scale size by Z (perspective)
         // Far (low z) -> small. Close (high z) -> big.
         // Actually let's just use light.z directly as simple depth scale
@@ -173,31 +175,36 @@ export class TrafficTrailsVisualization extends BaseVisualization {
         const scale = 0.5 + light.z * 1.5; // 0.5x to 2.0x
         renderH *= scale;
         renderL *= scale;
-        
+
         // Parallax speed
         // We already set speed based on Z in spawnLight, so x update is correct.
       }
 
       this.ctx!.fillStyle = light.color;
       this.ctx!.globalAlpha = light.alpha;
-      
+
       // Draw a rounded rect or just a rect with gradient trail
       // Trail should fade out at the tail.
       // Direction 1 (Right): Tail is left. Gradient Right(Opaque) -> Left(Transparent)
       // Direction -1 (Left): Tail is right. Gradient Left(Opaque) -> Right(Transparent)
-      
-      const grad = this.ctx!.createLinearGradient(renderX, 0, renderX + (renderL * -light.direction), 0);
+
+      const grad = this.ctx!.createLinearGradient(
+        renderX,
+        0,
+        renderX + renderL * -light.direction,
+        0,
+      );
       grad.addColorStop(0, light.color);
       grad.addColorStop(1, "rgba(0,0,0,0)");
-      
+
       this.ctx!.fillStyle = grad;
-      
+
       // To avoid "sharp" look, use a thin rect
       this.ctx!.fillRect(
-        light.direction === 1 ? renderX - renderL : renderX, 
-        renderY - renderH / 2, 
-        renderL, 
-        renderH
+        light.direction === 1 ? renderX - renderL : renderX,
+        renderY - renderH / 2,
+        renderL,
+        renderH,
       );
 
       // Check bounds
@@ -205,7 +212,7 @@ export class TrafficTrailsVisualization extends BaseVisualization {
       // If moving left (-1): remove if x < -length
       if (light.direction === 1 && light.x - renderL > this.width) return false;
       if (light.direction === -1 && light.x + renderL < 0) return false;
-      
+
       return true;
     });
 
@@ -213,39 +220,39 @@ export class TrafficTrailsVisualization extends BaseVisualization {
   }
 
   private spawnLight(direction: 1 | -1, color: string, intensity: number): void {
-     // Z determines "depth" (0=far, 1=close)
-     // Random Z, but bias towards density? Uniform is fine.
-     const z = Math.random(); 
-     
-     // Y offset is derived from Z in render, or we just store Z.
-     
-     // Speed: Closer objects appear faster.
-     // Base speed + Z boost
-     const baseSpeed = 10 + Math.random() * 5;
-     const zSpeed = baseSpeed * (0.5 + z * 1.5); // Far=Slow, Close=Fast
-     
-     // Start Position
-     // Right (1): Start at -length (left side)
-     // Left (-1): Start at width + length (right side)
-     const startX = direction === 1 ? -100 : this.width + 100;
+    // Z determines "depth" (0=far, 1=close)
+    // Random Z, but bias towards density? Uniform is fine.
+    const z = Math.random();
 
-     // Thickness
-     const thickness = 2 + intensity * 4; // Louder = thicker lights
-     
-     // Length
-     const length = 50 + Math.random() * 100 + (intensity * 100);
+    // Y offset is derived from Z in render, or we just store Z.
 
-     this.lights.push({
-       x: startX,
-       y: 0, // Calculated in render based on Z
-       z,
-       speed: zSpeed,
-       length,
-       color,
-       direction,
-       thickness,
-       alpha: 0.5 + Math.random() * 0.5
-     });
+    // Speed: Closer objects appear faster.
+    // Base speed + Z boost
+    const baseSpeed = 10 + Math.random() * 5;
+    const zSpeed = baseSpeed * (0.5 + z * 1.5); // Far=Slow, Close=Fast
+
+    // Start Position
+    // Right (1): Start at -length (left side)
+    // Left (-1): Start at width + length (right side)
+    const startX = direction === 1 ? -100 : this.width + 100;
+
+    // Thickness
+    const thickness = 2 + intensity * 4; // Louder = thicker lights
+
+    // Length
+    const length = 50 + Math.random() * 100 + intensity * 100;
+
+    this.lights.push({
+      x: startX,
+      y: 0, // Calculated in render based on Z
+      z,
+      speed: zSpeed,
+      length,
+      color,
+      direction,
+      thickness,
+      alpha: 0.5 + Math.random() * 0.5,
+    });
   }
 
   resize(width: number, height: number): void {

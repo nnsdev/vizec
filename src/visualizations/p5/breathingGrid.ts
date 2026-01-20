@@ -1,10 +1,5 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface BreathingGridConfig extends VisualizationConfig {
@@ -26,10 +21,13 @@ interface GridDot {
 }
 
 // Minimalist color palettes (single or dual color)
-const MINIMALIST_PALETTES: Record<string, {
-  primary: string;
-  secondary: string;
-}> = {
+const MINIMALIST_PALETTES: Record<
+  string,
+  {
+    primary: string;
+    secondary: string;
+  }
+> = {
   mono: {
     primary: "#FFFFFF",
     secondary: "#FFFFFF",
@@ -196,7 +194,7 @@ export class BreathingGridVisualization extends BaseVisualization {
     p: p5,
     palette: { primary: string; secondary: string },
     dotSizeRange: number,
-    sensitivity: number
+    sensitivity: number,
   ): void {
     // Calculate distance from wave origin
     const dx = dot.baseX - this.waveOrigin.x;
@@ -211,10 +209,12 @@ export class BreathingGridVisualization extends BaseVisualization {
     const bassWave = Math.sin(this.time * 2 - dot.distance * 0.01) * this.bassSmooth * sensitivity;
 
     // Mid creates horizontal wave
-    const midWave = Math.sin(this.time * 1.5 + dot.baseX * 0.02) * this.midSmooth * sensitivity * 0.5;
+    const midWave =
+      Math.sin(this.time * 1.5 + dot.baseX * 0.02) * this.midSmooth * sensitivity * 0.5;
 
     // Treble adds shimmer
-    const trebleShimmer = Math.sin(this.time * 8 + dot.phase * 10) * this.trebleSmooth * sensitivity * 0.3;
+    const trebleShimmer =
+      Math.sin(this.time * 8 + dot.phase * 10) * this.trebleSmooth * sensitivity * 0.3;
 
     // Calculate size
     const sizeMultiplier = 1 + (wave * 0.5 + bassWave * 0.3 + trebleShimmer * 0.2) * dotSizeRange;
@@ -255,10 +255,10 @@ export class BreathingGridVisualization extends BaseVisualization {
   private drawConnections(
     p: p5,
     palette: { primary: string; secondary: string },
-    sensitivity: number
+    sensitivity: number,
   ): void {
     const { gridSize } = this.config;
-    const connectDistance = Math.max(this.width, this.height) / gridSize * 1.5;
+    const connectDistance = (Math.max(this.width, this.height) / gridSize) * 1.5;
 
     p.strokeWeight(0.5);
 
@@ -272,7 +272,10 @@ export class BreathingGridVisualization extends BaseVisualization {
       // Right neighbor
       if (col < gridSize - 1) {
         const rightNeighbor = this.dots[i + 1];
-        const dist = Math.hypot(dot.currentX - rightNeighbor.currentX, dot.currentY - rightNeighbor.currentY);
+        const dist = Math.hypot(
+          dot.currentX - rightNeighbor.currentX,
+          dot.currentY - rightNeighbor.currentY,
+        );
         const alpha = (1 - dist / connectDistance) * 0.15 * this.trebleSmooth * sensitivity;
 
         if (alpha > 0.02) {
@@ -286,7 +289,10 @@ export class BreathingGridVisualization extends BaseVisualization {
       // Bottom neighbor
       if (row < gridSize - 1) {
         const bottomNeighbor = this.dots[i + gridSize];
-        const dist = Math.hypot(dot.currentX - bottomNeighbor.currentX, dot.currentY - bottomNeighbor.currentY);
+        const dist = Math.hypot(
+          dot.currentX - bottomNeighbor.currentX,
+          dot.currentY - bottomNeighbor.currentY,
+        );
         const alpha = (1 - dist / connectDistance) * 0.15 * this.trebleSmooth * sensitivity;
 
         if (alpha > 0.02) {

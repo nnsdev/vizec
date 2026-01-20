@@ -6,11 +6,7 @@ import type {
   VisualizationMeta,
   WordEvent,
 } from "../types";
-import {
-  COLOR_SCHEME_OPTIONS,
-  COLOR_SCHEMES_STRING,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEME_OPTIONS, COLOR_SCHEMES_STRING, getColorScheme } from "../shared/colorSchemes";
 
 interface KaraokeGlowConfig extends VisualizationConfig {
   sensitivity: number;
@@ -62,7 +58,10 @@ export class KaraokeGlowVisualization extends BaseVisualization {
 
     this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
-    this.resize(container.clientWidth || window.innerWidth, container.clientHeight || window.innerHeight);
+    this.resize(
+      container.clientWidth || window.innerWidth,
+      container.clientHeight || window.innerHeight,
+    );
   }
 
   render(audioData: AudioData, deltaTime: number): void {
@@ -193,8 +192,7 @@ export class KaraokeGlowVisualization extends BaseVisualization {
     const activeWord = currentWord || (recent.length ? recent[recent.length - 1].word : null);
     const trailWords = activeWord ? recent.filter((word) => word.word !== activeWord) : recent;
 
-    const baseY =
-      this.height * 0.65 + Math.sin(this.time * 0.6) * this.config.waveHeight * 0.2;
+    const baseY = this.height * 0.65 + Math.sin(this.time * 0.6) * this.config.waveHeight * 0.2;
     const trailFont = this.config.fontSize * 0.55;
     const spacing = trailFont * 0.35;
 

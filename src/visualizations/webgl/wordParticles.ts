@@ -7,11 +7,8 @@ import {
   WordEvent,
 } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_HEX,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_HEX, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
+import { SIGN_WORDS } from "../shared/words";
 
 interface WordParticle {
   sprite: THREE.Sprite;
@@ -47,14 +44,16 @@ export class WordParticlesVisualization extends BaseVisualization {
   private config: WordParticlesConfig = {
     sensitivity: 1,
     colorScheme: "cyanMagenta",
-    particleCount: 26,
-    size: 1,
+    particleCount: 60,
+    size: 14,
     drift: 1,
   };
   private width = 0;
   private height = 0;
   private time = 0;
   private seen = new Set<string>();
+  private demoWordIndex = 0;
+  private lastDemoSpawn = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
     this.container = container;
@@ -80,11 +79,19 @@ export class WordParticlesVisualization extends BaseVisualization {
   render(audioData: AudioData, deltaTime: number): void {
     if (!this.scene || !this.camera || !this.rendererThree) return;
 
-    this.time += deltaTime;
+    // Normalize deltaTime to seconds
+    let dt = deltaTime || 0.016;
+    if (dt > 1) dt = dt / 1000;
+    dt = Math.max(0.001, Math.min(0.1, dt));
+
+    this.time += dt;
 
     const speech = audioData.speech;
     if (speech?.isActive) {
       this.ingestWords(speech.recentWords);
+    } else {
+      // Demo mode: spawn words on bass hits when no speech data
+      this.spawnDemoWords(audioData, dt);
     }
 
     const { bass, treble, volume } = audioData;
@@ -92,8 +99,8 @@ export class WordParticlesVisualization extends BaseVisualization {
 
     this.particles.forEach((particle) => {
       const material = particle.sprite.material as THREE.SpriteMaterial;
-      particle.age += deltaTime;
-      particle.sprite.position.addScaledVector(particle.velocity, deltaTime);
+      particle.age += dt;
+      particle.sprite.position.addScaledVector(particle.velocity, dt);
       particle.sprite.position.y += Math.sin(this.time * 1.5 + particle.sprite.position.x) * 0.2;
       material.opacity = this.fade(particle.age / particle.maxAge, volume);
       particle.sprite.scale.setScalar(this.config.size * (1 + beat * 0.4));
@@ -157,18 +164,18 @@ export class WordParticlesVisualization extends BaseVisualization {
       particleCount: {
         type: "number",
         label: "Max Particles",
-        default: 26,
-        min: 8,
-        max: 60,
-        step: 1,
+        default: 60,
+        min: 20,
+        max: 100,
+        step: 5,
       },
       size: {
         type: "number",
         label: "Size",
-        default: 1,
-        min: 0.4,
-        max: 2.5,
-        step: 0.1,
+        default: 14,
+        min: 10,
+        max: 24,
+        step: 1,
       },
       drift: {
         type: "number",
@@ -179,6 +186,42 @@ export class WordParticlesVisualization extends BaseVisualization {
         step: 0.1,
       },
     };
+  }
+
+  private spawnDemoWords(audioData: AudioData, dt: number): void {
+    const { bass, volume } = audioData;
+
+    // dt is already normalized by render()
+    this.lastDemoSpawn += dt;
+
+    // Spawn on bass hits with cooldown (very low threshold)
+    const threshold = 0.05 / this.config.sensitivity;
+    const cooldown = 0.08;
+
+    if (bass > threshold && this.lastDemoSpawn > cooldown) {
+      const word = SIGN_WORDS[this.demoWordIndex];
+      this.demoWordIndex = (this.demoWordIndex + 1) % SIGN_WORDS.length;
+      this.spawnWord(word);
+      this.lastDemoSpawn = 0;
+      return;
+    }
+
+    // Also spawn periodically on any audio activity
+    if (volume > 0.05 && this.lastDemoSpawn > 0.15) {
+      const word = SIGN_WORDS[this.demoWordIndex];
+      this.demoWordIndex = (this.demoWordIndex + 1) % SIGN_WORDS.length;
+      this.spawnWord(word);
+      this.lastDemoSpawn = 0;
+      return;
+    }
+
+    // Fallback: spawn periodically even with no audio (attract mode)
+    if (this.lastDemoSpawn > 0.25) {
+      const word = SIGN_WORDS[this.demoWordIndex];
+      this.demoWordIndex = (this.demoWordIndex + 1) % SIGN_WORDS.length;
+      this.spawnWord(word);
+      this.lastDemoSpawn = 0;
+    }
   }
 
   private ingestWords(words: WordEvent[]): void {
@@ -238,7 +281,7 @@ export class WordParticlesVisualization extends BaseVisualization {
 
   private createSprite(text: string, color: number): THREE.Sprite {
     const canvas = document.createElement("canvas");
-    const size = 256;
+    const size = 512;
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext("2d");
@@ -246,15 +289,48 @@ export class WordParticlesVisualization extends BaseVisualization {
       return new THREE.Sprite(new THREE.SpriteMaterial({ color }));
     }
 
+    const colorHex = `#${color.toString(16).padStart(6, "0")}`;
+
     ctx.clearRect(0, 0, size, size);
+
+    // Measure text to create border box
+    ctx.font = `bold 72px Arial`;
+    const metrics = ctx.measureText(text);
+    const textWidth = metrics.width;
+    const textHeight = 72;
+    const padding = 20;
+    const boxWidth = textWidth + padding * 2;
+    const boxHeight = textHeight + padding * 2;
+    const boxX = (size - boxWidth) / 2;
+    const boxY = (size - boxHeight) / 2;
+
+    // Draw border box with glow
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = colorHex;
+    ctx.strokeStyle = colorHex;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+
+    // Draw corner accents
+    const cornerSize = 12;
+    ctx.fillStyle = colorHex;
+    ctx.fillRect(boxX - 2, boxY - 2, cornerSize, 4);
+    ctx.fillRect(boxX - 2, boxY - 2, 4, cornerSize);
+    ctx.fillRect(boxX + boxWidth - cornerSize + 2, boxY - 2, cornerSize, 4);
+    ctx.fillRect(boxX + boxWidth - 2, boxY - 2, 4, cornerSize);
+    ctx.fillRect(boxX - 2, boxY + boxHeight - 2, cornerSize, 4);
+    ctx.fillRect(boxX - 2, boxY + boxHeight - cornerSize + 2, 4, cornerSize);
+    ctx.fillRect(boxX + boxWidth - cornerSize + 2, boxY + boxHeight - 2, cornerSize, 4);
+    ctx.fillRect(boxX + boxWidth - 2, boxY + boxHeight - cornerSize + 2, 4, cornerSize);
+
+    // Draw text
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `bold 64px Arial`;
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = `#${color.toString(16).padStart(6, "0")}`;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = colorHex;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = colorHex;
     ctx.fillStyle = "white";
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = ctx.strokeStyle;
     ctx.strokeText(text, size / 2, size / 2);
     ctx.fillText(text, size / 2, size / 2);
 

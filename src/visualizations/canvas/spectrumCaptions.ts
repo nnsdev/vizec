@@ -6,11 +6,7 @@ import type {
   VisualizationMeta,
   WordEvent,
 } from "../types";
-import {
-  COLOR_SCHEME_OPTIONS,
-  COLOR_SCHEMES_STRING,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEME_OPTIONS, COLOR_SCHEMES_STRING, getColorScheme } from "../shared/colorSchemes";
 
 interface SpectrumCaptionsConfig extends VisualizationConfig {
   sensitivity: number;
@@ -64,7 +60,10 @@ export class SpectrumCaptionsVisualization extends BaseVisualization {
 
     this.ctx = this.canvas.getContext("2d");
     this.updateConfig(config);
-    this.resize(container.clientWidth || window.innerWidth, container.clientHeight || window.innerHeight);
+    this.resize(
+      container.clientWidth || window.innerWidth,
+      container.clientHeight || window.innerHeight,
+    );
   }
 
   render(audioData: AudioData, deltaTime: number): void {
@@ -199,7 +198,8 @@ export class SpectrumCaptionsVisualization extends BaseVisualization {
     const colors = getColorScheme(COLOR_SCHEMES_STRING, this.config.colorScheme);
     const now = Date.now();
     const maxAge = 8000;
-    const activeWord = currentWord ?? (recentWords.length ? recentWords[recentWords.length - 1].word : null);
+    const activeWord =
+      currentWord ?? (recentWords.length ? recentWords[recentWords.length - 1].word : null);
     const filtered = recentWords.filter((word) => now - word.timestamp < maxAge);
     const trail = filtered.slice(-this.config.trailLength);
 

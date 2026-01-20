@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface CoralReefConfig extends VisualizationConfig {
   coralCount: number;
@@ -163,7 +154,10 @@ export class CoralReefVisualization extends BaseVisualization {
     this.drawLightRays(p, colors);
   }
 
-  private drawSeafloor(p: p5, colors: { primary: string; secondary: string; accent: string }): void {
+  private drawSeafloor(
+    p: p5,
+    colors: { primary: string; secondary: string; accent: string },
+  ): void {
     const floorY = this.height * 0.85;
 
     p.noStroke();
@@ -235,7 +229,7 @@ export class CoralReefVisualization extends BaseVisualization {
         p.vertex(startX, startY);
         p.vertex(
           startX + Math.sin(subAngle) * subLength + branchSway * 0.5,
-          startY - subLength * 0.8
+          startY - subLength * 0.8,
         );
         p.endShape();
       }
@@ -272,7 +266,12 @@ export class CoralReefVisualization extends BaseVisualization {
     for (let i = 0; i < 8; i++) {
       const t = i / 7;
       const angle = -Math.PI / 2 + (t - 0.5) * Math.PI * 0.5;
-      p.line(0, 0, Math.cos(angle) * coral.height * 0.7 + sway, -Math.sin(-angle) * coral.height * 0.8);
+      p.line(
+        0,
+        0,
+        Math.cos(angle) * coral.height * 0.7 + sway,
+        -Math.sin(-angle) * coral.height * 0.8,
+      );
     }
   }
 
@@ -295,14 +294,20 @@ export class CoralReefVisualization extends BaseVisualization {
       p.beginShape();
       p.vertex(offsetX - tubeWidth, 0);
       p.bezierVertex(
-        offsetX - tubeWidth + tubeSway * 0.3, -tubeHeight * 0.3,
-        offsetX - tubeWidth * 0.8 + tubeSway * 0.6, -tubeHeight * 0.7,
-        offsetX + tubeSway, -tubeHeight
+        offsetX - tubeWidth + tubeSway * 0.3,
+        -tubeHeight * 0.3,
+        offsetX - tubeWidth * 0.8 + tubeSway * 0.6,
+        -tubeHeight * 0.7,
+        offsetX + tubeSway,
+        -tubeHeight,
       );
       p.bezierVertex(
-        offsetX + tubeWidth * 0.8 + tubeSway * 0.6, -tubeHeight * 0.7,
-        offsetX + tubeWidth + tubeSway * 0.3, -tubeHeight * 0.3,
-        offsetX + tubeWidth, 0
+        offsetX + tubeWidth * 0.8 + tubeSway * 0.6,
+        -tubeHeight * 0.7,
+        offsetX + tubeWidth + tubeSway * 0.3,
+        -tubeHeight * 0.3,
+        offsetX + tubeWidth,
+        0,
       );
       p.endShape(p.CLOSE);
 
@@ -353,7 +358,7 @@ export class CoralReefVisualization extends BaseVisualization {
       -fish.size * 1.5,
       -fish.size * 0.5,
       -fish.size * 1.5,
-      fish.size * 0.5
+      fish.size * 0.5,
     );
 
     // Eye
@@ -365,7 +370,10 @@ export class CoralReefVisualization extends BaseVisualization {
     p.pop();
   }
 
-  private drawLightRays(p: p5, colors: { primary: string; secondary: string; accent: string }): void {
+  private drawLightRays(
+    p: p5,
+    colors: { primary: string; secondary: string; accent: string },
+  ): void {
     const rayCount = 5;
     const rayColor = p.color(colors.accent);
     rayColor.setAlpha(20 + this.smoothedBass * 20);
@@ -407,10 +415,10 @@ export class CoralReefVisualization extends BaseVisualization {
 
     this.config = { ...this.config, ...config } as CoralReefConfig;
 
-    if (this.p5Instance && (
-      this.config.coralCount !== oldCoralCount ||
-      this.config.fishCount !== oldFishCount
-    )) {
+    if (
+      this.p5Instance &&
+      (this.config.coralCount !== oldCoralCount || this.config.fishCount !== oldFishCount)
+    ) {
       this.initCorals(this.p5Instance);
       this.initFish(this.p5Instance);
     }

@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface BubbleRiseConfig extends VisualizationConfig {
   maxBubbles: number;
@@ -154,7 +145,11 @@ export class BubbleRiseVisualization extends BaseVisualization {
     }
   }
 
-  private drawBubble(p: p5, bubble: Bubble, colors: { primary: string; secondary: string; accent: string }): void {
+  private drawBubble(
+    p: p5,
+    bubble: Bubble,
+    colors: { primary: string; secondary: string; accent: string },
+  ): void {
     p.push();
     p.translate(bubble.x, bubble.y);
 
@@ -189,12 +184,7 @@ export class BubbleRiseVisualization extends BaseVisualization {
     // Secondary smaller highlight
     highlightColor.setAlpha(100);
     p.fill(highlightColor);
-    p.ellipse(
-      highlightX + size * 0.15,
-      highlightY + size * 0.1,
-      size * 0.1,
-      size * 0.08
-    );
+    p.ellipse(highlightX + size * 0.15, highlightY + size * 0.1, size * 0.1, size * 0.08);
 
     // Refraction effect - color shift at bottom
     const refractionColor = p.color(colors.accent);

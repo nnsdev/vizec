@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -148,10 +143,7 @@ export class ManholeSteamVisualization extends BaseVisualization {
         }
 
         // Draw steam particle
-        const gradient = this.ctx!.createRadialGradient(
-          p.x, p.y, 0,
-          p.x, p.y, p.size
-        );
+        const gradient = this.ctx!.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
         gradient.addColorStop(0, `rgba(200, 210, 220, ${p.alpha})`);
         gradient.addColorStop(0.5, `rgba(180, 190, 200, ${p.alpha * 0.5})`);
         gradient.addColorStop(1, "rgba(160, 170, 180, 0)");
@@ -165,17 +157,24 @@ export class ManholeSteamVisualization extends BaseVisualization {
       // Draw glow from below on bass
       if (bass > 0.4) {
         const glowGradient = this.ctx.createRadialGradient(
-          manhole.x, manhole.y, 0,
-          manhole.x, manhole.y, manhole.radius * 2
+          manhole.x,
+          manhole.y,
+          0,
+          manhole.x,
+          manhole.y,
+          manhole.radius * 2,
         );
-        glowGradient.addColorStop(0, `rgba(${this.hexToRgb(colors.end)}, ${bass * 0.3 * sensitivity})`);
+        glowGradient.addColorStop(
+          0,
+          `rgba(${this.hexToRgb(colors.end)}, ${bass * 0.3 * sensitivity})`,
+        );
         glowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
         this.ctx.fillStyle = glowGradient;
         this.ctx.fillRect(
           manhole.x - manhole.radius * 2,
           manhole.y - manhole.radius * 2,
           manhole.radius * 4,
-          manhole.radius * 4
+          manhole.radius * 4,
         );
       }
     }
@@ -184,7 +183,7 @@ export class ManholeSteamVisualization extends BaseVisualization {
     if (mid > 0.3) {
       this.ctx.globalAlpha = mid * 0.2;
       for (let i = 0; i < 3; i++) {
-        const wx = (this.time * 30 * (i + 1) + i * 500) % (this.width + 200) - 100;
+        const wx = ((this.time * 30 * (i + 1) + i * 500) % (this.width + 200)) - 100;
         const wy = this.height * 0.6 + Math.sin(this.time + i) * 50;
         const wSize = 80 + Math.sin(this.time * 2 + i) * 20;
 

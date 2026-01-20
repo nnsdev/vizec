@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -109,7 +104,7 @@ export class DotWaveVisualization extends BaseVisualization {
 
         // Distance from center row affects wave propagation
         const centerRow = rows / 2;
-        const rowFactor = 1 - Math.abs(row - centerRow) / centerRow * 0.5;
+        const rowFactor = 1 - (Math.abs(row - centerRow) / centerRow) * 0.5;
 
         // Y displacement based on waveform
         const displacement = waveValue * gridSize * 2 * rowFactor;

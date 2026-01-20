@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_STRING,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_STRING, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface HarmonicVortexConfig extends VisualizationConfig {
   sensitivity: number;
@@ -122,7 +113,9 @@ export class HarmonicVortexVisualization extends BaseVisualization {
         const segmentRadius = t * maxRadius;
 
         // Get frequency data for this segment
-        const freqIndex = Math.floor(t * frequencyData.length * 0.5 + (arm / armCount) * frequencyData.length * 0.3);
+        const freqIndex = Math.floor(
+          t * frequencyData.length * 0.5 + (arm / armCount) * frequencyData.length * 0.3,
+        );
         const freqValue = frequencyData[freqIndex] / 255;
 
         // Calculate segment properties
@@ -140,10 +133,7 @@ export class HarmonicVortexVisualization extends BaseVisualization {
         this.ctx.lineCap = "round";
 
         this.ctx.beginPath();
-        this.ctx.moveTo(
-          Math.cos(twist) * segmentRadius,
-          Math.sin(twist) * segmentRadius,
-        );
+        this.ctx.moveTo(Math.cos(twist) * segmentRadius, Math.sin(twist) * segmentRadius);
         this.ctx.lineTo(
           Math.cos(twist) * (segmentRadius + segmentLength),
           Math.sin(twist) * (segmentRadius + segmentLength),
@@ -155,10 +145,7 @@ export class HarmonicVortexVisualization extends BaseVisualization {
         this.ctx.lineWidth = segmentWidth * 0.5;
         this.ctx.strokeStyle = glowColor;
         this.ctx.beginPath();
-        this.ctx.moveTo(
-          Math.cos(twist) * segmentRadius,
-          Math.sin(twist) * segmentRadius,
-        );
+        this.ctx.moveTo(Math.cos(twist) * segmentRadius, Math.sin(twist) * segmentRadius);
         this.ctx.lineTo(
           Math.cos(twist) * (segmentRadius + segmentLength),
           Math.sin(twist) * (segmentRadius + segmentLength),

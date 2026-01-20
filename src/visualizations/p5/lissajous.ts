@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface LissajousConfig extends VisualizationConfig {
   lineCount: number;
@@ -63,6 +54,7 @@ export class LissajousVisualization extends BaseVisualization {
   private time = 0;
 
   private currentDeltaTime = 0.016;
+  private frameCount = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
     this.container = container;
@@ -142,7 +134,7 @@ export class LissajousVisualization extends BaseVisualization {
 
     const centerX = this.width / 2;
     const centerY = this.height / 2;
-    const amplitude = Math.min(this.width, this.height) * 0.35;
+    const amplitude = Math.min(this.width, this.height) * 0.4;
 
     // Default audio values if no data
     let bass = 0.5;
@@ -202,7 +194,7 @@ export class LissajousVisualization extends BaseVisualization {
 
           // Calculate alpha based on age (newer = more opaque)
           const ageProgress = point.age / trailLength;
-          const alpha = (1 - ageProgress) * 60;
+          const alpha = (1 - ageProgress) * 85;
 
           // Color gradient along trail
           const colorProgress = (i / curve.trail.length + curve.colorOffset) % 1;
@@ -214,8 +206,8 @@ export class LissajousVisualization extends BaseVisualization {
           strokeColor.setAlpha(alpha);
           p.stroke(strokeColor);
 
-          // Line width varies with volume and trail position
-          const lineWidth = (1 + volume * 2) * (1 - ageProgress * 0.5);
+          // Line width varies with volume and trail position - thicker
+          const lineWidth = (2 + volume * 4) * (1 - ageProgress * 0.4);
           p.strokeWeight(lineWidth);
 
           p.line(prevPoint.x, prevPoint.y, point.x, point.y);
@@ -225,28 +217,36 @@ export class LissajousVisualization extends BaseVisualization {
       // Draw glow at current point
       if (curve.trail.length > 0) {
         const current = curve.trail[curve.trail.length - 1];
-        const glowColor = p.color(colors.accent);
-        glowColor.setAlpha(40 + volume * 30);
-        p.fill(glowColor);
-        p.noStroke();
 
-        const glowSize = 6 + volume * 10;
+        // Outer glow
+        const outerGlow = p.color(colors.accent);
+        outerGlow.setAlpha(25 + volume * 20);
+        p.fill(outerGlow);
+        p.noStroke();
+        const outerSize = 20 + volume * 25;
+        p.ellipse(current.x, current.y, outerSize, outerSize);
+
+        // Main glow
+        const glowColor = p.color(colors.accent);
+        glowColor.setAlpha(55 + volume * 35);
+        p.fill(glowColor);
+        const glowSize = 10 + volume * 15;
         p.ellipse(current.x, current.y, glowSize, glowSize);
 
         // Inner bright core
         const coreColor = p.color(colors.accent);
-        coreColor.setAlpha(70);
+        coreColor.setAlpha(90);
         p.fill(coreColor);
-        p.ellipse(current.x, current.y, glowSize * 0.4, glowSize * 0.4);
+        p.ellipse(current.x, current.y, glowSize * 0.35, glowSize * 0.35);
       }
     }
 
     // Draw center reference point
     const centerColor = p.color(colors.primary);
-    centerColor.setAlpha(20 + bass * 20);
+    centerColor.setAlpha(30 + bass * 30);
     p.fill(centerColor);
     p.noStroke();
-    const centerSize = 10 + bass * sensitivity * 15;
+    const centerSize = 12 + bass * sensitivity * 20;
     p.ellipse(0, 0, centerSize, centerSize);
 
     p.pop();
@@ -254,7 +254,19 @@ export class LissajousVisualization extends BaseVisualization {
 
   render(audioData: AudioData, deltaTime: number): void {
     this.currentAudioData = audioData;
-    this.currentDeltaTime = deltaTime || 0.016;
+    this.frameCount++;
+
+    // Skip first few frames which can have bad deltaTime
+    if (this.frameCount < 3) {
+      this.currentDeltaTime = 0.016;
+      return;
+    }
+
+    // Clamp deltaTime to reasonable range (0.001 to 0.05 seconds)
+    // Handles both millisecond and second formats
+    let dt = deltaTime || 0.016;
+    if (dt > 1) dt = dt / 1000; // Convert ms to seconds if needed
+    this.currentDeltaTime = Math.max(0.001, Math.min(0.05, dt));
   }
 
   resize(width: number, height: number): void {
@@ -284,6 +296,7 @@ export class LissajousVisualization extends BaseVisualization {
     this.container = null;
     this.currentAudioData = null;
     this.curves = [];
+    this.frameCount = 0;
   }
 
   getConfigSchema(): ConfigSchema {

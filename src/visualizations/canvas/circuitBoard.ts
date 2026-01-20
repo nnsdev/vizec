@@ -1,15 +1,6 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_STRING,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_STRING, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface CircuitBoardConfig extends VisualizationConfig {
   sensitivity: number;
@@ -121,7 +112,10 @@ export class CircuitBoardVisualization extends BaseVisualization {
     }
   }
 
-  private generateTraceSegments(nodeA: CircuitNode, nodeB: CircuitNode): { x: number; y: number }[] {
+  private generateTraceSegments(
+    nodeA: CircuitNode,
+    nodeB: CircuitNode,
+  ): { x: number; y: number }[] {
     const segments: { x: number; y: number }[] = [];
     const { traceComplexity } = this.config;
 
@@ -248,14 +242,7 @@ export class CircuitBoardVisualization extends BaseVisualization {
       this.ctx.save();
 
       const glowRadius = node.size * (1 + glowSpread) * (1 + node.intensity * 0.5);
-      const nodeGlow = this.ctx.createRadialGradient(
-        node.x,
-        node.y,
-        0,
-        node.x,
-        node.y,
-        glowRadius,
-      );
+      const nodeGlow = this.ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, glowRadius);
 
       const nodeBand = this.nodes.indexOf(node) % 3;
       let nodeColor: string;

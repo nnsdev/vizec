@@ -60,12 +60,13 @@ export interface GradientColorScheme {
   glow: string;
 }
 
-export const COLOR_SCHEMES_GRADIENT: Record<ColorSchemeId, GradientColorScheme> = Object.fromEntries(
-  Object.entries(COLOR_SCHEME_DATA).map(([key, { primary, secondary, glow }]) => [
-    key,
-    { start: primary, end: secondary, glow },
-  ])
-) as Record<ColorSchemeId, GradientColorScheme>;
+export const COLOR_SCHEMES_GRADIENT: Record<ColorSchemeId, GradientColorScheme> =
+  Object.fromEntries(
+    Object.entries(COLOR_SCHEME_DATA).map(([key, { primary, secondary, glow }]) => [
+      key,
+      { start: primary, end: secondary, glow },
+    ]),
+  ) as Record<ColorSchemeId, GradientColorScheme>;
 
 // Alias with accent key for p5.js visualizations
 export interface AccentColorScheme {
@@ -78,7 +79,7 @@ export const COLOR_SCHEMES_ACCENT: Record<ColorSchemeId, AccentColorScheme> = Ob
   Object.entries(COLOR_SCHEME_DATA).map(([key, { primary, secondary, glow }]) => [
     key,
     { primary, secondary, accent: glow },
-  ])
+  ]),
 ) as Record<ColorSchemeId, AccentColorScheme>;
 
 // Hex number format for Three.js/WebGL visualizations
@@ -100,7 +101,7 @@ export const COLOR_SCHEMES_HEX: Record<ColorSchemeId, HexColorScheme> = Object.f
       secondary: hexStringToNumber(secondary),
       glow: hexStringToNumber(glow),
     },
-  ])
+  ]),
 ) as Record<ColorSchemeId, HexColorScheme>;
 
 // Hex number format with accent key (for cubeField, additiveField, fresnelGlow, etc.)
@@ -119,7 +120,7 @@ export const COLOR_SCHEMES_HEX_ACCENT: Record<ColorSchemeId, HexAccentColorSchem
         accent: hexStringToNumber(secondary),
         glow: hexStringToNumber(glow),
       },
-    ])
+    ]),
   ) as Record<ColorSchemeId, HexAccentColorScheme>;
 
 // String format with primary, accent, glow (for magentaKeyPulse, etc.)
@@ -134,7 +135,7 @@ export const COLOR_SCHEMES_STRING_ACCENT: Record<ColorSchemeId, StringAccentColo
     Object.entries(COLOR_SCHEME_DATA).map(([key, { primary, secondary, glow }]) => [
       key,
       { primary, accent: secondary, glow },
-    ])
+    ]),
   ) as Record<ColorSchemeId, StringAccentColorScheme>;
 
 // Hex number format with background key (for audioMesh, etc.)
@@ -153,7 +154,7 @@ export const COLOR_SCHEMES_HEX_BACKGROUND: Record<ColorSchemeId, HexBackgroundCo
         secondary: hexStringToNumber(secondary),
         background: hexStringToNumber(glow),
       },
-    ])
+    ]),
   ) as Record<ColorSchemeId, HexBackgroundColorScheme>;
 
 // Color scheme options for config schemas (shared across all visualizations)
@@ -187,7 +188,7 @@ export const COLOR_SCHEMES_ARRAY: Record<ColorSchemeId, ArrayColorScheme> = Obje
   Object.entries(COLOR_SCHEME_DATA).map(([key, { primary, secondary, glow }]) => [
     key,
     { colors: [primary, secondary, glow, lightenColor(primary), lightenColor(secondary)] },
-  ])
+  ]),
 ) as Record<ColorSchemeId, ArrayColorScheme>;
 
 // Glitch format for glitchSpectrum
@@ -201,7 +202,7 @@ export const COLOR_SCHEMES_GLITCH: Record<ColorSchemeId, GlitchColorScheme> = Ob
   Object.entries(COLOR_SCHEME_DATA).map(([key, { primary, secondary, glow }]) => [
     key,
     { primary, secondary, glitch: glow },
-  ])
+  ]),
 ) as Record<ColorSchemeId, GlitchColorScheme>;
 
 // Grid format for neonGrid (synthwave grid)
@@ -216,7 +217,7 @@ export const COLOR_SCHEMES_GRID: Record<ColorSchemeId, GridColorScheme> = Object
   Object.entries(COLOR_SCHEME_DATA).map(([key, { primary, secondary, glow }]) => [
     key,
     { grid: primary, horizon: secondary, sun: glow, glow: primary },
-  ])
+  ]),
 ) as Record<ColorSchemeId, GridColorScheme>;
 
 // Helper to lighten a hex color
@@ -232,7 +233,7 @@ function lightenColor(hex: string, amount: number = 0.3): string {
 export function getColorScheme<T>(
   schemes: Record<string, T>,
   id: string,
-  fallback: ColorSchemeId = "cyanMagenta"
+  fallback: ColorSchemeId = "cyanMagenta",
 ): T {
   return schemes[id] ?? schemes[fallback];
 }

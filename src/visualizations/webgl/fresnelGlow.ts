@@ -1,10 +1,5 @@
 import * as THREE from "three";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   ColorSchemeId,
@@ -47,9 +42,9 @@ export class FresnelGlowVisualization extends BaseVisualization {
     baseColor: 0x5af2ff,
     edgeColor: 0xff6be3,
     fresnelPower: 2.5,
-    glow: 0.55,
+    glow: 0.4,
     rotationSpeed: 0.25,
-    audioSensitivity: 2,
+    audioSensitivity: 1.2,
   };
 
   private uniforms: Record<string, THREE.IUniform> | null = null;
@@ -151,9 +146,9 @@ export class FresnelGlowVisualization extends BaseVisualization {
         void main() {
           float fresnel = pow(1.0 - max(0.0, dot(vNormal, vView)), fresnelPower);
           vec3 color = mix(baseColor, edgeColor, fresnel);
-          float pulse = 0.5 + 0.5 * sin(time * 1.6);
-          float alpha = clamp(fresnel * intensity + pulse * 0.2, 0.0, 1.0);
-          gl_FragColor = vec4(color * (0.8 + pulse * 0.2), alpha);
+          float pulse = 0.5 + 0.5 * sin(time * 0.8);
+          float alpha = clamp(fresnel * intensity + pulse * 0.1, 0.0, 1.0);
+          gl_FragColor = vec4(color * (0.85 + pulse * 0.1), alpha);
         }
       `,
     });
@@ -178,8 +173,8 @@ export class FresnelGlowVisualization extends BaseVisualization {
       (this.halo.material as THREE.MeshBasicMaterial).opacity = 0.2 + intensityBoost * 0.5;
     }
 
-    this.uniforms.intensity.value = 0.25 + intensityBoost * this.config.glow;
-    this.uniforms.fresnelPower.value = this.config.fresnelPower + intensityBoost;
+    this.uniforms.intensity.value = 0.3 + intensityBoost * this.config.glow * 0.6;
+    this.uniforms.fresnelPower.value = this.config.fresnelPower + intensityBoost * 0.5;
 
     this.rendererThree.render(this.scene, this.camera);
   }
@@ -243,7 +238,7 @@ export class FresnelGlowVisualization extends BaseVisualization {
       glow: {
         type: "number",
         label: "Glow Intensity",
-        default: 0.55,
+        default: 0.4,
         min: 0,
         max: 1,
         step: 0.05,
@@ -259,9 +254,9 @@ export class FresnelGlowVisualization extends BaseVisualization {
       audioSensitivity: {
         type: "number",
         label: "Audio Sensitivity",
-        default: 2,
+        default: 1.2,
         min: 0.5,
-        max: 4,
+        max: 3,
         step: 0.1,
       },
     };

@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface CrystalGrowthConfig extends VisualizationConfig {
   sensitivity: number;
@@ -48,7 +39,10 @@ export class CrystalGrowthVisualization extends BaseVisualization {
 
     this.p5Instance = new p5((p: p5) => {
       p.setup = () => {
-        const canvas = p.createCanvas(container.clientWidth || window.innerWidth, container.clientHeight || window.innerHeight);
+        const canvas = p.createCanvas(
+          container.clientWidth || window.innerWidth,
+          container.clientHeight || window.innerHeight,
+        );
         canvas.parent(container);
         p.colorMode(p.HSB, 360, 100, 100, 100);
         p.noFill();
@@ -59,7 +53,10 @@ export class CrystalGrowthVisualization extends BaseVisualization {
       };
 
       p.windowResized = () => {
-        p.resizeCanvas(container.clientWidth || window.innerWidth, container.clientHeight || window.innerHeight);
+        p.resizeCanvas(
+          container.clientWidth || window.innerWidth,
+          container.clientHeight || window.innerHeight,
+        );
       };
     });
   }
@@ -96,14 +93,14 @@ export class CrystalGrowthVisualization extends BaseVisualization {
     // Cleanup old stopped crystals periodically
     const MAX_SEGMENTS = 80;
     if (this.crystals.length > 40) {
-      const stoppedCrystals = this.crystals.filter(c => !c.growing);
+      const stoppedCrystals = this.crystals.filter((c) => !c.growing);
       if (stoppedCrystals.length > 10) {
-        this.crystals = this.crystals.filter(c => c.growing).concat(stoppedCrystals.slice(-10));
+        this.crystals = this.crystals.filter((c) => c.growing).concat(stoppedCrystals.slice(-10));
       }
     }
 
     // Spawn new crystals
-    const growingCount = this.crystals.filter(c => c.growing).length;
+    const growingCount = this.crystals.filter((c) => c.growing).length;
     if (growingCount < maxCrystals) {
       const spawnChance = 0.06 + bassBoost * 0.15 + (this.crystals.length === 0 ? 0.5 : 0);
       if (Math.random() < spawnChance) {
@@ -163,7 +160,8 @@ export class CrystalGrowthVisualization extends BaseVisualization {
             for (let b = 0; b < numBranches; b++) {
               const side = b === 0 ? 1 : -1;
               // Branch angle: 45-75 degrees from main stem
-              const branchAngle = crystal.angle + side * (Math.PI / 4 + Math.random() * Math.PI / 6);
+              const branchAngle =
+                crystal.angle + side * (Math.PI / 4 + (Math.random() * Math.PI) / 6);
               this.crystals.push({
                 x: lastSegment.x,
                 y: lastSegment.y,
@@ -201,7 +199,12 @@ export class CrystalGrowthVisualization extends BaseVisualization {
       }
 
       // Inner bright core
-      p.stroke(crystalColor[0], Math.max(20, crystalColor[1] - 30), Math.min(100, brightness + 20), segAlpha);
+      p.stroke(
+        crystalColor[0],
+        Math.max(20, crystalColor[1] - 30),
+        Math.min(100, brightness + 20),
+        segAlpha,
+      );
       for (let i = 1; i < crystal.segments.length; i++) {
         const seg = crystal.segments[i];
         const prevSeg = crystal.segments[i - 1];

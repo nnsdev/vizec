@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -167,14 +162,8 @@ export class PianoKeysVisualization extends BaseVisualization {
     if (!this.ctx || !this.canvas) return;
 
     const { frequencyData, bass, mid, treble } = audioData;
-    const {
-      sensitivity,
-      colorScheme,
-      keyCount,
-      keyAnimation,
-      glowIntensity,
-      fallingNotes,
-    } = this.config;
+    const { sensitivity, colorScheme, keyCount, keyAnimation, glowIntensity, fallingNotes } =
+      this.config;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
     // Smooth audio values - pattern from telegraphSparks.ts:113-115
@@ -207,7 +196,7 @@ export class PianoKeysVisualization extends BaseVisualization {
     frequencyData: Uint8Array,
     deltaTime: number,
     _colors: { start: string; end: string; glow: string },
-    fallingNotes: boolean
+    fallingNotes: boolean,
   ): void {
     const { sensitivity, keyAnimation } = this.config;
 
@@ -253,7 +242,7 @@ export class PianoKeysVisualization extends BaseVisualization {
 
   private spawnNoteParticle(
     key: PianoKey,
-    colors: { start: string; end: string; glow: string }
+    colors: { start: string; end: string; glow: string },
   ): void {
     this.noteParticles.push({
       x: key.x + key.width / 2,
@@ -285,7 +274,7 @@ export class PianoKeysVisualization extends BaseVisualization {
 
   private drawKeys(
     colors: { start: string; end: string; glow: string },
-    glowIntensity: number
+    glowIntensity: number,
   ): void {
     for (const key of this.keys) {
       this.ctx?.save();
@@ -293,9 +282,10 @@ export class PianoKeysVisualization extends BaseVisualization {
       if (key.isBlack) {
         // Black key rendering with transparency
         const blackAlpha = 0.7 + key.pressAmount * 0.2;
-        this.ctx!.fillStyle = key.pressAmount > 0
-          ? this.lerpColorAlpha("#1a1a1a", colors.start, key.pressAmount * 0.5, blackAlpha)
-          : `rgba(26, 26, 26, ${blackAlpha})`;
+        this.ctx!.fillStyle =
+          key.pressAmount > 0
+            ? this.lerpColorAlpha("#1a1a1a", colors.start, key.pressAmount * 0.5, blackAlpha)
+            : `rgba(26, 26, 26, ${blackAlpha})`;
 
         if (key.pressAmount > 0) {
           this.ctx!.shadowColor = colors.glow;
@@ -304,47 +294,31 @@ export class PianoKeysVisualization extends BaseVisualization {
       } else {
         // White key rendering with gradient and transparency
         const whiteAlpha = 0.5 + key.pressAmount * 0.3;
-        const gradient = this.ctx!.createLinearGradient(
-          key.x, 0,
-          key.x + key.width, 0
-        );
+        const gradient = this.ctx!.createLinearGradient(key.x, 0, key.x + key.width, 0);
         gradient.addColorStop(0, `rgba(245, 245, 245, ${whiteAlpha})`);
         gradient.addColorStop(0.5, `rgba(255, 255, 255, ${whiteAlpha})`);
         gradient.addColorStop(1, `rgba(224, 224, 224, ${whiteAlpha})`);
 
-        this.ctx!.fillStyle = key.pressAmount > 0
-          ? this.lerpColorAlpha("#ffffff", colors.start, key.pressAmount * 0.3, whiteAlpha)
-          : gradient;
+        this.ctx!.fillStyle =
+          key.pressAmount > 0
+            ? this.lerpColorAlpha("#ffffff", colors.start, key.pressAmount * 0.3, whiteAlpha)
+            : gradient;
       }
 
       // Draw key with depression effect
       const pressOffset = key.pressAmount * 3;
-      this.ctx!.fillRect(
-        key.x,
-        key.y + pressOffset,
-        key.width,
-        key.height - pressOffset
-      );
+      this.ctx!.fillRect(key.x, key.y + pressOffset, key.width, key.height - pressOffset);
 
       // Key outline (semi-transparent)
       this.ctx!.strokeStyle = "rgba(0, 0, 0, 0.2)";
       this.ctx!.lineWidth = 1;
-      this.ctx!.strokeRect(
-        key.x,
-        key.y + pressOffset,
-        key.width,
-        key.height - pressOffset
-      );
+      this.ctx!.strokeRect(key.x, key.y + pressOffset, key.width, key.height - pressOffset);
 
       // Note labels (optional)
       if (this.config.showLabels && !key.isBlack && key.noteName === "C") {
         this.ctx!.fillStyle = "rgba(0, 0, 0, 0.5)";
         this.ctx!.font = `${Math.max(10, this.height * 0.02)}px monospace`;
-        this.ctx!.fillText(
-          `${key.noteName}${key.octave}`,
-          key.x + 4,
-          key.y + this.height - 10
-        );
+        this.ctx!.fillText(`${key.noteName}${key.octave}`, key.x + 4, key.y + this.height - 10);
       }
 
       this.ctx?.restore();

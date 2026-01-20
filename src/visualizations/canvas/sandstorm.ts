@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -173,7 +168,7 @@ export class SandstormVisualization extends BaseVisualization {
     p: SandParticle,
     colors: { start: string; end: string; glow: string },
     alpha: number,
-    intensity: number
+    intensity: number,
   ): void {
     if (!this.ctx) return;
 
@@ -188,8 +183,10 @@ export class SandstormVisualization extends BaseVisualization {
       ctx.lineTo(p.x - p.vx * trailLength * 0.5, p.y - p.vy * trailLength * 0.5);
 
       const gradient = ctx.createLinearGradient(
-        p.x, p.y,
-        p.x - p.vx * trailLength * 0.5, p.y - p.vy * trailLength * 0.5
+        p.x,
+        p.y,
+        p.x - p.vx * trailLength * 0.5,
+        p.y - p.vy * trailLength * 0.5,
       );
       gradient.addColorStop(0, this.hexToRgba(colors.start, alpha * 0.6));
       gradient.addColorStop(1, this.hexToRgba(colors.start, 0));
@@ -219,7 +216,7 @@ export class SandstormVisualization extends BaseVisualization {
 
   private drawDustHaze(
     colors: { start: string; end: string; glow: string },
-    intensity: number
+    intensity: number,
   ): void {
     if (!this.ctx) return;
 

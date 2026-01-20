@@ -1,11 +1,6 @@
-import p5 from 'p5';
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from '../types';
-import { BaseVisualization } from '../base';
+import p5 from "p5";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
+import { BaseVisualization } from "../base";
 
 interface InkDropConfig extends VisualizationConfig {
   dropCount: number;
@@ -15,38 +10,35 @@ interface InkDropConfig extends VisualizationConfig {
   trailOpacity: number;
 }
 
-const COLOR_SCHEMES: Record<
-  string,
-  { primary: string; secondary: string; tertiary: string }
-> = {
+const COLOR_SCHEMES: Record<string, { primary: string; secondary: string; tertiary: string }> = {
   cyanMagenta: {
-    primary: '#00ffff',
-    secondary: '#ff00ff',
-    tertiary: '#8000ff',
+    primary: "#00ffff",
+    secondary: "#ff00ff",
+    tertiary: "#8000ff",
   },
-  ocean: { primary: '#0066ff', secondary: '#00ffcc', tertiary: '#00bfff' },
-  sunset: { primary: '#ff6600', secondary: '#ff0066', tertiary: '#ffcc00' },
-  forest: { primary: '#00ff80', secondary: '#0080ff', tertiary: '#80ff00' },
-  fire: { primary: '#ff3300', secondary: '#ff6600', tertiary: '#ffcc00' },
+  ocean: { primary: "#0066ff", secondary: "#00ffcc", tertiary: "#00bfff" },
+  sunset: { primary: "#ff6600", secondary: "#ff0066", tertiary: "#ffcc00" },
+  forest: { primary: "#00ff80", secondary: "#0080ff", tertiary: "#80ff00" },
+  fire: { primary: "#ff3300", secondary: "#ff6600", tertiary: "#ffcc00" },
 };
 
 export class InkDropVisualization extends BaseVisualization {
   static readonly meta: VisualizationMeta = {
-    id: 'inkDrop',
-    name: 'Ink Drop',
-    author: 'Vizec',
-    renderer: 'p5',
-    transitionType: 'crossfade',
-    description: 'Colorful ink drops spreading in water',
+    id: "inkDrop",
+    name: "Ink Drop",
+    author: "Vizec",
+    renderer: "p5",
+    transitionType: "crossfade",
+    description: "Colorful ink drops spreading in water",
   };
 
   private p5Instance: p5 | null = null;
   private container: HTMLElement | null = null;
   private config: InkDropConfig = {
     sensitivity: 1.0,
-    colorScheme: 'ocean',
+    colorScheme: "ocean",
     dropCount: 8,
-    inkColors: 'ocean',
+    inkColors: "ocean",
     spreadSpeed: 1.0,
     turbulence: 0.5,
     trailOpacity: 0.92,
@@ -74,10 +66,7 @@ export class InkDropVisualization extends BaseVisualization {
 
     this.p5Instance = new p5((p: p5) => {
       p.setup = () => {
-        const canvas = p.createCanvas(
-          container.clientWidth,
-          container.clientHeight,
-        );
+        const canvas = p.createCanvas(container.clientWidth, container.clientHeight);
         canvas.parent(container);
         p.colorMode(p.HSB, 360, 100, 100, 100);
         this.width = container.clientWidth;
@@ -94,8 +83,7 @@ export class InkDropVisualization extends BaseVisualization {
     if (!this.currentAudioData) return;
 
     const { bass, mid, treble, volume } = this.currentAudioData;
-    const colors =
-      COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.ocean;
+    const colors = COLOR_SCHEMES[this.config.colorScheme] || COLOR_SCHEMES.ocean;
 
     this.time += this.currentDeltaTime * 0.5;
 
@@ -123,12 +111,7 @@ export class InkDropVisualization extends BaseVisualization {
     if (volume > 0.3 && Math.random() < volume * 0.1) {
       const inactiveDrop = this.drops.find((d) => !d.active);
       if (inactiveDrop) {
-        inactiveDrop.spawn(
-          Math.random() * this.width,
-          Math.random() * this.height,
-          colors,
-          bass,
-        );
+        inactiveDrop.spawn(Math.random() * this.width, Math.random() * this.height, colors, bass);
       }
     }
   }
@@ -172,52 +155,52 @@ export class InkDropVisualization extends BaseVisualization {
   getConfigSchema(): ConfigSchema {
     return {
       sensitivity: {
-        type: 'number',
-        label: 'Sensitivity',
+        type: "number",
+        label: "Sensitivity",
         default: 1.0,
         min: 0.1,
         max: 3,
         step: 0.1,
       },
       colorScheme: {
-        type: 'select',
-        label: 'Color Scheme',
-        default: 'ocean',
+        type: "select",
+        label: "Color Scheme",
+        default: "ocean",
         options: [
-          { value: 'cyanMagenta', label: 'Cyan/Magenta' },
-          { value: 'ocean', label: 'Ocean' },
-          { value: 'sunset', label: 'Sunset' },
-          { value: 'forest', label: 'Forest' },
-          { value: 'fire', label: 'Fire' },
+          { value: "cyanMagenta", label: "Cyan/Magenta" },
+          { value: "ocean", label: "Ocean" },
+          { value: "sunset", label: "Sunset" },
+          { value: "forest", label: "Forest" },
+          { value: "fire", label: "Fire" },
         ],
       },
       dropCount: {
-        type: 'number',
-        label: 'Max Drops',
+        type: "number",
+        label: "Max Drops",
         default: 8,
         min: 1,
         max: 20,
         step: 1,
       },
       spreadSpeed: {
-        type: 'number',
-        label: 'Spread Speed',
+        type: "number",
+        label: "Spread Speed",
         default: 1.0,
         min: 0.1,
         max: 3,
         step: 0.1,
       },
       turbulence: {
-        type: 'number',
-        label: 'Turbulence',
+        type: "number",
+        label: "Turbulence",
         default: 0.5,
         min: 0,
         max: 1,
         step: 0.05,
       },
       trailOpacity: {
-        type: 'number',
-        label: 'Trail Length',
+        type: "number",
+        label: "Trail Length",
         default: 0.92,
         min: 0.5,
         max: 0.99,
@@ -312,10 +295,7 @@ class InkDrop {
     }
   }
 
-  draw(
-    p: p5,
-    colors: { primary: string; secondary: string; tertiary: string },
-  ): void {
+  draw(p: p5, colors: { primary: string; secondary: string; tertiary: string }): void {
     if (!this.active) return;
 
     p.push();
@@ -338,12 +318,7 @@ class InkDrop {
       const alpha = (this.opacity / 100) * (1 - i * 0.2);
       const layerColor = p.lerpColor(c1, c2, i * 0.3);
 
-      p.fill(
-        p.hue(layerColor),
-        p.saturation(layerColor),
-        p.brightness(layerColor),
-        alpha * 50,
-      );
+      p.fill(p.hue(layerColor), p.saturation(layerColor), p.brightness(layerColor), alpha * 50);
       p.ellipse(0, 0, r, r);
     }
 

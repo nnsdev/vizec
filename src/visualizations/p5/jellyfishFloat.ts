@@ -1,16 +1,7 @@
 import p5 from "p5";
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
-import {
-  COLOR_SCHEMES_ACCENT,
-  COLOR_SCHEME_OPTIONS,
-  getColorScheme,
-} from "../shared/colorSchemes";
+import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
 
 interface JellyfishFloatConfig extends VisualizationConfig {
   jellyfishCount: number;
@@ -141,7 +132,12 @@ export class JellyfishFloatVisualization extends BaseVisualization {
     if (jelly.x > this.width + jelly.size) jelly.x = -jelly.size;
   }
 
-  private drawJellyfish(p: p5, jelly: Jellyfish, pulseIntensity: number, tentacleLength: number): void {
+  private drawJellyfish(
+    p: p5,
+    jelly: Jellyfish,
+    pulseIntensity: number,
+    tentacleLength: number,
+  ): void {
     p.push();
     p.translate(jelly.x, jelly.y);
 
@@ -174,25 +170,20 @@ export class JellyfishFloatVisualization extends BaseVisualization {
 
     // Left side
     p.vertex(-width * 0.1, height * 0.3);
-    p.bezierVertex(
-      -width * 0.5, height * 0.3,
-      -width * 0.5, -height * 0.5,
-      0, -height * 0.5
-    );
+    p.bezierVertex(-width * 0.5, height * 0.3, -width * 0.5, -height * 0.5, 0, -height * 0.5);
 
     // Right side
     p.bezierVertex(
-      width * 0.5, -height * 0.5,
-      width * 0.5, height * 0.3,
-      width * 0.1, height * 0.3
+      width * 0.5,
+      -height * 0.5,
+      width * 0.5,
+      height * 0.3,
+      width * 0.1,
+      height * 0.3,
     );
 
     // Bottom curve (inside of bell)
-    p.bezierVertex(
-      width * 0.3, 0,
-      -width * 0.3, 0,
-      -width * 0.1, height * 0.3
-    );
+    p.bezierVertex(width * 0.3, 0, -width * 0.3, 0, -width * 0.1, height * 0.3);
 
     p.endShape(p.CLOSE);
 
@@ -204,15 +195,14 @@ export class JellyfishFloatVisualization extends BaseVisualization {
 
     p.beginShape();
     p.vertex(-width * 0.4, height * 0.25);
+    p.bezierVertex(-width * 0.5, height * 0.2, -width * 0.5, -height * 0.4, 0, -height * 0.5);
     p.bezierVertex(
-      -width * 0.5, height * 0.2,
-      -width * 0.5, -height * 0.4,
-      0, -height * 0.5
-    );
-    p.bezierVertex(
-      width * 0.5, -height * 0.4,
-      width * 0.5, height * 0.2,
-      width * 0.4, height * 0.25
+      width * 0.5,
+      -height * 0.4,
+      width * 0.5,
+      height * 0.2,
+      width * 0.4,
+      height * 0.25,
     );
     p.endShape();
 

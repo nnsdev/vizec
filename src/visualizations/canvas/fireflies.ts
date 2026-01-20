@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -71,16 +66,16 @@ export class FirefliesVisualization extends BaseVisualization {
   private initFireflies(): void {
     this.fireflies = [];
     const { fireflyCount } = this.config;
-    
+
     for (let i = 0; i < fireflyCount; i++) {
-        this.fireflies.push({
-            x: Math.random() * this.width,
-            y: Math.random() * this.height,
-            vx: (Math.random() - 0.5) * 2,
-            vy: (Math.random() - 0.5) * 2,
-            radius: 2 + Math.random() * 3,
-            phase: Math.random() * Math.PI * 2
-        });
+      this.fireflies.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        radius: 2 + Math.random() * 3,
+        phase: Math.random() * Math.PI * 2,
+      });
     }
   }
 
@@ -96,53 +91,53 @@ export class FirefliesVisualization extends BaseVisualization {
 
     const excitement = (mid + treble) * sensitivity;
     const moveSpeed = (1 + excitement * 2) * swarmSpeed;
-    
+
     this.ctx.globalCompositeOperation = "lighter";
-    
-    this.fireflies.forEach(f => {
-        f.vx += (Math.random() - 0.5) * 0.1;
-        f.vy += (Math.random() - 0.5) * 0.1;
-        
-        if (excitement > 0.8) {
-            const dx = (this.width / 2) - f.x;
-            const dy = (this.height / 2) - f.y;
-            f.vx += dx * 0.001;
-            f.vy += dy * 0.001;
-        }
 
-        f.vx *= 0.99;
-        f.vy *= 0.99;
-        f.x += f.vx * moveSpeed;
-        f.y += f.vy * moveSpeed;
+    this.fireflies.forEach((f) => {
+      f.vx += (Math.random() - 0.5) * 0.1;
+      f.vy += (Math.random() - 0.5) * 0.1;
 
-        if (f.x < 0) f.x = this.width;
-        if (f.x > this.width) f.x = 0;
-        if (f.y < 0) f.y = this.height;
-        if (f.y > this.height) f.y = 0;
+      if (excitement > 0.8) {
+        const dx = this.width / 2 - f.x;
+        const dy = this.height / 2 - f.y;
+        f.vx += dx * 0.001;
+        f.vy += dy * 0.001;
+      }
 
-        const pulse = Math.sin(this.time * 3 + f.phase) * 0.5 + 0.5;
-        const brightness = 0.2 + volume * sensitivity * 0.5 + pulse * 0.3;
-        const radius = f.radius * (1 + excitement * 0.5);
+      f.vx *= 0.99;
+      f.vy *= 0.99;
+      f.x += f.vx * moveSpeed;
+      f.y += f.vy * moveSpeed;
 
-        const gradient = this.ctx!.createRadialGradient(f.x, f.y, 0, f.x, f.y, radius * 4);
-        gradient.addColorStop(0, colors.start);
-        gradient.addColorStop(1, "rgba(0,0,0,0)");
-        
-        this.ctx!.fillStyle = gradient;
-        this.ctx!.globalAlpha = brightness * 0.6;
-        this.ctx!.beginPath();
-        this.ctx!.arc(f.x, f.y, radius * 4, 0, Math.PI * 2);
-        this.ctx!.fill();
+      if (f.x < 0) f.x = this.width;
+      if (f.x > this.width) f.x = 0;
+      if (f.y < 0) f.y = this.height;
+      if (f.y > this.height) f.y = 0;
+
+      const pulse = Math.sin(this.time * 3 + f.phase) * 0.5 + 0.5;
+      const brightness = 0.2 + volume * sensitivity * 0.5 + pulse * 0.3;
+      const radius = f.radius * (1 + excitement * 0.5);
+
+      const gradient = this.ctx!.createRadialGradient(f.x, f.y, 0, f.x, f.y, radius * 4);
+      gradient.addColorStop(0, colors.start);
+      gradient.addColorStop(1, "rgba(0,0,0,0)");
+
+      this.ctx!.fillStyle = gradient;
+      this.ctx!.globalAlpha = brightness * 0.6;
+      this.ctx!.beginPath();
+      this.ctx!.arc(f.x, f.y, radius * 4, 0, Math.PI * 2);
+      this.ctx!.fill();
     });
 
-    this.fireflies.forEach(f => {
-        this.ctx!.fillStyle = colors.end;
-        this.ctx!.globalAlpha = 0.8;
-        this.ctx!.beginPath();
-        this.ctx!.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
-        this.ctx!.fill();
+    this.fireflies.forEach((f) => {
+      this.ctx!.fillStyle = colors.end;
+      this.ctx!.globalAlpha = 0.8;
+      this.ctx!.beginPath();
+      this.ctx!.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+      this.ctx!.fill();
     });
-    
+
     this.ctx.globalCompositeOperation = "source-over";
     this.ctx.globalAlpha = 1.0;
   }
@@ -161,9 +156,9 @@ export class FirefliesVisualization extends BaseVisualization {
   updateConfig(config: Partial<VisualizationConfig>): void {
     const oldCounts = this.config.fireflyCount;
     this.config = { ...this.config, ...config } as FirefliesConfig;
-    
+
     if (this.config.fireflyCount !== oldCounts) {
-        this.initFireflies();
+      this.initFireflies();
     }
   }
 

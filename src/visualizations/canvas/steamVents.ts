@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -120,7 +115,8 @@ export class SteamVentsVisualization extends BaseVisualization {
 
     // Detect bass hits
     const bassThreshold = 0.5;
-    const bassHit = bass * sensitivity > bassThreshold && this.smoothedBass * sensitivity < bassThreshold * 1.2;
+    const bassHit =
+      bass * sensitivity > bassThreshold && this.smoothedBass * sensitivity < bassThreshold * 1.2;
 
     // Update vents and trigger bursts
     this.vents.forEach((vent) => {
@@ -202,7 +198,7 @@ export class SteamVentsVisualization extends BaseVisualization {
       p.vx *= 0.95;
 
       // Horizontal drift increases with height
-      const heightProgress = 1 - (p.y / this.height);
+      const heightProgress = 1 - p.y / this.height;
       p.vx += Math.sin(this.time * 3 + p.x * 0.02) * heightProgress * 0.3;
 
       // Audio-reactive turbulence
@@ -233,14 +229,23 @@ export class SteamVentsVisualization extends BaseVisualization {
     // Draw vent glow when active
     if (vent.intensity > 0.1) {
       const glowGradient = ctx.createRadialGradient(
-        vent.x, vent.baseY - 5, 0,
-        vent.x, vent.baseY - 5, vent.width * 2
+        vent.x,
+        vent.baseY - 5,
+        0,
+        vent.x,
+        vent.baseY - 5,
+        vent.width * 2,
       );
       glowGradient.addColorStop(0, this.hexToRgba(colors.glow, vent.intensity * 0.3));
       glowGradient.addColorStop(1, this.hexToRgba(colors.glow, 0));
 
       ctx.fillStyle = glowGradient;
-      ctx.fillRect(vent.x - vent.width * 2, vent.baseY - vent.width * 2, vent.width * 4, vent.width * 2);
+      ctx.fillRect(
+        vent.x - vent.width * 2,
+        vent.baseY - vent.width * 2,
+        vent.width * 4,
+        vent.width * 2,
+      );
     }
 
     // Draw vent pipe
@@ -253,24 +258,34 @@ export class SteamVentsVisualization extends BaseVisualization {
 
     // Inner glow
     const innerGradient = ctx.createLinearGradient(
-      vent.x, vent.baseY - ventHeight,
-      vent.x, vent.baseY
+      vent.x,
+      vent.baseY - ventHeight,
+      vent.x,
+      vent.baseY,
     );
     innerGradient.addColorStop(0, this.hexToRgba(colors.start, 0.3 + vent.intensity * 0.3));
     innerGradient.addColorStop(1, this.hexToRgba(colors.start, 0));
 
     ctx.fillStyle = innerGradient;
-    ctx.fillRect(vent.x - vent.width * 0.4, vent.baseY - ventHeight + 2, vent.width * 0.8, ventHeight - 2);
+    ctx.fillRect(
+      vent.x - vent.width * 0.4,
+      vent.baseY - ventHeight + 2,
+      vent.width * 0.8,
+      ventHeight - 2,
+    );
   }
 
-  private drawVentParticles(vent: Vent, colors: { start: string; end: string; glow: string }): void {
+  private drawVentParticles(
+    vent: Vent,
+    colors: { start: string; end: string; glow: string },
+  ): void {
     if (!this.ctx) return;
 
     const ctx = this.ctx;
 
     vent.particles.forEach((p) => {
       // Calculate height-based color interpolation (white at bottom, fading to color at top)
-      const heightProgress = 1 - (p.y / this.height);
+      const heightProgress = 1 - p.y / this.height;
 
       ctx.save();
       ctx.translate(p.x, p.y);
@@ -307,7 +322,7 @@ export class SteamVentsVisualization extends BaseVisualization {
   private drawAmbientSteam(
     colors: { start: string; end: string; glow: string },
     volumeLevel: number,
-    trebleLevel: number
+    trebleLevel: number,
   ): void {
     if (!this.ctx || volumeLevel < 0.2) return;
 

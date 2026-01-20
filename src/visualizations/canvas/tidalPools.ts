@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 
 interface TidalPoolsConfig extends VisualizationConfig {
@@ -256,8 +251,7 @@ class TidalPool {
     for (let i = 0; i < this.wavePoints.length; i++) {
       const angle = (i / this.wavePoints.length) * Math.PI * 2;
       const wave =
-        Math.sin(angle * 3 + this.phase + time) * 5 +
-        Math.sin(angle * 2 + this.phase * 0.5) * 3;
+        Math.sin(angle * 3 + this.phase + time) * 5 + Math.sin(angle * 2 + this.phase * 0.5) * 3;
       this.wavePoints[i] = wave * (1 + bass * sensitivity);
     }
 
@@ -324,7 +318,11 @@ class TidalPool {
       const length = this.radius * (0.4 + Math.random() * 0.3);
       const reflectionAlpha = this.reflectionPoints[i] || 0;
 
-      ctx.strokeStyle = colors.foam + Math.floor(reflectionAlpha * 100).toString(16).padStart(2, "0");
+      ctx.strokeStyle =
+        colors.foam +
+        Math.floor(reflectionAlpha * 100)
+          .toString(16)
+          .padStart(2, "0");
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(

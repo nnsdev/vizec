@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -113,7 +108,12 @@ export class SunFlareVisualization extends BaseVisualization {
     this.ctx.shadowBlur = 0;
   }
 
-  private drawGlow(x: number, y: number, radius: number, colors: { start: string; end: string; glow: string }): void {
+  private drawGlow(
+    x: number,
+    y: number,
+    radius: number,
+    colors: { start: string; end: string; glow: string },
+  ): void {
     if (!this.ctx) return;
 
     const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, radius);
@@ -136,7 +136,7 @@ export class SunFlareVisualization extends BaseVisualization {
     rayCount: number,
     rayLengthMultiplier: number,
     colors: { start: string; end: string; glow: string },
-    frequencyData: Uint8Array
+    frequencyData: Uint8Array,
   ): void {
     if (!this.ctx) return;
 
@@ -160,7 +160,7 @@ export class SunFlareVisualization extends BaseVisualization {
       const finalLength = rayLength * (1 + oscillation);
 
       // Calculate ray width - narrower at tip
-      const baseWidth = Math.PI / rayCount * 0.4;
+      const baseWidth = (Math.PI / rayCount) * 0.4;
       const rayWidth = baseWidth * (0.5 + freqValue * 0.5);
 
       // Draw ray
@@ -179,15 +179,12 @@ export class SunFlareVisualization extends BaseVisualization {
       this.ctx.beginPath();
       this.ctx.moveTo(
         x + Math.cos(angle - rayWidth) * startRadius,
-        y + Math.sin(angle - rayWidth) * startRadius
+        y + Math.sin(angle - rayWidth) * startRadius,
       );
-      this.ctx.lineTo(
-        x + Math.cos(angle) * endRadius,
-        y + Math.sin(angle) * endRadius
-      );
+      this.ctx.lineTo(x + Math.cos(angle) * endRadius, y + Math.sin(angle) * endRadius);
       this.ctx.lineTo(
         x + Math.cos(angle + rayWidth) * startRadius,
-        y + Math.sin(angle + rayWidth) * startRadius
+        y + Math.sin(angle + rayWidth) * startRadius,
       );
       this.ctx.closePath();
       this.ctx.fill();
@@ -198,7 +195,7 @@ export class SunFlareVisualization extends BaseVisualization {
     x: number,
     y: number,
     radius: number,
-    colors: { start: string; end: string; glow: string }
+    colors: { start: string; end: string; glow: string },
   ): void {
     if (!this.ctx) return;
 
@@ -219,7 +216,7 @@ export class SunFlareVisualization extends BaseVisualization {
     x: number,
     y: number,
     radius: number,
-    colors: { start: string; end: string; glow: string }
+    colors: { start: string; end: string; glow: string },
   ): void {
     if (!this.ctx) return;
 

@@ -1,9 +1,4 @@
-import {
-  AudioData,
-  ConfigSchema,
-  VisualizationConfig,
-  VisualizationMeta,
-} from "../types";
+import { AudioData, ConfigSchema, VisualizationConfig, VisualizationMeta } from "../types";
 import { BaseVisualization } from "../base";
 import {
   COLOR_SCHEMES_GRADIENT,
@@ -95,7 +90,8 @@ export class HologramGlitchVisualization extends BaseVisualization {
     if (!this.ctx || !this.canvas) return;
 
     const { bass, mid, treble } = audioData;
-    const { sensitivity, glitchIntensity, scanLineCount, chromaticAberration, colorScheme } = this.config;
+    const { sensitivity, glitchIntensity, scanLineCount, chromaticAberration, colorScheme } =
+      this.config;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
     // Smooth audio
@@ -132,7 +128,10 @@ export class HologramGlitchVisualization extends BaseVisualization {
     this.ctx.shadowBlur = 0;
   }
 
-  private drawHologramShape(colors: { start: string; end: string; glow: string }, chromaticAberration: number): void {
+  private drawHologramShape(
+    colors: { start: string; end: string; glow: string },
+    chromaticAberration: number,
+  ): void {
     if (!this.ctx) return;
 
     const cx = this.width / 2;
@@ -235,7 +234,10 @@ export class HologramGlitchVisualization extends BaseVisualization {
     }
   }
 
-  private drawGlitchBlocks(colors: { start: string; end: string; glow: string }, intensity: number): void {
+  private drawGlitchBlocks(
+    colors: { start: string; end: string; glow: string },
+    intensity: number,
+  ): void {
     if (!this.ctx) return;
 
     for (const block of this.glitchBlocks) {
@@ -267,7 +269,7 @@ export class HologramGlitchVisualization extends BaseVisualization {
     // Horizontal interference bars
     const barCount = 3;
     for (let i = 0; i < barCount; i++) {
-      const y = (this.time * 100 + i * 200) % (this.height + 100) - 50;
+      const y = ((this.time * 100 + i * 200) % (this.height + 100)) - 50;
       const alpha = 0.1 + this.smoothedTreble * 0.2;
 
       const gradient = this.ctx.createLinearGradient(0, y, 0, y + 20);
@@ -298,7 +300,7 @@ export class HologramGlitchVisualization extends BaseVisualization {
         0,
         corner.x + distortionSize / 2,
         corner.y + distortionSize / 2,
-        distortionSize
+        distortionSize,
       );
       gradient.addColorStop(0, this.hexToRgba(colors.end, 0.3));
       gradient.addColorStop(1, "transparent");
