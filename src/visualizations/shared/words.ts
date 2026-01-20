@@ -100,4 +100,37 @@ export const SIGN_WORDS = [
   '$$$',
   '777',
   'FREE',
+
+  // Urban Infrastructure (10 words)
+  'METRO',
+  'SUBWAY',
+  'BUS',
+  'TAXI',
+  'PARKING',
+  'BRIDGE',
+  'TOWER',
+  'PLAZA',
+  'STATION',
+  'PORT',
+
+  // Street Level (10 words)
+  'ALLEY',
+  'CORNER',
+  'AVENUE',
+  'STREET',
+  'BLOCK',
+  'DINER',
+  'CAFE',
+  'MART',
+  'LAUNDRY',
+  'PAWN',
+
+  // Japanese Urban (7 words)
+  '駅',       // Station (eki)
+  '地下鉄',   // Subway (chikatetsu)
+  'タクシー', // Taxi
+  '居酒屋',   // Izakaya (pub)
+  '薬局',     // Pharmacy (yakkyoku)
+  '銀行',     // Bank (ginkou)
+  '郵便局',   // Post Office (yuubinkyoku)
 ];
