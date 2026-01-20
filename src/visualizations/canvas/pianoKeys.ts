@@ -291,27 +291,29 @@ export class PianoKeysVisualization extends BaseVisualization {
       this.ctx?.save();
 
       if (key.isBlack) {
-        // Black key rendering
+        // Black key rendering with transparency
+        const blackAlpha = 0.7 + key.pressAmount * 0.2;
         this.ctx!.fillStyle = key.pressAmount > 0
-          ? this.lerpColor("#1a1a1a", colors.start, key.pressAmount * 0.5)
-          : "#1a1a1a";
+          ? this.lerpColorAlpha("#1a1a1a", colors.start, key.pressAmount * 0.5, blackAlpha)
+          : `rgba(26, 26, 26, ${blackAlpha})`;
 
         if (key.pressAmount > 0) {
           this.ctx!.shadowColor = colors.glow;
           this.ctx!.shadowBlur = 15 * key.pressAmount * key.pressAmount * glowIntensity;
         }
       } else {
-        // White key rendering with gradient
+        // White key rendering with gradient and transparency
+        const whiteAlpha = 0.5 + key.pressAmount * 0.3;
         const gradient = this.ctx!.createLinearGradient(
           key.x, 0,
           key.x + key.width, 0
         );
-        gradient.addColorStop(0, "#f5f5f5");
-        gradient.addColorStop(0.5, "#ffffff");
-        gradient.addColorStop(1, "#e0e0e0");
+        gradient.addColorStop(0, `rgba(245, 245, 245, ${whiteAlpha})`);
+        gradient.addColorStop(0.5, `rgba(255, 255, 255, ${whiteAlpha})`);
+        gradient.addColorStop(1, `rgba(224, 224, 224, ${whiteAlpha})`);
 
         this.ctx!.fillStyle = key.pressAmount > 0
-          ? this.lerpColor("#ffffff", colors.start, key.pressAmount * 0.3)
+          ? this.lerpColorAlpha("#ffffff", colors.start, key.pressAmount * 0.3, whiteAlpha)
           : gradient;
       }
 
@@ -324,8 +326,8 @@ export class PianoKeysVisualization extends BaseVisualization {
         key.height - pressOffset
       );
 
-      // Key outline
-      this.ctx!.strokeStyle = "rgba(0, 0, 0, 0.3)";
+      // Key outline (semi-transparent)
+      this.ctx!.strokeStyle = "rgba(0, 0, 0, 0.2)";
       this.ctx!.lineWidth = 1;
       this.ctx!.strokeRect(
         key.x,
@@ -372,6 +374,19 @@ export class PianoKeysVisualization extends BaseVisualization {
     const b = Math.round(c1.b + (c2.b - c1.b) * t);
 
     return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  private lerpColorAlpha(color1: string, color2: string, t: number, alpha: number): string {
+    // Linear interpolation between two hex colors with alpha
+    const c1 = this.hexToRgb(color1);
+    const c2 = this.hexToRgb(color2);
+    if (!c1 || !c2) return `rgba(255, 255, 255, ${alpha})`;
+
+    const r = Math.round(c1.r + (c2.r - c1.r) * t);
+    const g = Math.round(c1.g + (c2.g - c1.g) * t);
+    const b = Math.round(c1.b + (c2.b - c1.b) * t);
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
   private hexToRgb(hex: string): { r: number; g: number; b: number } | null {

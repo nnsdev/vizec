@@ -139,65 +139,60 @@ export class ProjectmPlasmaVisualization extends BaseVisualization {
 
         #define PI 3.14159265359
 
-        // Classic plasma function - the heart of demoscene plasma
+        // Classic plasma function - calmer version
         float plasma(vec2 uv, float t) {
           float v = 0.0;
 
-          // Audio-modulated time and scale
-          float audioTime = t * speed * (1.0 + bass * 0.5);
-          float audioScale = scale * 8.0 * (1.0 + mid * 0.3);
+          // Very slow time and moderate scale
+          float slowT = t * speed * 0.3;
+          float plasmaScale = scale * 5.0;
 
-          // Classic 4-wave plasma formula
-          // sin(x) + sin(y) + sin(x+y) + sin(sqrt(x²+y²))
-
+          // Classic 4-wave plasma formula (slower)
           // Wave 1: Horizontal sine
-          v += sin(uv.x * audioScale + audioTime);
+          v += sin(uv.x * plasmaScale + slowT);
 
           // Wave 2: Vertical sine
-          v += sin(uv.y * audioScale + audioTime * 0.7);
+          v += sin(uv.y * plasmaScale + slowT * 0.6);
 
-          // Wave 3: Diagonal wave (x + y)
-          v += sin((uv.x + uv.y) * audioScale * 0.5 + audioTime * 0.5);
+          // Wave 3: Diagonal wave
+          v += sin((uv.x + uv.y) * plasmaScale * 0.4 + slowT * 0.4);
 
-          // Wave 4: Circular wave (distance from center)
-          float dist = length(uv) * audioScale * 0.4;
-          v += sin(dist + audioTime * 0.3);
+          // Wave 4: Circular wave
+          float dist = length(uv) * plasmaScale * 0.3;
+          v += sin(dist + slowT * 0.25);
 
-          // Additional waves based on complexity
+          // Additional waves based on complexity (gentler)
           if (complexity >= 5) {
-            // Spiral wave
             float angle = atan(uv.y, uv.x);
-            v += sin(angle * 3.0 + dist * 0.5 + audioTime * 0.4) * 0.5;
+            v += sin(angle * 2.0 + dist * 0.3 + slowT * 0.3) * 0.4;
           }
 
           if (complexity >= 6) {
-            // Interference pattern
-            v += sin(uv.x * audioScale * 1.5 - uv.y * audioScale * 0.8 + audioTime * 0.6) * 0.4;
+            v += sin(uv.x * plasmaScale * 1.2 - uv.y * plasmaScale * 0.6 + slowT * 0.35) * 0.3;
           }
 
           if (complexity >= 7) {
-            // Pulsing rings
-            v += sin(dist * 2.0 - audioTime + bass * 8.0) * 0.3;
+            v += sin(dist * 1.5 - slowT * 0.8) * 0.25;
           }
 
-          // Normalize based on number of waves
+          // Normalize
           float waveCount = 4.0;
-          if (complexity >= 5) waveCount += 0.5;
-          if (complexity >= 6) waveCount += 0.4;
-          if (complexity >= 7) waveCount += 0.3;
+          if (complexity >= 5) waveCount += 0.4;
+          if (complexity >= 6) waveCount += 0.3;
+          if (complexity >= 7) waveCount += 0.25;
 
           return v / waveCount;
         }
 
-        // Color cycling function for smooth transitions
+        // Color cycling function - very slow
         vec3 plasmaColor(float v, float t) {
-          // Normalize plasma value to 0-1 range
+          // Normalize plasma value
           float nv = (v + 1.0) * 0.5;
 
-          // Add time-based color cycling
-          float cycle = mod(t * 0.1 + nv, 1.0);
+          // Very slow color cycling
+          float cycle = mod(t * 0.02 + nv, 1.0);
 
-          // Four-color gradient with smooth interpolation
+          // Smooth four-color gradient
           vec3 col;
 
           if (cycle < 0.25) {
@@ -218,34 +213,37 @@ export class ProjectmPlasmaVisualization extends BaseVisualization {
           vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
           vec2 centeredUv = (uv - 0.5) * aspect;
 
-          // Calculate plasma value
-          float v = plasma(centeredUv, time);
+          // Very slow time for calm animation
+          float slowTime = time * 0.08;
 
-          // Apply intensity
-          v *= intensity * (0.8 + treble * 0.4);
+          // Calculate plasma value (slow)
+          float v = plasma(centeredUv, slowTime);
 
-          // Get plasma color with time cycling
-          vec3 col = plasmaColor(v, time);
+          // Gentle intensity
+          v *= intensity * 0.7;
 
-          // Add brightness variation from bass
-          col *= 0.7 + v * 0.3 + bass * 0.2;
+          // Get plasma color with very slow cycling
+          vec3 col = plasmaColor(v, slowTime);
 
-          // Add glow/bloom effect on treble peaks
-          float glow = pow(max(0.0, (v + 1.0) * 0.5), 2.0) * treble * 0.5;
+          // Gentle brightness
+          col *= 0.5 + v * 0.15;
+
+          // Very subtle glow
+          float glow = pow(max(0.0, (v + 1.0) * 0.5), 2.0) * 0.1;
           col += vec3(glow);
 
-          // Subtle treble sparkle
-          float sparkle = pow(max(0.0, sin(v * 15.0 + time * 3.0)), 12.0) * treble * 0.4;
-          col += color1 * sparkle;
+          // Apply sensitivity (reduced)
+          col *= sensitivity * 0.6;
 
-          // Apply overall sensitivity
-          col *= sensitivity;
+          // Clamp to prevent any brightness spikes
+          col = clamp(col, 0.0, 0.75);
 
-          // Clamp to prevent oversaturation
-          col = clamp(col, 0.0, 1.5);
+          // Gentle vignette
+          float vignette = 1.0 - smoothstep(0.6, 1.3, length(centeredUv / aspect));
+          col *= 0.8 + vignette * 0.2;
 
-          // Alpha based on intensity
-          float alpha = 0.9 + v * 0.1;
+          // Moderate transparency
+          float alpha = 0.45 + v * 0.1;
 
           gl_FragColor = vec4(col, alpha);
         }

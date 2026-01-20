@@ -179,44 +179,44 @@ export class ProjectmLiquidVisualization extends BaseVisualization {
           return wave;
         }
 
-        // Surface distortion from multiple droplet impacts
+        // Surface distortion - calmer version
         float liquidSurface(vec2 uv, float t) {
           float surface = 0.0;
 
-          // Background subtle motion
-          surface += sin(uv.x * 3.0 + t * 0.5) * 0.1;
-          surface += sin(uv.y * 2.5 + t * 0.4) * 0.1;
-          surface += sin((uv.x + uv.y) * 2.0 + t * 0.3) * 0.08;
+          // Very gentle background motion
+          surface += sin(uv.x * 2.0 + t * 0.15) * 0.08;
+          surface += sin(uv.y * 1.8 + t * 0.12) * 0.08;
+          surface += sin((uv.x + uv.y) * 1.5 + t * 0.1) * 0.06;
 
-          // Droplet impacts based on layerCount
+          // Droplet impacts (slower, gentler)
           for (int i = 0; i < 5; i++) {
             if (i >= layerCount) break;
 
             float fi = float(i);
 
-            // Pseudo-random droplet position (changes over time)
-            float dropletPhase = floor(t * 0.2 + fi * 0.7);
+            // Slow droplet position changes
+            float dropletPhase = floor(t * 0.05 + fi * 0.7);
             vec2 dropletPos = hash2(vec2(fi + dropletPhase, fi * 2.3 + dropletPhase)) - 0.5;
 
-            // Time within current droplet cycle
-            float dropletTime = fract(t * 0.2 + fi * 0.7) * 5.0;
+            // Slow droplet cycle
+            float dropletTime = fract(t * 0.05 + fi * 0.7) * 3.0;
 
-            // Trigger intensity based on bass
-            float triggerIntensity = 1.0 + bassPeak * 2.0;
+            // Gentle intensity
+            float triggerIntensity = 0.8;
 
-            // Add ripple from this droplet
-            surface += ripple(uv, dropletPos * 1.5, dropletTime, fi) * triggerIntensity * 0.3;
+            // Gentle ripple
+            surface += ripple(uv, dropletPos * 1.2, dropletTime, fi) * triggerIntensity * 0.2;
           }
 
-          // Bass-triggered central pulse
+          // Very gentle central pulse
           float centralDist = length(uv);
-          float bassPulse = sin(centralDist * 15.0 - t * rippleSpeed * 3.0) * bass * 0.4;
-          bassPulse *= exp(-centralDist * 2.0);
+          float bassPulse = sin(centralDist * 8.0 - t * rippleSpeed * 0.5) * 0.15;
+          bassPulse *= exp(-centralDist * 2.5);
           surface += bassPulse;
 
-          // Mid-frequency gentle waves
-          surface += sin(uv.x * 8.0 + t * mid * 3.0) * mid * 0.15;
-          surface += sin(uv.y * 7.0 - t * mid * 2.5) * mid * 0.15;
+          // Subtle background waves
+          surface += sin(uv.x * 4.0 + t * 0.2) * 0.08;
+          surface += sin(uv.y * 3.5 - t * 0.15) * 0.08;
 
           return surface;
         }
@@ -237,46 +237,48 @@ export class ProjectmLiquidVisualization extends BaseVisualization {
           vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
           vec2 centeredUv = (uv - 0.5) * aspect;
 
-          // Calculate liquid surface height
-          float surface = liquidSurface(centeredUv, time);
+          // Very slow time for calm animation
+          float slowTime = time * 0.08;
 
-          // Apply refraction distortion
-          vec2 distortedUv = refract2D(centeredUv, surface, 0.05 * (1.0 + bass));
+          // Calculate liquid surface height (slow)
+          float surface = liquidSurface(centeredUv, slowTime) * 0.7;
 
-          // Recalculate surface at distorted position for lighting
-          float distortedSurface = liquidSurface(distortedUv, time);
+          // Gentle refraction distortion
+          vec2 distortedUv = refract2D(centeredUv, surface, 0.03);
 
-          // Calculate fresnel-like effect for highlights
-          float surfaceGradient = abs(surface - distortedSurface) * 10.0;
-          float highlight = pow(surfaceGradient, 2.0) * (1.0 + treble * 2.0);
+          // Recalculate surface at distorted position
+          float distortedSurface = liquidSurface(distortedUv, slowTime) * 0.7;
 
-          // Base color mixing based on surface height
-          float surfaceNorm = surface * 0.5 + 0.5; // Normalize to 0-1
+          // Gentle highlight
+          float surfaceGradient = abs(surface - distortedSurface) * 5.0;
+          float highlight = pow(surfaceGradient, 2.0) * 0.5;
+
+          // Base color mixing
+          float surfaceNorm = surface * 0.4 + 0.5;
           vec3 baseColor = mix(depthColor, liquidColor, surfaceNorm);
 
-          // Add highlights on peaks
-          baseColor = mix(baseColor, highlightColor, highlight * 0.5);
+          // Gentle highlights
+          baseColor = mix(baseColor, highlightColor, highlight * 0.3);
 
-          // Add accent color in troughs
-          baseColor = mix(baseColor, accentColor, (1.0 - surfaceNorm) * 0.3 * mid);
+          // Subtle accent in troughs
+          baseColor = mix(baseColor, accentColor, (1.0 - surfaceNorm) * 0.15);
 
-          // Caustic-like patterns in liquid
-          float caustic = pow(max(0.0, sin(distortedUv.x * 20.0 + time) * sin(distortedUv.y * 20.0 + time * 0.7)), 4.0);
-          baseColor += highlightColor * caustic * 0.2 * treble;
+          // Very gentle caustics (slow)
+          float caustic = pow(max(0.0, sin(distortedUv.x * 6.0 + slowTime) * sin(distortedUv.y * 6.0 + slowTime * 0.7)), 4.0);
+          baseColor += highlightColor * caustic * 0.05;
 
-          // Apply brightness based on sensitivity
-          baseColor *= sensitivity * (0.8 + surface * 0.3);
+          // Gentle brightness
+          baseColor *= sensitivity * 0.5 * (0.6 + surface * 0.15);
 
-          // Add subtle glow
-          float glow = max(0.0, surface) * 0.3 * sensitivity;
-          baseColor += highlightColor * glow;
+          // Clamp to prevent any brightness spikes
+          baseColor = clamp(baseColor, 0.0, 0.7);
 
-          // Edge darkening for depth
-          float vignette = 1.0 - smoothstep(0.4, 1.0, length(centeredUv / aspect));
-          baseColor *= 0.6 + vignette * 0.4;
+          // Gentle vignette
+          float vignette = 1.0 - smoothstep(0.5, 1.2, length(centeredUv / aspect));
+          baseColor *= 0.8 + vignette * 0.2;
 
-          // Alpha varies with surface
-          float alpha = 0.85 + surface * 0.15;
+          // Moderate transparency
+          float alpha = 0.45 + surface * 0.1;
 
           gl_FragColor = vec4(baseColor, alpha);
         }

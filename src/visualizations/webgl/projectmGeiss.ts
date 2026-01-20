@@ -151,62 +151,58 @@ export class ProjectmGeissVisualization extends BaseVisualization {
           return fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
         }
 
-        // Complex wave interference pattern - the heart of Geiss
+        // Complex wave interference pattern - calmer version
         float geissWave(vec2 uv, float t, int layers) {
           float wave = 0.0;
-          float amplitude = 1.0;
-          float frequency = 1.0;
+          float amplitude = 0.8;
+          float frequency = 0.8;
 
-          // Audio-modulated parameters
-          float audioTime = t * morphSpeed * (1.0 + bass * 0.3);
-          float audioFreq = frequency * (1.0 + mid * 0.5);
+          // Very slow morphing
+          float slowT = t * morphSpeed * 0.3;
 
           for (int i = 0; i < 8; i++) {
             if (i >= layers) break;
 
             float fi = float(i);
-            float phase = fi * 0.618033988749 * TAU; // Golden ratio phase
+            float phase = fi * 0.618033988749 * TAU;
 
-            // Morphing wave direction
-            float dirAngle = audioTime * 0.1 * (1.0 + fi * 0.1) + phase;
+            // Very slow wave direction changes
+            float dirAngle = slowT * 0.3 * (1.0 + fi * 0.05) + phase;
             vec2 dir = vec2(cos(dirAngle), sin(dirAngle));
 
-            // Rotating coordinate transformation
-            vec2 rotUv = uv * rot2(audioTime * 0.05 + fi * 0.3);
+            // Gentle rotation
+            vec2 rotUv = uv * rot2(slowT * 0.15 + fi * 0.2);
 
-            // Multiple overlapping waves with different characteristics
-            float w1 = sin(dot(rotUv * audioFreq * 5.0, dir) + audioTime * (0.5 + fi * 0.1));
-            float w2 = sin(length(rotUv) * audioFreq * 8.0 - audioTime * 0.3 + phase);
-            float w3 = sin((rotUv.x + rotUv.y) * audioFreq * 4.0 + audioTime * 0.4);
+            // Gentle overlapping waves
+            float w1 = sin(dot(rotUv * frequency * 3.0, dir) + slowT * (0.3 + fi * 0.05));
+            float w2 = sin(length(rotUv) * frequency * 5.0 - slowT * 0.2 + phase);
+            float w3 = sin((rotUv.x + rotUv.y) * frequency * 2.5 + slowT * 0.25);
 
-            // Interference combination
-            float interference = w1 * 0.5 + w2 * 0.3 + w3 * 0.2;
+            // Gentle interference
+            float interference = w1 * 0.4 + w2 * 0.35 + w3 * 0.25;
 
-            // Add with decreasing amplitude
             wave += interference * amplitude;
 
-            // Evolve parameters for next iteration
-            amplitude *= 0.7;
-            frequency *= 1.3 + treble * 0.2;
+            amplitude *= 0.75;
+            frequency *= 1.2;
           }
 
           return wave;
         }
 
-        // Per-pixel coordinate distortion (signature Geiss effect)
+        // Gentle coordinate distortion
         vec2 geissDistort(vec2 uv, float t) {
-          float distortAmount = 0.15 * (1.0 + bass * 0.5);
+          float distortAmount = 0.08;
 
-          // Audio-reactive swirl
           float angle = atan(uv.y, uv.x);
           float dist = length(uv);
 
-          // Organic distortion waves
-          float dx = sin(uv.y * 8.0 * detail + t * 0.5) * distortAmount;
-          dx += sin(dist * 12.0 - t * 0.7) * distortAmount * 0.5;
+          // Very gentle distortion waves
+          float dx = sin(uv.y * 4.0 * detail + t * 0.15) * distortAmount;
+          dx += sin(dist * 6.0 - t * 0.2) * distortAmount * 0.4;
 
-          float dy = sin(uv.x * 7.0 * detail + t * 0.4) * distortAmount;
-          dy += cos(angle * 5.0 + t * 0.3) * distortAmount * 0.3 * mid;
+          float dy = sin(uv.x * 3.5 * detail + t * 0.12) * distortAmount;
+          dy += cos(angle * 3.0 + t * 0.1) * distortAmount * 0.3;
 
           return uv + vec2(dx, dy);
         }
@@ -219,20 +215,20 @@ export class ProjectmGeissVisualization extends BaseVisualization {
           return u * cos(shift * TAU) + v * sin(shift * TAU) + p;
         }
 
-        // Complex color mixing function
+        // Gentle color mixing function
         vec3 geissColor(float v, float t, vec2 uv) {
           // Normalize wave value
-          float nv = v * 0.5 + 0.5;
+          float nv = v * 0.4 + 0.5;
 
-          // Time-based color cycling
-          float colorCycle = t * 0.05;
+          // Very slow color cycling
+          float colorCycle = t * 0.015;
 
-          // Position-based color variation
+          // Gentle position-based variation
           float posPhase = atan(uv.y, uv.x) / TAU + 0.5;
-          float distPhase = length(uv) * 0.5;
+          float distPhase = length(uv) * 0.3;
 
-          // Multi-color gradient with morphing
-          float phase = mod(nv + colorCycle + posPhase * 0.3, 1.0);
+          // Smooth gradient
+          float phase = mod(nv + colorCycle + posPhase * 0.2, 1.0);
 
           vec3 col;
           if (phase < 0.33) {
@@ -243,8 +239,8 @@ export class ProjectmGeissVisualization extends BaseVisualization {
             col = mix(tertiaryColor, primaryColor, (phase - 0.66) * 3.0);
           }
 
-          // Apply hue shift based on distance from center
-          col = hueShift(col, distPhase * 0.2 + colorCycle);
+          // Very subtle hue shift
+          col = hueShift(col, distPhase * 0.1 + colorCycle * 0.5);
 
           return col;
         }
@@ -254,59 +250,51 @@ export class ProjectmGeissVisualization extends BaseVisualization {
           vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
           vec2 centeredUv = (uv - 0.5) * aspect;
 
-          // Apply per-pixel distortion
-          vec2 distortedUv = geissDistort(centeredUv, time);
+          // Very slow time for calm animation
+          float slowTime = time * 0.08;
 
-          // Calculate wave patterns at different scales
-          float wave1 = geissWave(distortedUv, time, complexity);
-          float wave2 = geissWave(distortedUv * 1.5, time * 0.8, max(complexity - 2, 3));
+          // Apply gentle per-pixel distortion
+          vec2 distortedUv = geissDistort(centeredUv, slowTime);
 
-          // Combine waves with cross-modulation
-          float combinedWave = wave1 * 0.7 + wave2 * 0.3;
-          combinedWave += wave1 * wave2 * 0.2; // Interference term
+          // Calculate wave patterns at different scales (very slow)
+          float wave1 = geissWave(distortedUv, slowTime, complexity);
+          float wave2 = geissWave(distortedUv * 1.5, slowTime * 0.8, max(complexity - 2, 3));
 
-          // Apply audio-reactive contrast
-          float contrast = 1.0 + treble * 0.5;
-          combinedWave = sign(combinedWave) * pow(abs(combinedWave), 1.0 / contrast);
+          // Combine waves gently
+          float combinedWave = wave1 * 0.6 + wave2 * 0.4;
+          combinedWave *= 0.7; // Reduce overall intensity
 
-          // Get base color
-          vec3 color = geissColor(combinedWave, time, distortedUv);
+          // Get base color with very slow cycling
+          vec3 color = geissColor(combinedWave, slowTime, distortedUv);
 
-          // Apply wave intensity to brightness
-          float brightness = 0.5 + combinedWave * 0.5;
-          brightness = clamp(brightness, 0.0, 1.5);
+          // Gentle brightness variation
+          float brightness = 0.5 + combinedWave * 0.2;
+          brightness = clamp(brightness, 0.3, 0.8);
           color *= brightness;
 
-          // Add glow effect
-          float glowAmount = pow(max(0.0, brightness), 2.0) * glowIntensity;
-          color += glowColor * glowAmount * 0.4;
+          // Very subtle glow
+          float glowAmount = pow(max(0.0, brightness - 0.4), 2.0) * glowIntensity * 0.3;
+          color += glowColor * glowAmount * 0.1;
 
-          // Add sparkles on high frequencies
-          float sparklePhase = combinedWave * 20.0 + time * 2.0;
-          float sparkle = pow(max(0.0, sin(sparklePhase) * sin(sparklePhase * 0.7)), 8.0);
-          sparkle *= treble * 0.6;
-          color += glowColor * sparkle;
+          // Apply sensitivity (reduced impact)
+          color *= sensitivity * 0.6;
 
-          // Edge enhancement for detail
-          float edgeGlow = abs(wave1 - wave2) * detail * treble * 2.0;
-          color += secondaryColor * edgeGlow * 0.3;
+          // Clamp colors to prevent any brightness spikes
+          color = clamp(color, 0.0, 0.85);
 
-          // Apply sensitivity
-          color *= sensitivity;
+          // Gentle vignette
+          float vignette = 1.0 - smoothstep(0.6, 1.4, length(centeredUv / aspect));
+          color *= 0.8 + vignette * 0.2;
 
-          // Subtle vignette
-          float vignette = 1.0 - smoothstep(0.4, 1.2, length(centeredUv / aspect));
-          color *= 0.7 + vignette * 0.3;
-
-          // Alpha based on intensity
-          float alpha = 0.9 + brightness * 0.1;
+          // Moderate transparency
+          float alpha = 0.5 + brightness * 0.15;
 
           gl_FragColor = vec4(color, alpha);
         }
       `,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
     });
 
     this.mesh = new THREE.Mesh(geometry, this.material);

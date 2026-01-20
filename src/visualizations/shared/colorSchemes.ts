@@ -16,7 +16,10 @@ export type ColorSchemeId =
   | "bloodMoon"
   | "synthwave"
   | "golden"
-  | "nature";
+  | "nature"
+  | "winampGreen"
+  | "winampOrange"
+  | "winampClassic";
 
 // Base color definitions (hex strings for canvas/p5)
 interface ColorSchemeBase {
@@ -41,6 +44,9 @@ const COLOR_SCHEME_DATA: Record<ColorSchemeId, ColorSchemeBase> = {
   synthwave: { primary: "#ff00ff", secondary: "#00ffff", glow: "#ff00aa" },
   golden: { primary: "#ffd700", secondary: "#ff8c00", glow: "#ffb347" },
   nature: { primary: "#2E8B57", secondary: "#9ACD32", glow: "#00FF7F" },
+  winampGreen: { primary: "#00FF00", secondary: "#00AA00", glow: "#00FF00" },
+  winampOrange: { primary: "#FF8800", secondary: "#AA5500", glow: "#FFAA00" },
+  winampClassic: { primary: "#00FF00", secondary: "#FF0000", glow: "#FFFF00" },
 };
 
 // String format for Canvas2D and p5.js visualizations
@@ -167,6 +173,9 @@ export const COLOR_SCHEME_OPTIONS = [
   { value: "synthwave", label: "Synthwave" },
   { value: "golden", label: "Golden" },
   { value: "nature", label: "Nature" },
+  { value: "winampGreen", label: "WinAMP Green" },
+  { value: "winampOrange", label: "WinAMP Orange" },
+  { value: "winampClassic", label: "WinAMP Classic" },
 ] as const;
 
 // Array of colors for kaleidoscope, fireworks, etc.

@@ -148,46 +148,46 @@ export class ProjectmWavesVisualization extends BaseVisualization {
           return vec2(uv.x * c - uv.y * s, uv.x * s + uv.y * c);
         }
 
-        // projectM-style wave function with multiple overlapping layers
+        // projectM-style wave function with multiple overlapping layers (calmer)
         float waves(vec2 uv, float t, int layers) {
           float wave = 0.0;
-          float amplitude = waveAmplitude * (0.8 + bass * 0.4);
-          float scale = 6.0 + mid * 2.0;
+          float amplitude = waveAmplitude * 0.6;
+          float scale = 4.0;
 
           for (int i = 0; i < 7; i++) {
             if (i >= layers) break;
 
             float fi = float(i);
-            float phase = fi * 0.7 + t * 0.1 * (1.0 + fi * 0.2);
+            float phase = fi * 0.7 + t * 0.5 * (1.0 + fi * 0.1);
 
-            // Create wave direction that rotates over time
+            // Create wave direction that rotates very slowly
             vec2 dir = vec2(
-              cos(fi * 1.5 + t * 0.08 * waveSpeed),
-              sin(fi * 2.1 - t * 0.12 * waveSpeed)
+              cos(fi * 1.5 + t * 0.3 * waveSpeed),
+              sin(fi * 2.1 - t * 0.4 * waveSpeed)
             );
 
-            // Apply distortion to UV based on bass
-            vec2 distortedUv = uv + distortion * 0.1 * vec2(
-              sin(uv.y * 4.0 + t * 0.5 + bass * 3.0),
-              cos(uv.x * 4.0 + t * 0.4 + bass * 3.0)
+            // Gentle distortion
+            vec2 distortedUv = uv + distortion * 0.05 * vec2(
+              sin(uv.y * 3.0 + t * 0.2),
+              cos(uv.x * 3.0 + t * 0.15)
             );
 
-            // Core wave equation - sine wave interference pattern
-            float w = sin(dot(distortedUv * scale, dir) * 2.0 + phase * waveSpeed);
+            // Core wave equation - gentle interference
+            float w = sin(dot(distortedUv * scale, dir) * 1.5 + phase * waveSpeed * 0.5);
 
-            // Add harmonic for complexity
-            w += 0.5 * sin(dot(distortedUv * scale * 1.5, dir.yx) * 3.0 + phase * 1.3);
+            // Subtle harmonic
+            w += 0.3 * sin(dot(distortedUv * scale * 1.3, dir.yx) * 2.0 + phase * 0.8);
 
-            // Weight by layer (earlier layers stronger)
-            wave += w * amplitude / (1.0 + fi * 0.3);
+            // Weight by layer
+            wave += w * amplitude / (1.0 + fi * 0.4);
           }
 
           return wave / float(layers);
         }
 
-        // Color cycling function for projectM aesthetic
+        // Color cycling function - very slow
         vec3 cycleColor(float t, float phase, vec3 c1, vec3 c2, vec3 c3, vec3 c4) {
-          float cycle = mod(t * colorCycleSpeed + phase, 4.0);
+          float cycle = mod(t * colorCycleSpeed * 0.15 + phase, 4.0);
 
           if (cycle < 1.0) {
             return mix(c1, c2, cycle);
@@ -205,58 +205,59 @@ export class ProjectmWavesVisualization extends BaseVisualization {
           vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
           vec2 centeredUv = (uv - 0.5) * aspect;
 
-          // Apply audio-reactive rotation
-          float rotation = time * 0.02 + bass * 0.3;
+          // Very slow time for calm animation
+          float slowTime = time * 0.08;
+
+          // Very gentle rotation
+          float rotation = slowTime * 0.3 + bass * 0.1;
           vec2 rotatedUv = rotate2D(centeredUv, rotation);
 
-          // Calculate base wave pattern
-          float w = waves(rotatedUv, time, waveLayers);
+          // Calculate base wave pattern (slow)
+          float w = waves(rotatedUv, slowTime, waveLayers);
 
-          // Normalize and enhance contrast
-          w = 0.5 + 0.5 * w;
-          w = pow(w, 1.5 - treble * 0.3);
+          // Gentle normalize
+          w = 0.5 + 0.4 * w;
 
-          // Calculate color phase based on position and time
-          float colorPhase = length(centeredUv) * 2.0 + atan(centeredUv.y, centeredUv.x) * 0.5;
+          // Calculate color phase based on position
+          float colorPhase = length(centeredUv) * 1.5 + atan(centeredUv.y, centeredUv.x) * 0.3;
 
-          // Get cycling color
+          // Get cycling color (very slow)
           vec3 baseColor = cycleColor(
-            time * 0.15,
-            colorPhase + w * 0.5,
+            slowTime * 0.5,
+            colorPhase + w * 0.3,
             primaryColor,
             secondaryColor,
             glowColor,
             accentColor
           );
 
-          // Add wave intensity to color
-          vec3 color = baseColor * (0.5 + w * 0.8);
+          // Gentle wave intensity
+          vec3 color = baseColor * (0.4 + w * 0.4);
 
-          // Add glow effect on treble
-          float glowAmount = w * w * (0.5 + treble * 0.5);
-          color += glowColor * glowAmount * 0.4;
+          // Very subtle glow
+          float glowAmount = w * w * 0.15;
+          color += glowColor * glowAmount * 0.1;
 
-          // Add accent color sparkles on high treble
-          float sparkle = pow(max(0.0, sin(w * 12.0 + time * 2.0)), 8.0) * treble;
-          color += accentColor * sparkle * 0.3;
-
-          // Audio-reactive brightness
-          float brightness = 0.8 + sensitivity * 0.3 + bass * 0.2;
+          // Gentle brightness
+          float brightness = 0.5 + sensitivity * 0.15;
           color *= brightness;
 
-          // Subtle vignette
-          float vignette = 1.0 - smoothstep(0.5, 1.2, length(centeredUv / aspect));
-          color *= 0.7 + vignette * 0.3;
+          // Clamp to prevent any brightness spikes
+          color = clamp(color, 0.0, 0.8);
 
-          // Alpha based on wave intensity for layering effects
-          float alpha = 0.85 + w * 0.15;
+          // Gentle vignette
+          float vignette = 1.0 - smoothstep(0.6, 1.3, length(centeredUv / aspect));
+          color *= 0.8 + vignette * 0.2;
+
+          // Moderate transparency
+          float alpha = 0.45 + w * 0.15;
 
           gl_FragColor = vec4(color, alpha);
         }
       `,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
     });
 
     this.mesh = new THREE.Mesh(geometry, this.material);
