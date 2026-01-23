@@ -31,6 +31,7 @@ export class KaraokeGlowVisualization extends BaseVisualization {
     description: "Glowing karaoke-style lyrics with trailing words",
     renderer: "canvas2d",
     transitionType: "crossfade",
+    usesSpeech: true,
   };
 
   private canvas: HTMLCanvasElement | null = null;

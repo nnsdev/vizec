@@ -45,6 +45,7 @@ export class LyricBurstVisualization extends BaseVisualization {
       "Displays detected words with explosive particle effects - enable speech recognition to see lyrics",
     renderer: "canvas2d",
     transitionType: "crossfade",
+    usesSpeech: true,
   };
 
   private canvas: HTMLCanvasElement | null = null;

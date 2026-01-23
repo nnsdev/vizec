@@ -3,8 +3,8 @@ import * as path from "path";
 
 export function createControlWindow(): BrowserWindow {
   const window = new BrowserWindow({
-    width: 720,
-    height: 580,
+    width: 740,
+    height: 600,
     minWidth: 600,
     minHeight: 450,
     frame: true,

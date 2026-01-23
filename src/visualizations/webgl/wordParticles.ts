@@ -34,6 +34,7 @@ export class WordParticlesVisualization extends BaseVisualization {
     description: "Word sprites burst and drift with each lyric",
     renderer: "threejs",
     transitionType: "crossfade",
+    usesSpeech: true,
   };
 
   private container: HTMLElement | null = null;

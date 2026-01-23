@@ -27,6 +27,7 @@ export class LyricRingsVisualization extends BaseVisualization {
     description: "Orbiting lyric rings that spin with the music",
     renderer: "p5",
     transitionType: "crossfade",
+    usesSpeech: true,
   };
 
   private p5Instance: p5 | null = null;

@@ -10,6 +10,8 @@ let audioSources: AudioSource[] = [];
 let visualizations: VisualizationMeta[] = [];
 let isCapturing = false;
 
+const HIDE_SPEECH_VISUALIZATIONS_KEY = "hideSpeechVisualizations";
+
 // DOM Elements
 const presetSelect = document.getElementById("preset-select") as HTMLSelectElement;
 const savePresetBtn = document.getElementById("save-preset-btn") as HTMLButtonElement;
@@ -23,6 +25,9 @@ const vizSearch = document.getElementById("viz-search") as HTMLInputElement;
 const vizDropdown = document.getElementById("viz-dropdown") as HTMLDivElement;
 const prevVizBtn = document.getElementById("prev-viz-btn") as HTMLButtonElement;
 const nextVizBtn = document.getElementById("next-viz-btn") as HTMLButtonElement;
+const hideSpeechVisualizationsCheck = document.getElementById(
+  "hide-speech-visualizations",
+) as HTMLInputElement;
 const autoRotateCheck = document.getElementById("auto-rotate-check") as HTMLInputElement;
 const rotationSettings = document.getElementById("rotation-settings") as HTMLDivElement;
 const rotationInterval = document.getElementById("rotation-interval") as HTMLInputElement;
@@ -49,6 +54,11 @@ async function init() {
   if (!window.vizecAPI) {
     console.error("vizecAPI not available! Preload script may not have loaded.");
     return;
+  }
+
+  const storedHideSpeech = localStorage.getItem(HIDE_SPEECH_VISUALIZATIONS_KEY);
+  if (storedHideSpeech !== null) {
+    hideSpeechVisualizationsCheck.checked = storedHideSpeech === "true";
   }
 
   // REGISTER LISTENER IMMEDIATELY
@@ -152,6 +162,13 @@ function populateAudioSources() {
 
 let highlightedIndex = -1;
 
+function getVisibleVisualizations(): VisualizationMeta[] {
+  if (!hideSpeechVisualizationsCheck.checked) {
+    return visualizations;
+  }
+  return visualizations.filter((viz) => !viz.usesSpeech);
+}
+
 function populateVisualizations(filter: string = "") {
   vizDropdown.innerHTML = "";
   highlightedIndex = -1;
@@ -164,10 +181,19 @@ function populateVisualizations(filter: string = "") {
     return;
   }
 
+  const available = getVisibleVisualizations();
+  if (available.length === 0) {
+    const option = document.createElement("div");
+    option.className = "searchable-select-option no-results";
+    option.textContent = "No visualizations available";
+    vizDropdown.appendChild(option);
+    return;
+  }
+
   const filterLower = filter.toLowerCase().trim();
   const filtered = filterLower
-    ? visualizations.filter((viz) => viz.name.toLowerCase().includes(filterLower))
-    : visualizations;
+    ? available.filter((viz) => viz.name.toLowerCase().includes(filterLower))
+    : available;
 
   if (filtered.length === 0) {
     const option = document.createElement("div");
@@ -226,9 +252,10 @@ function highlightOption(index: number) {
 
 function getFilteredVisualizations() {
   const filterLower = vizSearch.value.toLowerCase().trim();
+  const available = getVisibleVisualizations();
   return filterLower
-    ? visualizations.filter((viz) => viz.name.toLowerCase().includes(filterLower))
-    : visualizations;
+    ? available.filter((viz) => viz.name.toLowerCase().includes(filterLower))
+    : available;
 }
 
 function updateUIFromState() {
@@ -480,6 +507,14 @@ function setupEventListeners() {
 
   nextVizBtn.addEventListener("click", () => {
     window.vizecAPI.nextVisualization();
+  });
+
+  hideSpeechVisualizationsCheck.addEventListener("change", () => {
+    localStorage.setItem(
+      HIDE_SPEECH_VISUALIZATIONS_KEY,
+      String(hideSpeechVisualizationsCheck.checked),
+    );
+    populateVisualizations(vizSearch.value);
   });
 
   // Helper to get current rotation config

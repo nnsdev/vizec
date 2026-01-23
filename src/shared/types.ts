@@ -80,6 +80,7 @@ export interface VisualizationMeta {
   description?: string;
   renderer: "canvas2d" | "webgl" | "p5" | "threejs";
   transitionType: "crossfade" | "cut" | "zoom";
+  usesSpeech?: boolean;
 }
 
 // Visualization interface is defined in the renderer since it uses DOM types

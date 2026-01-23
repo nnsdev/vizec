@@ -32,6 +32,7 @@ export class SpectrumCaptionsVisualization extends BaseVisualization {
     description: "Subtitle band synced to spectrum bars",
     renderer: "canvas2d",
     transitionType: "crossfade",
+    usesSpeech: true,
   };
 
   private canvas: HTMLCanvasElement | null = null;
