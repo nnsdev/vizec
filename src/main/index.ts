@@ -16,6 +16,7 @@ const appState: AppState = {
   audioSource: null,
   isCapturing: false,
   currentVisualization: "frequencyBars",
+  hideSpeechVisualizations: false,
   currentPreset: null,
   audioConfig: {
     sensitivity: 1.0,

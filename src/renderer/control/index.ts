@@ -34,6 +34,9 @@ const rotationInterval = document.getElementById("rotation-interval") as HTMLInp
 const rotationIntervalValue = document.getElementById("rotation-interval-value") as HTMLSpanElement;
 const randomizeColorsCheck = document.getElementById("randomize-colors-check") as HTMLInputElement;
 const randomizeAllCheck = document.getElementById("randomize-all-check") as HTMLInputElement;
+const resetRotationPoolBtn = document.getElementById(
+  "reset-rotation-pool-btn",
+) as HTMLButtonElement;
 
 const sensitivitySlider = document.getElementById("sensitivity") as HTMLInputElement;
 const sensitivityValue = document.getElementById("sensitivity-value") as HTMLSpanElement;
@@ -99,6 +102,14 @@ async function init() {
     const inputDevices = getResult(results[2], [] as AudioSource[]);
     const fetchedViz = getResult(results[3], [] as VisualizationMeta[]);
     currentState = getResult(results[4], null as AppState | null);
+
+    if (storedHideSpeech !== null && currentState) {
+      const hideSpeechValue = storedHideSpeech === "true";
+      if (currentState.hideSpeechVisualizations !== hideSpeechValue) {
+        currentState.hideSpeechVisualizations = hideSpeechValue;
+        window.vizecAPI.updateState({ hideSpeechVisualizations: hideSpeechValue });
+      }
+    }
 
     // Only overwrite visualizations if we got some from the fetch,
     // otherwise keep what might have come in via the event listener
@@ -297,6 +308,7 @@ function updateUIFromState() {
   rotationSettings.style.display = currentState.rotation.enabled ? "block" : "none";
   rotationInterval.value = String(currentState.rotation.interval);
   rotationIntervalValue.textContent = `${currentState.rotation.interval}s`;
+  resetRotationPoolBtn.disabled = currentState.rotation.order !== "random";
 
   const orderRadios = document.querySelectorAll(
     'input[name="rotation-order"]',
@@ -307,6 +319,18 @@ function updateUIFromState() {
 
   randomizeColorsCheck.checked = currentState.rotation.randomizeColors ?? false;
   randomizeAllCheck.checked = currentState.rotation.randomizeAll ?? false;
+
+  if (
+    hideSpeechVisualizationsCheck.checked !== currentState.hideSpeechVisualizations &&
+    typeof currentState.hideSpeechVisualizations === "boolean"
+  ) {
+    hideSpeechVisualizationsCheck.checked = currentState.hideSpeechVisualizations;
+    localStorage.setItem(
+      HIDE_SPEECH_VISUALIZATIONS_KEY,
+      String(currentState.hideSpeechVisualizations),
+    );
+    populateVisualizations(vizSearch.value);
+  }
 
   // Audio settings
   sensitivitySlider.value = String(currentState.audioConfig.sensitivity);
@@ -514,6 +538,10 @@ function setupEventListeners() {
       HIDE_SPEECH_VISUALIZATIONS_KEY,
       String(hideSpeechVisualizationsCheck.checked),
     );
+    window.vizecAPI.updateState({
+      hideSpeechVisualizations: hideSpeechVisualizationsCheck.checked,
+    });
+    window.vizecAPI.resetRandomRotationPool();
     populateVisualizations(vizSearch.value);
   });
 
@@ -552,6 +580,10 @@ function setupEventListeners() {
       randomizeColorsCheck.checked = true;
     }
     window.vizecAPI.setRotation(getRotationConfig());
+  });
+
+  resetRotationPoolBtn.addEventListener("click", () => {
+    window.vizecAPI.resetRandomRotationPool();
   });
 
   // Audio settings

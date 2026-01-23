@@ -40,6 +40,7 @@ interface VizecAPI {
   onStateChanged: (callback: (state: AppState) => void) => () => void;
   nextVisualization: () => void;
   prevVisualization: () => void;
+  resetRandomRotationPool: () => void;
   setRotation: (rotation: RotationConfig) => void;
   setDisplayConfig: (config: DisplayConfig) => void;
   setAudioConfig: (config: AudioConfig) => void;

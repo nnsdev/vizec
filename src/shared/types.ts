@@ -132,6 +132,7 @@ export interface AppState {
   audioSource: AudioSource | null;
   isCapturing: boolean;
   currentVisualization: string;
+  hideSpeechVisualizations: boolean;
   currentPreset: string | null;
   audioConfig: AudioConfig;
   displayConfig: DisplayConfig;
@@ -178,6 +179,7 @@ export const IPC_CHANNELS = {
   NEXT_VISUALIZATION: "next-visualization",
   PREV_VISUALIZATION: "prev-visualization",
   SET_ROTATION: "set-rotation",
+  RESET_RANDOM_ROTATION_POOL: "reset-random-rotation-pool",
 
   // Display
   SET_DISPLAY_CONFIG: "set-display-config",

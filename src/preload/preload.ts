@@ -57,6 +57,7 @@ const IPC_CHANNELS = {
   NEXT_VISUALIZATION: "next-visualization",
   PREV_VISUALIZATION: "prev-visualization",
   SET_ROTATION: "set-rotation",
+  RESET_RANDOM_ROTATION_POOL: "reset-random-rotation-pool",
 
   // Display
   SET_DISPLAY_CONFIG: "set-display-config",
@@ -143,6 +144,9 @@ const vizecAPI: Window["vizecAPI"] = {
   // Navigation
   nextVisualization: () => ipcRenderer.send(IPC_CHANNELS.NEXT_VISUALIZATION),
   prevVisualization: () => ipcRenderer.send(IPC_CHANNELS.PREV_VISUALIZATION),
+
+  // Rotation
+  resetRandomRotationPool: () => ipcRenderer.send(IPC_CHANNELS.RESET_RANDOM_ROTATION_POOL),
 
   // Settings
   setRotation: (rotation: RotationConfig) => ipcRenderer.send(IPC_CHANNELS.SET_ROTATION, rotation),

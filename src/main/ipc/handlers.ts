@@ -1,6 +1,7 @@
 import { ipcMain, desktopCapturer } from "electron";
 import {
   IPC_CHANNELS,
+  AppState,
   AudioConfig,
   AudioSource,
   DisplayConfig,
@@ -30,6 +31,44 @@ export function setupIpcHandlers() {
     } catch {
       return null;
     }
+  };
+
+  let randomRotationPool: string[] = [];
+
+  const getEligibleVisualizationIds = (
+    state: AppState,
+    allViz: VisualizationMeta[],
+  ): string[] => {
+    const eligible = state.hideSpeechVisualizations
+      ? allViz.filter((viz) => !viz.usesSpeech)
+      : allViz;
+    return eligible.map((viz) => viz.id);
+  };
+
+  const resetRandomRotationPool = (state: AppState, allViz: VisualizationMeta[]): void => {
+    const eligibleIds = getEligibleVisualizationIds(state, allViz);
+    randomRotationPool = eligibleIds.filter((id) => id !== state.currentVisualization);
+  };
+
+  const pickNextRandomVisualizationId = (
+    state: AppState,
+    allViz: VisualizationMeta[],
+  ): string | null => {
+    const eligibleIds = getEligibleVisualizationIds(state, allViz);
+    if (eligibleIds.length === 0) return null;
+
+    randomRotationPool = randomRotationPool.filter((id) => eligibleIds.includes(id));
+    randomRotationPool = randomRotationPool.filter((id) => id !== state.currentVisualization);
+
+    if (randomRotationPool.length === 0) {
+      randomRotationPool = eligibleIds.filter((id) => id !== state.currentVisualization);
+    }
+
+    const pool = randomRotationPool.length > 0 ? randomRotationPool : eligibleIds;
+    const index = Math.floor(Math.random() * pool.length);
+    const nextId = pool[index];
+    randomRotationPool = randomRotationPool.filter((id) => id !== nextId);
+    return nextId;
   };
 
   // Get available audio sources
@@ -105,6 +144,7 @@ export function setupIpcHandlers() {
   ipcMain.on(IPC_CHANNELS.REGISTER_VISUALIZATIONS, (event, metas: VisualizationMeta[]) => {
     console.log(`IPC: REGISTER_VISUALIZATIONS received ${metas.length} items`);
     visualizationRegistry.registerMany(metas);
+    resetRandomRotationPool(getAppState(), visualizationRegistry.getAllMeta());
 
     // Broadcast update to all windows (specifically Control window)
     const control = getControlWindow();
@@ -191,21 +231,32 @@ export function setupIpcHandlers() {
   });
 
   // Update state
-  ipcMain.on(IPC_CHANNELS.UPDATE_STATE, (event, partial) => {
+  ipcMain.on(IPC_CHANNELS.UPDATE_STATE, (event, partial: Partial<AppState>) => {
+    const previousHideSpeech = getAppState().hideSpeechVisualizations;
     updateAppState(partial);
+    if (
+      typeof partial.hideSpeechVisualizations === "boolean" &&
+      partial.hideSpeechVisualizations !== previousHideSpeech
+    ) {
+      resetRandomRotationPool(getAppState(), visualizationRegistry.getAllMeta());
+    }
   });
 
   // Navigation
   ipcMain.on(IPC_CHANNELS.NEXT_VISUALIZATION, () => {
     const state = getAppState();
     const allViz = visualizationRegistry.getAllMeta();
+    if (allViz.length === 0) return;
     const currentIndex = allViz.findIndex(
       (v: VisualizationMeta) => v.id === state.currentVisualization,
     );
     let nextIndex: number;
 
     if (state.rotation.order === "random") {
-      nextIndex = Math.floor(Math.random() * allViz.length);
+      const nextId = pickNextRandomVisualizationId(state, allViz);
+      if (!nextId) return;
+      updateAppState({ currentVisualization: nextId });
+      return;
     } else {
       nextIndex = (currentIndex + 1) % allViz.length;
     }
@@ -226,7 +277,18 @@ export function setupIpcHandlers() {
 
   // Rotation settings
   ipcMain.on(IPC_CHANNELS.SET_ROTATION, (event, rotation: RotationConfig) => {
+    const previousOrder = getAppState().rotation.order;
     updateAppState({ rotation });
+    if (rotation.order !== "random") {
+      randomRotationPool = [];
+    }
+    if (rotation.order === "random" && previousOrder !== "random") {
+      resetRandomRotationPool(getAppState(), visualizationRegistry.getAllMeta());
+    }
+  });
+
+  ipcMain.on(IPC_CHANNELS.RESET_RANDOM_ROTATION_POOL, () => {
+    resetRandomRotationPool(getAppState(), visualizationRegistry.getAllMeta());
   });
 
   // Display config

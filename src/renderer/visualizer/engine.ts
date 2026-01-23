@@ -471,6 +471,9 @@ export class VisualizationEngine {
     randomizeColors: boolean = false,
     randomizeAll: boolean = false,
   ): void {
+    const wasEnabled = this.rotationEnabled;
+    const previousOrder = this.rotationOrder;
+
     this.rotationEnabled = enabled;
     this.rotationInterval = interval;
     this.rotationOrder = order;
@@ -485,8 +488,11 @@ export class VisualizationEngine {
 
     // Start new timer if enabled
     if (enabled) {
-      // Preload the first next visualization
-      this.preloadNextVisualization();
+      const shouldPreload = !wasEnabled || previousOrder !== order;
+      if (shouldPreload) {
+        // Preload the first next visualization
+        this.preloadNextVisualization();
+      }
 
       this.rotationTimerId = window.setInterval(() => {
         if (this.rotationRandomizeAll) {
