@@ -46,11 +46,11 @@ export class MagentaKeyPulseVisualization extends BaseVisualization {
   private config: MagentaKeyPulseConfig = {
     sensitivity: 1,
     colorScheme: "synthwave",
-    pulseRate: 4,
-    expansionSpeed: 120,
+    pulseRate: 2,
+    expansionSpeed: 50,
     fadeSpeed: 0.03,
     glow: 0.8,
-    burstCount: 3,
+    burstCount: 1,
   };
 
   init(container: HTMLElement, config: VisualizationConfig): void {
@@ -126,7 +126,7 @@ export class MagentaKeyPulseVisualization extends BaseVisualization {
     const x = Math.random() * this.width;
     const y = Math.random() * this.height;
     const radius = 30 + Math.random() * 40;
-    const maxRadius = Math.max(this.width, this.height) * 0.5;
+    const maxRadius = Math.max(this.width, this.height) * 0.2;
 
     this.pulses.push({
       x,
@@ -209,25 +209,25 @@ export class MagentaKeyPulseVisualization extends BaseVisualization {
       pulseRate: {
         type: "number",
         label: "Pulse Rate",
-        default: 4,
+        default: 2,
         min: 1,
-        max: 12,
+        max: 8,
         step: 1,
       },
       burstCount: {
         type: "number",
         label: "Bursts per Pulse",
-        default: 3,
+        default: 1,
         min: 1,
-        max: 6,
+        max: 3,
         step: 1,
       },
       expansionSpeed: {
         type: "number",
         label: "Expansion Speed",
-        default: 120,
-        min: 40,
-        max: 240,
+        default: 50,
+        min: 20,
+        max: 120,
         step: 10,
       },
       fadeSpeed: {

@@ -142,7 +142,7 @@ export class RetroScopeVisualization extends BaseVisualization {
       const x = margin + i;
       // Moderate amplification
       const normalizedValue = (value - 128) / 128;
-      const amplifiedValue = normalizedValue * sensitivity * 1.5;
+      const amplifiedValue = normalizedValue * sensitivity * 0.75;
       const y = centerY + amplifiedValue * (displayHeight / 2);
 
       if (i === 0) {

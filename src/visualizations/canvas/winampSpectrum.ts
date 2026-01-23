@@ -86,8 +86,8 @@ export class WinampSpectrumVisualization extends BaseVisualization {
       const freqCompensation = 1 + freqPosition * 1;
 
       const rawValue = sum / step / 255;
-      // Reduced intensity by ~50%: higher power dampens peaks, lower compensation
-      const compensatedValue = Math.pow(rawValue, 0.7) * freqCompensation * sensitivity * 0.7;
+      // Reduced intensity by 4x: higher power dampens peaks, lower compensation
+      const compensatedValue = Math.pow(rawValue, 0.7) * freqCompensation * sensitivity * 0.175;
 
       const smoothing = 0.7;
       this.smoothedData[i] = this.smoothedData[i] * smoothing + compensatedValue * (1 - smoothing);
@@ -98,7 +98,7 @@ export class WinampSpectrumVisualization extends BaseVisualization {
       const barColor = this.getBarColor(freqPosition, colors);
 
       if (glow && this.smoothedData[i] > 0.2) {
-        this.ctx.shadowBlur = 15 * this.smoothedData[i];
+        this.ctx.shadowBlur = 15 * this.smoothedData[i] * 0.25;
         this.ctx.shadowColor = colors.glow;
       } else {
         this.ctx.shadowBlur = 0;

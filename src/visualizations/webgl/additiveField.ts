@@ -102,7 +102,7 @@ export class AdditiveFieldVisualization extends BaseVisualization {
       positions[i3 + 2] = (Math.random() - 0.5) * spread;
 
       this.velocities[i3] = (Math.random() - 0.5) * 0.02;
-      this.velocities[i3 + 1] = Math.random() * 0.01;
+      this.velocities[i3 + 1] = (Math.random() - 0.5) * 0.01;
       this.velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
 
       const mix = Math.random();
@@ -158,8 +158,8 @@ export class AdditiveFieldVisualization extends BaseVisualization {
       const vibe = 1 + bin * 2;
 
       positions[i3] += (this.velocities[i3] * vibe + noiseBase * 0.05) * speed * deltaTime * 60;
-      positions[i3 + 1] +=
-        (this.velocities[i3 + 1] * vibe + lift * bass * 0.5) * speed * deltaTime * 60;
+       positions[i3 + 1] +=
+         (this.velocities[i3 + 1] * vibe + (lift * bass * 0.1 - 0.03)) * speed * deltaTime * 60;
       positions[i3 + 2] +=
         (this.velocities[i3 + 2] * vibe + noiseBase * 0.05) * speed * deltaTime * 60;
 

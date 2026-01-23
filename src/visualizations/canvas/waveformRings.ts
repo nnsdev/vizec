@@ -16,6 +16,7 @@ interface WaveformRingsConfig extends VisualizationConfig {
   colorScheme: string;
   lineWidth: number;
   fadeRate: number;
+  beatThreshold: number;
 }
 
 export class WaveformRingsVisualization extends BaseVisualization {
@@ -34,9 +35,10 @@ export class WaveformRingsVisualization extends BaseVisualization {
     sensitivity: 1.0,
     colorScheme: "cyanMagenta",
     ringCount: 8,
-    expansionSpeed: 2,
+    expansionSpeed: 1,
     lineWidth: 2,
-    fadeRate: 0.02,
+    fadeRate: 0.01,
+    beatThreshold: 0.15,
   };
   private width = 0;
   private height = 0;
@@ -67,12 +69,19 @@ export class WaveformRingsVisualization extends BaseVisualization {
     this.lastBass = 0;
   }
 
-  render(audioData: AudioData, _deltaTime: number): void {
+  render(audioData: AudioData, deltaTime: number): void {
     if (!this.ctx || !this.canvas) return;
 
     const { timeDomainData, bass, volume } = audioData;
-    const { ringCount, expansionSpeed, colorScheme, lineWidth, fadeRate, sensitivity } =
-      this.config;
+    const {
+      ringCount,
+      expansionSpeed,
+      colorScheme,
+      lineWidth,
+      fadeRate,
+      sensitivity,
+      beatThreshold,
+    } = this.config;
     const colors = getColorScheme(COLOR_SCHEMES_STRING, colorScheme);
 
     // Clear canvas with transparency
@@ -84,14 +93,16 @@ export class WaveformRingsVisualization extends BaseVisualization {
     const now = performance.now();
 
     // Beat detection - spawn new ring on bass hit
-    const beatThreshold = 0.5 + (1 - sensitivity) * 0.3;
     const bassIncrease = bass - this.lastBass;
     this.lastBass = bass;
 
+    // Auto-spawn ring if no beats for a while (restore center rings)
+    const timeSinceBeat = now - this.lastBeatTime;
+    const autoSpawn = timeSinceBeat > 1500; // Force spawn every 1.5s if no beat
+
     if (
-      bassIncrease > beatThreshold * 0.3 &&
-      bass > beatThreshold &&
-      now - this.lastBeatTime > this.beatCooldown
+      (bassIncrease > beatThreshold && timeSinceBeat > this.beatCooldown) ||
+      autoSpawn
     ) {
       this.lastBeatTime = now;
 
@@ -106,7 +117,8 @@ export class WaveformRingsVisualization extends BaseVisualization {
       }
 
       // Alternate between primary and secondary colors
-      const colorChoice = this.rings.length % 2 === 0 ? colors.primary : colors.secondary;
+      const colorChoice =
+        this.rings.length % 2 === 0 ? colors.primary : colors.secondary;
 
       this.rings.push({
         radius: 20,
@@ -124,15 +136,18 @@ export class WaveformRingsVisualization extends BaseVisualization {
 
     // Update and draw rings
     const ringsToRemove: number[] = [];
+    // Normalize speed for 60fps (approx 16.67ms)
+    const speedFactor = deltaTime / 16.67;
 
     for (let i = 0; i < this.rings.length; i++) {
       const ring = this.rings[i];
 
-      // Expand ring
-      ring.radius += expansionSpeed * (1 + volume * 2 * sensitivity);
+      // Expand ring using deltaTime
+      ring.radius +=
+        expansionSpeed * speedFactor * (1 + volume * 0.5 * sensitivity);
 
       // Fade ring
-      ring.alpha -= fadeRate;
+      ring.alpha -= fadeRate * speedFactor;
 
       // Mark for removal if too faded or too large
       if (ring.alpha <= 0 || ring.radius > maxRadius) {
@@ -259,6 +274,14 @@ export class WaveformRingsVisualization extends BaseVisualization {
 
   getConfigSchema(): ConfigSchema {
     return {
+      beatThreshold: {
+        type: "number",
+        label: "Beat Threshold",
+        default: 0.15,
+        min: 0.05,
+        max: 0.5,
+        step: 0.01,
+      },
       ringCount: {
         type: "number",
         label: "Max Rings",
@@ -270,9 +293,9 @@ export class WaveformRingsVisualization extends BaseVisualization {
       expansionSpeed: {
         type: "number",
         label: "Expansion Speed",
-        default: 2,
+        default: 1,
         min: 0.5,
-        max: 5,
+        max: 3,
         step: 0.5,
       },
       colorScheme: {
@@ -292,9 +315,9 @@ export class WaveformRingsVisualization extends BaseVisualization {
       fadeRate: {
         type: "number",
         label: "Fade Rate",
-        default: 0.02,
+        default: 0.01,
         min: 0.005,
-        max: 0.05,
+        max: 0.03,
         step: 0.005,
       },
     };

@@ -29,7 +29,7 @@ export class Bars3DVisualization extends BaseVisualization {
   private barGroup: THREE.Group | null = null;
 
   private config: Bars3DConfig = {
-    sensitivity: 1.0,
+    sensitivity: 0.5,
     colorScheme: "cyanMagenta",
     barCount: 64,
     radius: 20,
@@ -158,7 +158,7 @@ export class Bars3DVisualization extends BaseVisualization {
       const avgFreq = sum / binsPerBar / 255;
 
       // Calculate target height
-      const targetHeight = Math.max(0.5, avgFreq * maxHeight * sensitivity);
+      const targetHeight = Math.max(0.5, avgFreq * maxHeight * sensitivity * 0.5);
 
       // Smooth height transition
       const currentHeight = bar.scale.y;
@@ -179,11 +179,11 @@ export class Bars3DVisualization extends BaseVisualization {
     }
 
     // Slow rotation of entire group
-    this.barGroup.rotation.y += 0.002 * (1 + bassBoost * sensitivity * 0.3);
+    this.barGroup.rotation.y += 0.002 * (1 + bassBoost * sensitivity * 0.3 * 0.5);
 
     // Camera orbits slowly around
-    this.cameraAngle += 0.003 * (1 + midBoost * sensitivity * 0.2);
-    const camRadius = 50 - bassBoost * sensitivity * 5;
+    this.cameraAngle += 0.003 * (1 + midBoost * sensitivity * 0.2 * 0.5);
+    const camRadius = 50 - bassBoost * sensitivity * 5 * 0.5;
     const camHeight = 30 + Math.sin(this.time * 0.3) * 10;
 
     this.camera.position.x = Math.sin(this.cameraAngle) * camRadius;

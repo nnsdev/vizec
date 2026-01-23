@@ -156,7 +156,7 @@ export class IsometricMetropolisVisualization extends BaseVisualization {
         const freqIndex = Math.floor((dist / maxDist) * 100); // Use first ~40% of spectrum
 
         // Base height variance for "City" look
-        const baseHeight = 1 + Math.random() * 2;
+        const baseHeight = 5 + Math.random() * 10;
 
         this.buildings.push({
           mesh,
@@ -179,11 +179,11 @@ export class IsometricMetropolisVisualization extends BaseVisualization {
     const { frequencyData, bass } = audioData;
     const { sensitivity, maxHeight, rotationSpeed } = this.config;
 
-    // Rotate city slowly
-    this.cityGroup.rotation.y = Math.sin(this.time * rotationSpeed * 0.5) * 0.5;
+    // Rotate city slowly (reduced by 4x from original)
+    this.cityGroup.rotation.y = Math.sin(this.time * rotationSpeed * 0.125) * 0.5;
 
-    // Beat pulse on camera zoom?
-    const zoomPulse = 1 + bass * 0.1 * sensitivity;
+    // Beat pulse on camera zoom? (reduced by 6x)
+    const zoomPulse = 1 + bass * 0.0167 * sensitivity;
     this.camera.zoom = 1 * zoomPulse;
     this.camera.updateProjectionMatrix();
 
@@ -194,7 +194,7 @@ export class IsometricMetropolisVisualization extends BaseVisualization {
       // Height calculation
       // Base + Audio
       // Use power curve for snappy response
-      const audioHeight = Math.pow(normalized, 1.5) * maxHeight;
+      const audioHeight = Math.pow(normalized, 1.5) * maxHeight * 0.5;
       const targetScale = b.baseHeight + audioHeight;
 
       // Lerp for smoothness
@@ -206,9 +206,9 @@ export class IsometricMetropolisVisualization extends BaseVisualization {
       const mat = b.mesh.material as THREE.MeshBasicMaterial;
       const edgeMat = b.edges.material as THREE.LineBasicMaterial;
 
-      if (normalized > 0.4) {
-        mat.opacity = 0.6 + normalized * 0.3; // Brighter
-        edgeMat.opacity = 0.8 + normalized * 0.2;
+        if (normalized > 0.4) {
+          mat.opacity = 0.6 + normalized * 0.05; // Brighter
+          edgeMat.opacity = 0.8 + normalized * 0.033;
 
         // Maybe shift color towards white/bright?
         // Keeping it simple for performance.

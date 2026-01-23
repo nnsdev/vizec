@@ -865,7 +865,7 @@ export class BlackHoleVisualization extends BaseVisualization {
 
     // Animate camera
     const cameraRadius = 65 - bassBoost * 5;
-    const cameraAngle = this.time * 0.03 * rotationSpeed;
+    const cameraAngle = this.time * 0.01 * rotationSpeed;
     this.camera.position.x = Math.sin(cameraAngle) * cameraRadius * 0.3;
     this.camera.position.z = Math.cos(cameraAngle) * cameraRadius;
     this.camera.position.y = 20 + Math.sin(this.time * 0.1) * 5;
@@ -888,8 +888,8 @@ export class BlackHoleVisualization extends BaseVisualization {
     const pullStrength = 0.5 + bassBoost * 1.5; // Bass increases pull
 
     for (const p of this.accretionParticles) {
-      // Keplerian rotation with audio modulation
-      const orbitSpeed = p.speed * (1.0 + midBoost * 0.5) * rotationSpeed;
+      // Keplerian rotation with audio modulation - slowed down and capped
+      const orbitSpeed = p.speed * 0.35 * (1.0 + Math.min(midBoost * 0.4, 0.8)) * rotationSpeed;
       p.angle += orbitSpeed * deltaTime;
 
       // Slight inward spiral
@@ -932,15 +932,15 @@ export class BlackHoleVisualization extends BaseVisualization {
   ): void {
     if (!this.infallingGeometry) return;
 
-    const pullStrength = 1.0 + bassBoost * 2.0;
+    const pullStrength = 1.0 + bassBoost * 0.5;
     const spawnRate = 0.5 + trebleBoost * 2.0;
 
     for (let i = this.infallingParticles.length - 1; i >= 0; i--) {
       const p = this.infallingParticles[i];
 
       // Spiral inward
-      p.angle += p.spiralSpeed * deltaTime * (1 + (holeSize * 3) / p.radius);
-      p.radius -= deltaTime * pullStrength * (1 + (holeSize * 2) / p.radius);
+      p.angle += p.spiralSpeed * deltaTime * (0.25 + (holeSize * 0.75) / p.radius);
+      p.radius -= deltaTime * pullStrength * (0.25 + (holeSize * 0.5) / p.radius);
 
       // Update position
       p.position.x = Math.cos(p.angle) * p.radius;

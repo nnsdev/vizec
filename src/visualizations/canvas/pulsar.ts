@@ -198,8 +198,8 @@ export class PulsarVisualization extends BaseVisualization {
     const centerX = this.width / 2;
     const centerY = this.height / 2;
 
-    // Update rotation - speed increases with mid frequencies
-    this.rotation += deltaTime * rotationSpeed * 2 * (1 + midBoost * 2);
+    // Update rotation - speed increases with mid frequencies (reduced by 2x)
+    this.rotation += deltaTime * rotationSpeed * 2 * (1 + midBoost * 1);
 
     // Draw stars
     this.drawStars(colors, trebleBoost);
@@ -257,14 +257,14 @@ export class PulsarVisualization extends BaseVisualization {
   ): void {
     if (!this.ctx) return;
 
-    // Spawn new particles from poles
-    const spawnRate = 5 + bassBoost * 10;
+    // Spawn new particles from poles (reduced by 2x)
+    const spawnRate = 5 + bassBoost * 5;
     const { coreSize } = this.config;
 
     for (let i = 0; i < spawnRate; i++) {
       // Top jet
       const topAngle = -Math.PI / 2 + (Math.random() - 0.5) * 0.3;
-      const speed = 2 + Math.random() * 3 + bassBoost * 5;
+      const speed = 2 + Math.random() * 3 + bassBoost * 2.5;
       this.jetParticles.push({
         x: centerX + (Math.random() - 0.5) * coreSize * 0.3,
         y: centerY - coreSize * 0.5,
@@ -285,7 +285,7 @@ export class PulsarVisualization extends BaseVisualization {
         vy: Math.sin(bottomAngle) * speed,
         life: 1.0,
         maxLife: 1.0,
-        size: 1 + Math.random() * 3 + bassBoost * 2,
+        size: 1 + Math.random() * 3 + bassBoost * 1,
         angle: bottomAngle,
       });
     }
@@ -350,7 +350,7 @@ export class PulsarVisualization extends BaseVisualization {
     if (!this.ctx) return;
 
     const maxLength = Math.max(this.width, this.height) * beamLength;
-    const actualBeamWidth = beamWidth * (1 + bassBoost * 0.5);
+    const actualBeamWidth = beamWidth * (1 + bassBoost * 0.25);
 
     // Draw two opposing beams
     for (let beam = 0; beam < 2; beam++) {
@@ -393,7 +393,7 @@ export class PulsarVisualization extends BaseVisualization {
       // Core bright line
       this.ctx.globalAlpha = (0.8 + bassBoost * 0.2) * 0.7;
       this.ctx.strokeStyle = colors.beam;
-      this.ctx.lineWidth = 2 + bassBoost * 3;
+      this.ctx.lineWidth = 2 + bassBoost * 1.5;
       this.ctx.beginPath();
       this.ctx.moveTo(centerX, centerY);
       this.ctx.lineTo(endX, endY);
@@ -464,7 +464,7 @@ export class PulsarVisualization extends BaseVisualization {
   ): void {
     if (!this.ctx) return;
 
-    const size = baseSize * (1 + bassBoost * 0.2);
+    const size = baseSize * (1 + bassBoost * 0.1);
 
     // Outer glow
     const glowGradient = this.ctx.createRadialGradient(

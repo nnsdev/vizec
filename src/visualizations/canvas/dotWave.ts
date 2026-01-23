@@ -172,7 +172,20 @@ export class DotWaveVisualization extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config } as DotWaveConfig;
+    const newConfig = { ...this.config, ...config } as DotWaveConfig;
+
+    // Clamp values based on schema
+    if (typeof newConfig.gridSize === "number") {
+      newConfig.gridSize = Math.max(15, Math.min(50, newConfig.gridSize));
+    }
+    if (typeof newConfig.dotSize === "number") {
+      newConfig.dotSize = Math.max(2, Math.min(8, newConfig.dotSize));
+    }
+    if (typeof newConfig.waveAmplitude === "number") {
+      newConfig.waveAmplitude = Math.max(0.3, Math.min(2.0, newConfig.waveAmplitude));
+    }
+
+    this.config = newConfig;
 
     // Reinitialize smoothed data if grid size changed
     if (this.width > 0) {

@@ -65,7 +65,13 @@ export class HexShield extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config };
+    const newConfig = { ...this.config, ...config };
+
+    if (typeof newConfig.sensitivity === "number") {
+      newConfig.sensitivity = Math.max(0.02, Math.min(1.2, newConfig.sensitivity));
+    }
+
+    this.config = newConfig;
   }
 
   destroy(): void {

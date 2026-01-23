@@ -81,7 +81,7 @@ export class KaleidoscopeVisualization extends BaseVisualization {
         size: 20 + Math.random() * 80,
         color: colors[Math.floor(Math.random() * colors.length)],
         rotation: Math.random() * Math.PI * 2,
-        speed: (Math.random() - 0.5) * 2,
+        speed: (Math.random() - 0.5) * 0.25,
       });
     }
   }
@@ -103,7 +103,7 @@ export class KaleidoscopeVisualization extends BaseVisualization {
     const maxRadius = Math.min(this.width, this.height) / 2;
 
     // Global rotation based on audio
-    this.globalRotation += deltaTime * rotationSpeed * (1 + mid * sensitivity);
+    this.globalRotation += deltaTime * rotationSpeed * (1 + mid * sensitivity * 0.125);
 
     // Set transparency
     this.ctx.globalAlpha = 0.6;
@@ -141,8 +141,8 @@ export class KaleidoscopeVisualization extends BaseVisualization {
         const freqValue = frequencyData[freqIndex] / 255;
 
         // Update shape based on audio
-        shape.rotation += shape.speed * deltaTime * (1 + freqValue * sensitivity * 2);
-        const dynamicDistance = shape.distance + freqValue * sensitivity * 100;
+        shape.rotation += shape.speed * deltaTime * (1 + freqValue * sensitivity * 0.5);
+        const dynamicDistance = shape.distance + freqValue * sensitivity * 25;
         const dynamicSize = shape.size * (0.5 + freqValue * sensitivity);
 
         const x = Math.cos(shape.angle + this.time * shape.speed * 0.5) * dynamicDistance;
@@ -156,7 +156,7 @@ export class KaleidoscopeVisualization extends BaseVisualization {
         this.ctx.strokeStyle = shape.color;
         this.ctx.fillStyle = shape.color + "40";
         this.ctx.lineWidth = 2 + freqValue * 3;
-        this.ctx.shadowBlur = 10 + freqValue * 15;
+        this.ctx.shadowBlur = 10 + freqValue * 3.75;
         this.ctx.shadowColor = shape.color;
 
         // Draw shape based on type
@@ -197,7 +197,7 @@ export class KaleidoscopeVisualization extends BaseVisualization {
     this.ctx.restore();
 
     // Center mandala
-    const centerSize = 30 + bass * sensitivity * 50;
+    const centerSize = 30 + bass * sensitivity * 12.5;
     this.ctx.globalAlpha = 0.5;
 
     for (let ring = 3; ring >= 0; ring--) {

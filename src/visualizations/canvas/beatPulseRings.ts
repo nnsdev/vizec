@@ -7,6 +7,7 @@ interface Ring {
   opacity: number;
   color: string;
   lineWidth: number;
+  speed: number;
 }
 
 interface BeatPulseRingsConfig extends VisualizationConfig {
@@ -35,12 +36,13 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
     colorScheme: "cyanMagenta",
     maxRings: 15,
     ringSpeed: 4,
-    beatThreshold: 0.25,
+    beatThreshold: 0.05,
     lineWidth: 3,
   };
 
   private rings: Ring[] = [];
-  private lastBass = 0;
+  private smoothedBass = 0;
+  private smoothedVolume = 0;
   private beatCooldown = 0;
 
   init(container: HTMLElement, config: VisualizationConfig): void {
@@ -53,6 +55,8 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
     container.appendChild(this.canvas);
 
     this.ctx = this.canvas.getContext("2d");
+    
+    // Apply initial config with clamping
     this.updateConfig(config);
 
     const width = container.clientWidth || window.innerWidth;
@@ -74,13 +78,18 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
     const centerY = this.height / 2;
     const maxRadius = Math.max(this.width, this.height) * 0.8;
 
-    // Beat detection - spawn new ring on bass hit
-    this.beatCooldown -= deltaTime;
-    const bassBoost = Math.pow(bass, 0.7) * sensitivity * 2;
-    const bassIncrease = bassBoost - this.lastBass;
+    const bassLevel = Math.min(1, bass * sensitivity);
+    const volumeLevel = Math.min(1, volume * sensitivity);
+    this.smoothedBass += (bassLevel - this.smoothedBass) * 0.2;
+    this.smoothedVolume += (volumeLevel - this.smoothedVolume) * 0.15;
 
-    if (bassIncrease > beatThreshold && this.beatCooldown <= 0 && this.rings.length < maxRings) {
-      // Spawn a new ring
+    const frameScale = deltaTime / 16.67;
+    this.beatCooldown = Math.max(0, this.beatCooldown - deltaTime);
+
+    const beatReady =
+      bassLevel > beatThreshold && this.beatCooldown <= 0 && this.rings.length < maxRings;
+
+    if (beatReady) {
       const colorChoice = Math.random();
       let ringColor: string;
       if (colorChoice < 0.5) {
@@ -91,29 +100,27 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
         ringColor = colors.accent;
       }
 
+      const centerRadius = 18 + this.smoothedVolume * 50;
       this.rings.push({
-        radius: 10 + bassBoost * 20,
-        opacity: 0.8,
+        radius: centerRadius,
+        opacity: 0.85,
         color: ringColor,
-        lineWidth: lineWidth + bassBoost * 3,
+        lineWidth: lineWidth + bassLevel * 4,
+        speed: ringSpeed * (0.4 + bassLevel * 0.8),
       });
 
-      this.beatCooldown = 0.1; // Cooldown to prevent too many rings
+      this.beatCooldown = 200;
     }
-    this.lastBass = bassBoost;
-
-    // Update and draw rings
-    this.ctx.globalAlpha = 0.7;
 
     for (let i = this.rings.length - 1; i >= 0; i--) {
       const ring = this.rings[i];
 
-      // Expand ring
-      ring.radius += ringSpeed * (100 + volume * 100) * deltaTime;
+      // Expand ring (Preserve modulation)
+      ring.radius += ring.speed * (4 + volumeLevel * 8) * frameScale;
 
       // Fade out as it expands
-      ring.opacity -= deltaTime * 0.5;
-      ring.lineWidth *= 0.995; // Gradually thin out
+      ring.opacity -= 0.015 * frameScale;
+      ring.lineWidth *= 0.99; // Gradually thin out
 
       // Remove if faded or too large
       if (ring.opacity <= 0 || ring.radius > maxRadius) {
@@ -126,17 +133,28 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
       this.ctx.arc(centerX, centerY, ring.radius, 0, Math.PI * 2);
       this.ctx.strokeStyle = ring.color;
       this.ctx.lineWidth = ring.lineWidth;
-      this.ctx.globalAlpha = ring.opacity * 0.7;
+      this.ctx.globalAlpha = Math.max(0, ring.opacity);
 
       // Add glow effect
-      this.ctx.shadowBlur = 15;
+      this.ctx.shadowBlur = 12;
       this.ctx.shadowColor = ring.color;
 
       this.ctx.stroke();
     }
 
-    // Draw center pulse
-    const centerSize = 5 + bassBoost * 25;
+    // Draw center ring
+    const centerRadius = 18 + this.smoothedVolume * 50;
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, centerRadius, 0, Math.PI * 2);
+    this.ctx.strokeStyle = colors.primary;
+    this.ctx.lineWidth = lineWidth + this.smoothedVolume * 2.5;
+    this.ctx.globalAlpha = 0.5 + this.smoothedVolume * 0.4;
+    this.ctx.shadowBlur = 10;
+    this.ctx.shadowColor = colors.primary;
+    this.ctx.stroke();
+
+    // Draw center glow
+    const centerSize = 6 + this.smoothedBass * 20 + this.smoothedVolume * 12;
     const gradient = this.ctx.createRadialGradient(
       centerX,
       centerY,
@@ -148,7 +166,7 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
     gradient.addColorStop(0, colors.accent);
     gradient.addColorStop(1, "transparent");
 
-    this.ctx.globalAlpha = 0.5 + volume * 0.3;
+    this.ctx.globalAlpha = 0.3 + this.smoothedVolume * 0.6;
     this.ctx.fillStyle = gradient;
     this.ctx.beginPath();
     this.ctx.arc(centerX, centerY, centerSize, 0, Math.PI * 2);
@@ -170,7 +188,22 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
   }
 
   updateConfig(config: Partial<VisualizationConfig>): void {
-    this.config = { ...this.config, ...config } as BeatPulseRingsConfig;
+    const schema = this.getConfigSchema();
+    const nextConfig = { ...this.config, ...config } as BeatPulseRingsConfig;
+
+    const clampNumber = (value: number, field: { min?: number; max?: number }): number => {
+      const min = field.min ?? value;
+      const max = field.max ?? value;
+      return Math.max(min, Math.min(max, value));
+    };
+
+    nextConfig.sensitivity = clampNumber(nextConfig.sensitivity, schema.sensitivity);
+    nextConfig.maxRings = clampNumber(nextConfig.maxRings, schema.maxRings);
+    nextConfig.ringSpeed = clampNumber(nextConfig.ringSpeed, schema.ringSpeed);
+    nextConfig.beatThreshold = clampNumber(nextConfig.beatThreshold, schema.beatThreshold);
+    nextConfig.lineWidth = clampNumber(nextConfig.lineWidth, schema.lineWidth);
+
+    this.config = nextConfig;
   }
 
   destroy(): void {
@@ -202,11 +235,19 @@ export class BeatPulseRingsVisualization extends BaseVisualization {
       ringSpeed: { type: "number", min: 1, max: 10, step: 0.5, default: 4, label: "Ring Speed" },
       beatThreshold: {
         type: "number",
-        min: 0.1,
-        max: 0.8,
-        step: 0.05,
-        default: 0.25,
         label: "Beat Threshold",
+        default: 0.05,
+        min: 0.02,
+        max: 0.4,
+        step: 0.01,
+      },
+      lineWidth: {
+        type: "number",
+        label: "Line Width",
+        default: 3,
+        min: 1,
+        max: 10,
+        step: 0.5,
       },
     };
   }

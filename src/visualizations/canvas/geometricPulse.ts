@@ -181,7 +181,7 @@ export class GeometricPulseVisualization extends BaseVisualization {
 
       // Calculate pulsing radius
       const pulseOffset = Math.sin(this.time * 2 + i * 0.5) * layer.baseRadius * 0.05;
-      const audioPulse = bassPulse * layer.baseRadius * 0.3;
+      const audioPulse = bassPulse * layer.baseRadius * 0.15;
       const radius = layer.baseRadius + pulseOffset + audioPulse;
 
       // Calculate vertex extensions based on frequency data
@@ -189,7 +189,7 @@ export class GeometricPulseVisualization extends BaseVisualization {
       for (let v = 0; v < vertexCount; v++) {
         const freqIdx = Math.floor((v / vertexCount) * frequencyData.length * 0.3 + i * 10);
         const freqValue = frequencyData[Math.min(freqIdx, frequencyData.length - 1)] / 255;
-        const extension = freqValue * radius * 0.4 * pulseIntensity * sensitivity;
+        const extension = freqValue * radius * 0.2 * pulseIntensity * sensitivity;
         vertexExtensions.push(extension);
       }
 
@@ -216,7 +216,7 @@ export class GeometricPulseVisualization extends BaseVisualization {
 
       // Glow effect on beats
       if (this.glowIntensity > 0.1) {
-        this.ctx.shadowBlur = 20 * this.glowIntensity * (1 - layerIndex * 0.5);
+        this.ctx.shadowBlur = 10 * this.glowIntensity * (1 - layerIndex * 0.5);
         this.ctx.shadowColor = colors.glow;
       } else {
         this.ctx.shadowBlur = 0;
@@ -254,7 +254,7 @@ export class GeometricPulseVisualization extends BaseVisualization {
 
     // Draw central glow orb
     if (this.glowIntensity > 0.2 || volume > 0.4) {
-      const orbSize = 10 + this.smoothedBass * 30 + this.glowIntensity * 20;
+      const orbSize = 10 + this.smoothedBass * 15 + this.glowIntensity * 20;
       const orbGradient = this.ctx.createRadialGradient(
         centerX,
         centerY,

@@ -466,7 +466,7 @@ export class CosmicWebVisualization extends BaseVisualization {
 
         void main() {
           vec3 finalColor = mix(color, glowColor, vAlpha * 0.5);
-          gl_FragColor = vec4(finalColor, vAlpha * opacity * 0.7);
+          gl_FragColor = vec4(finalColor, vAlpha * opacity * 0.85);
         }
       `,
       transparent: true,
@@ -493,7 +493,7 @@ export class CosmicWebVisualization extends BaseVisualization {
       positions.push(end.x, end.y, end.z);
 
       // Alpha based on strength and pulse
-      const pulse = Math.sin(this.time * 2 + filament.pulsePhase) * 0.3 + 0.7;
+      const pulse = Math.sin(this.time * 2 + filament.pulsePhase) * 0.15 + 0.7;
       const alpha = filament.strength * pulse;
       alphas.push(alpha, alpha);
     }
@@ -605,17 +605,17 @@ export class CosmicWebVisualization extends BaseVisualization {
     if (this.filamentMesh) {
       const mat = this.filamentMesh.material as THREE.ShaderMaterial;
       mat.uniforms.time.value = this.time;
-      mat.uniforms.opacity.value = filamentOpacity * (0.5 + bassBoost * 0.5);
+      mat.uniforms.opacity.value = filamentOpacity * (0.7 + bassBoost * 0.3);
     }
 
-    // Rotate background
+    // Rotate background (reduced by 4x)
     if (this.backgroundNodes) {
-      this.backgroundNodes.rotation.y += deltaTime * 0.02 * rotation;
-      this.backgroundNodes.rotation.x += deltaTime * 0.01 * rotation;
+      this.backgroundNodes.rotation.y += deltaTime * 0.005 * rotation;
+      this.backgroundNodes.rotation.x += deltaTime * 0.0025 * rotation;
     }
 
     // Camera orbit
-    const cameraAngle = this.time * 0.1 * rotation;
+    const cameraAngle = this.time * 0.0125 * rotation;
     const cameraRadius = 150 - bassBoost * 20;
     this.camera.position.x = Math.sin(cameraAngle) * cameraRadius;
     this.camera.position.z = Math.cos(cameraAngle) * cameraRadius;
@@ -681,7 +681,7 @@ export class CosmicWebVisualization extends BaseVisualization {
       positions.push(end.x, end.y, end.z);
 
       // Enhanced pulse on bass
-      const pulse = Math.sin(this.time * 2 + filament.pulsePhase) * 0.3 + 0.7;
+      const pulse = Math.sin(this.time * 2 + filament.pulsePhase) * 0.15 + 0.7;
       const alpha = filament.strength * pulse * (0.5 + bassBoost * 0.5);
       alphas.push(alpha, alpha);
     }

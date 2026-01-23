@@ -31,7 +31,7 @@ export class SonicRippleVisualization extends BaseVisualization {
     sensitivity: 1.0,
     colorScheme: "ocean",
     maxRipples: 15,
-    rippleSpeed: 1.0,
+    rippleSpeed: 0.33,
     rippleSize: 5,
   };
 
@@ -86,7 +86,7 @@ export class SonicRippleVisualization extends BaseVisualization {
     const ripple: Ripple = {
       mesh,
       radius: 0.1,
-      speed: rippleSize * (0.5 + Math.random() * 0.5),
+      speed: rippleSize * (0.17 + Math.random() * 0.17),
       opacity: 0.8,
       color:
         Math.random() < 0.33
@@ -131,8 +131,8 @@ export class SonicRippleVisualization extends BaseVisualization {
     for (let i = this.ripples.length - 1; i >= 0; i--) {
       const ripple = this.ripples[i];
 
-      // Expand ripple
-      ripple.radius += ripple.speed * rippleSpeed * (1 + bassBoost * 0.5);
+      // Expand ripple (reduced by 3x)
+      ripple.radius += ripple.speed * rippleSpeed * (1 + bassBoost * 0.17);
 
       // Fade out
       ripple.opacity = Math.max(0, 0.8 - ripple.radius / 50);
@@ -235,10 +235,10 @@ export class SonicRippleVisualization extends BaseVisualization {
       },
       rippleSpeed: {
         type: "number",
-        min: 0.5,
-        max: 3,
+        min: 0.1,
+        max: 1,
         step: 0.1,
-        default: 1.0,
+        default: 0.33,
         label: "Ripple Speed",
       },
       rippleSize: {

@@ -46,7 +46,7 @@ export class NeonAlleyVisualization extends BaseVisualization {
   private config: NeonAlleyConfig = {
     sensitivity: 1.0,
     colorScheme: "neon", // Default to neon for this one
-    signCount: 30,
+    signCount: 50,
     speed: 1.0,
     tunnelRadius: 15,
   };
@@ -61,10 +61,10 @@ export class NeonAlleyVisualization extends BaseVisualization {
 
     this.scene = new THREE.Scene();
 
-    // Fog for depth fading
-    this.scene.fog = new THREE.FogExp2(0x000000, 0.03);
+    // Fog for depth fading - reduced density so we can see further
+    this.scene.fog = new THREE.FogExp2(0x000000, 0.012);
 
-    this.camera = new THREE.PerspectiveCamera(70, width / height, 0.1, 100);
+    this.camera = new THREE.PerspectiveCamera(70, width / height, 0.1, 1000);
     this.camera.position.set(0, 0, 0);
     this.camera.lookAt(0, 0, -100);
 
@@ -82,8 +82,8 @@ export class NeonAlleyVisualization extends BaseVisualization {
   private createSignTexture(text: string, color: string, isVertical: boolean): THREE.Texture {
     const canvas = document.createElement("canvas");
     // High res for crisp text
-    const w = isVertical ? 64 : 256;
-    const h = isVertical ? 256 : 64;
+    const w = isVertical ? 160 : 640;
+    const h = isVertical ? 640 : 160;
     canvas.width = w;
     canvas.height = h;
 
@@ -94,32 +94,39 @@ export class NeonAlleyVisualization extends BaseVisualization {
     ctx.clearRect(0, 0, w, h);
 
     // Glow
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 4;
     ctx.shadowColor = color;
 
     // Border
+    const padding = 16;
     ctx.strokeStyle = color;
-    ctx.lineWidth = 4;
-    ctx.strokeRect(10, 10, w - 20, h - 20);
+    ctx.lineWidth = 6;
+    ctx.strokeRect(padding, padding, w - padding * 2, h - padding * 2);
 
     // Text
     ctx.fillStyle = color;
-    ctx.font = isVertical ? "bold 40px Arial" : "bold 40px Arial";
+    const fontSize = Math.floor((isVertical ? w : h) * 0.68);
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
     if (isVertical) {
       // Draw characters vertically
       const chars = text.split("");
-      const step = (h - 20) / (chars.length + 1);
+      const step = (h - padding * 2) / (chars.length + 1);
       chars.forEach((char, i) => {
-        ctx.fillText(char, w / 2, 20 + step * (i + 1));
+        ctx.fillText(char, w / 2, padding + step * (i + 1));
       });
     } else {
       ctx.fillText(text, w / 2, h / 2);
     }
 
     const tex = new THREE.CanvasTexture(canvas);
+    tex.generateMipmaps = false;
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = this.rendererThree?.capabilities.getMaxAnisotropy() ?? 1;
+    tex.needsUpdate = true;
     return tex;
   }
 
@@ -164,18 +171,19 @@ export class NeonAlleyVisualization extends BaseVisualization {
       // Random position in a tunnel around Z axis
       const angle = Math.random() * Math.PI * 2;
       // Radius varies slightly
-      const r = tunnelRadius * (0.8 + Math.random() * 0.4);
+      const r = tunnelRadius * (0.6 + Math.random() * 0.35);
 
       const x = Math.cos(angle) * r;
       const y = Math.sin(angle) * r;
 
-      // Start at random Z depth
-      const startZ = -Math.random() * 100;
+      // Start distributed along the entire tunnel length for better initial visibility
+      // Extended range to prevent bunching
+      const startZ = -15 - Math.random() * 150;
 
       mesh.position.set(x, y, startZ);
 
       // Rotate to face inward/camera somewhat
-      mesh.lookAt(0, 0, startZ + 10);
+      mesh.lookAt(0, 0, 0);
       // Add some random tilt
       mesh.rotation.z += (Math.random() - 0.5) * 0.5;
 
@@ -184,8 +192,8 @@ export class NeonAlleyVisualization extends BaseVisualization {
         material,
         baseX: x,
         baseY: y,
-        speedOffset: 0.5 + Math.random() * 1.0,
-        flickerSpeed: 5 + Math.random() * 20,
+        speedOffset: 0.8 + Math.random() * 0.4, // Smoother speed variance
+        flickerSpeed: 3 + Math.random() * 8,
         text,
         isVertical,
         freqIndex: Math.floor(Math.random() * 100), // Random audio channel
@@ -201,21 +209,56 @@ export class NeonAlleyVisualization extends BaseVisualization {
     if (!this.scene || !this.camera || !this.rendererThree || !this.signGroup) return;
 
     this.time += deltaTime;
-    const { frequencyData, volume, treble } = audioData;
-    const { sensitivity, speed } = this.config;
+    const { frequencyData, volume, treble, bass } = audioData;
+    const { sensitivity, speed, tunnelRadius, colorScheme } = this.config;
 
-    // Move signs
-    const moveSpeed = 20 * speed * (1 + volume * sensitivity * 0.5); // Music boosts speed
+    // Move signs towards camera (tunnel effect) - steady flow
+    // Reduced audio influence on speed to prevent lag/jitter perception
+    const moveSpeed = 0.06 * speed * (1 + (volume * 0.25 + bass * 0.35) * sensitivity);
+    const colors = getColorScheme(COLOR_SCHEMES_STRING_ACCENT, colorScheme);
 
     this.signs.forEach((s) => {
       // Move towards camera (positive Z)
       s.mesh.position.z += moveSpeed * s.speedOffset * deltaTime;
 
-      // Loop back
-      if (s.mesh.position.z > 5) {
-        s.mesh.position.z = -100;
-        // Maybe randomize X/Y again for variety?
-        // Keep simple for now
+      // Loop back when passed camera - respawn far in distance
+      // Camera is at 0, looking at -100. Positive Z is behind camera.
+      // Wait until well past camera to avoid popping
+      if (s.mesh.position.z > 20) {
+        // Respawn FAR away
+        s.mesh.position.z = -160 - Math.random() * 40;
+
+        // Randomize X/Y again for better distribution
+        const angle = Math.random() * Math.PI * 2;
+        const r = tunnelRadius * (0.6 + Math.random() * 0.35);
+        const x = Math.cos(angle) * r;
+        const y = Math.sin(angle) * r;
+
+        s.mesh.position.x = x;
+        s.mesh.position.y = y;
+        s.baseX = x;
+        s.baseY = y;
+
+        // Fully refresh visual identity
+        const isVertical = Math.random() > 0.5;
+        const text = SIGN_WORDS[Math.floor(Math.random() * SIGN_WORDS.length)];
+        const color = Math.random() > 0.5 ? colors.primary : colors.accent;
+
+        // Dispose old resources
+        s.material.map?.dispose();
+        s.mesh.geometry.dispose();
+
+        // Create new
+        s.material.map = this.createSignTexture(text, color, isVertical);
+        s.mesh.geometry = new THREE.PlaneGeometry(isVertical ? 1 : 4, isVertical ? 4 : 1);
+        s.text = text;
+        s.isVertical = isVertical;
+        s.freqIndex = Math.floor(Math.random() * 100);
+
+        // Reset orientation
+        s.mesh.rotation.set(0, 0, 0);
+        s.mesh.lookAt(0, 0, 0);
+        s.mesh.rotation.z += (Math.random() - 0.5) * 0.5;
       }
 
       // Audio reactivity
@@ -224,26 +267,29 @@ export class NeonAlleyVisualization extends BaseVisualization {
 
       // Flicker effect (bad neon connection style)
       // Driven by Treble or random + high freq
-      const flicker = Math.sin(this.time * s.flickerSpeed) > 0.8 ? 0.2 : 1.0;
+      // Reduced flicker darkness (0.4 instead of 0.2) to keep signs visible
+      const flicker = 0.75 + 0.25 * Math.sin(this.time * s.flickerSpeed);
 
       // If loud, stabilize flicker (fully lit)
       const stability = normalized > 0.5 ? 1.0 : flicker;
 
-      // Base opacity
-      let opacity = 0.3 + normalized * 0.7;
+      // Base opacity increased to 0.5 for better visibility
+      let opacity = 0.5 + normalized * 0.5;
 
       // Apply flicker to opacity
       opacity *= stability;
 
-      s.material.opacity = Math.min(1, Math.max(0.1, opacity));
+      const targetOpacity = Math.min(1, Math.max(0.2, opacity));
+      s.material.opacity += (targetOpacity - s.material.opacity) * 0.2;
 
-      // Scale pulse
-      const scale = 1 + normalized * 0.2;
+      // Subtle scale pulse only on loud audio
+      const targetScale = 1 + (normalized > 0.2 ? (normalized - 0.2) * 0.06 : 0);
+      const scale = s.mesh.scale.x + (targetScale - s.mesh.scale.x) * 0.2;
       s.mesh.scale.setScalar(scale);
     });
 
-    // Camera sway
-    this.camera.rotation.z = Math.sin(this.time * 0.2) * 0.05 * (1 + treble * sensitivity);
+    // Camera sway (reduced effect)
+    this.camera.rotation.z = Math.sin(this.time * 0.2) * 0.008 * (1 + treble * sensitivity);
 
     this.rendererThree.render(this.scene, this.camera);
   }
@@ -302,8 +348,8 @@ export class NeonAlleyVisualization extends BaseVisualization {
       signCount: {
         type: "number",
         label: "Sign Count",
-        default: 30,
-        min: 10,
+        default: 50,
+        min: 20,
         max: 100,
         step: 5,
       },

@@ -85,11 +85,11 @@ export class HitMarkers extends BaseVisualization {
     const centerX = this.width / 2;
     const centerY = this.height / 2;
 
-    const recoilImpulse = Math.max(0, (bass - 0.2) * sensitivity * 160);
+    const recoilImpulse = Math.max(0, (bass - 0.15) * sensitivity * 320);
     this.recoil = Math.max(this.recoil, recoilImpulse);
 
-    const spawnThreshold = 0.2 / sensitivity;
-    if (bass > 0.3 && Math.random() > spawnThreshold) {
+    // tuned for steadier triggers that scale with sensitivity
+    if (bass > 0.125 && Math.random() < bass * sensitivity * 0.8) {
       this.markers.push({
         x: centerX + (Math.random() - 0.5) * (100 + this.recoil * 2),
         y: centerY + (Math.random() - 0.5) * (100 + this.recoil * 2),

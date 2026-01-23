@@ -140,8 +140,10 @@ export class TunnelVisualization extends BaseVisualization {
     const { speed, distortion, colorScheme, shapeType } = this.config;
     const colors = getColorScheme(COLOR_SCHEMES_GRADIENT, colorScheme);
 
+    const deltaSeconds = deltaTime / 1000;
+
     // Update time
-    this.time += deltaTime;
+    this.time += deltaSeconds;
 
     // Calculate speed based on bass and volume
     const audioSpeed = (0.3 + bass * 0.5 + volume * 0.3) * speed;
@@ -151,7 +153,8 @@ export class TunnelVisualization extends BaseVisualization {
 
     const centerX = this.width / 2;
     const centerY = this.height / 2;
-    const maxRadius = Math.max(this.width, this.height) * 0.8;
+    const speedScale = 1 / (1 + Math.max(0, speed - 1) * 0.35);
+    const maxRadius = Math.max(this.width, this.height) * 0.4 * speedScale;
     const vertexCount = this.getVertexCount();
 
     // Update and draw shapes
@@ -159,7 +162,7 @@ export class TunnelVisualization extends BaseVisualization {
       const shape = this.shapes[i];
 
       // Move shape toward viewer
-      shape.z += audioSpeed * deltaTime * 0.5;
+      shape.z += audioSpeed * deltaSeconds * 0.5;
 
       // Reset shape when it passes the viewer
       if (shape.z >= 1) {
@@ -172,12 +175,12 @@ export class TunnelVisualization extends BaseVisualization {
       }
 
       // Rotate shape slowly
-      shape.rotation += deltaTime * 0.2 * speed;
+      shape.rotation += deltaSeconds * 0.2 * speed;
 
       // Calculate radius based on depth (perspective projection)
-      // Shapes far away are large (tunnel walls), shapes close are small (passed)
-      const perspective = 1 - shape.z;
-      const radius = maxRadius * perspective * perspective;
+      // Shapes far away are small, shapes close are large
+      const perspective = shape.z;
+      const radius = maxRadius * perspective;
 
       // Skip if too small
       if (radius < 5) continue;
@@ -185,9 +188,9 @@ export class TunnelVisualization extends BaseVisualization {
       // Calculate alpha based on depth (fade in and out)
       let alpha = 0.7;
       if (shape.z < 0.1) {
-        alpha = (shape.z / 0.1) * 0.7; // Fade in
+        alpha = shape.z * 7 * 0.7; // Fade in
       } else if (shape.z > 0.9) {
-        alpha = ((1 - shape.z) / 0.1) * 0.7; // Fade out
+        alpha = (1 - shape.z) * 10 * 0.7; // Fade out
       }
 
       this.ctx.globalAlpha = alpha;
@@ -205,11 +208,11 @@ export class TunnelVisualization extends BaseVisualization {
       gradient.addColorStop(1, colors.end);
 
       this.ctx.strokeStyle = gradient;
-      this.ctx.lineWidth = 2 + (1 - shape.z) * 2;
+      this.ctx.lineWidth = 2 + shape.z * 5;
 
       // Glow effect for closer shapes
-      if (shape.z > 0.7 && volume > 0.3) {
-        this.ctx.shadowBlur = 15 * (shape.z - 0.7) * 3;
+      if (shape.z > 0.3 && volume > 0.3) {
+        this.ctx.shadowBlur = 15 * (shape.z - 0.3) * 2;
         this.ctx.shadowColor = colors.glow;
       } else {
         this.ctx.shadowBlur = 0;

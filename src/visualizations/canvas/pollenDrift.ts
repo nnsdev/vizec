@@ -72,11 +72,12 @@ export class PollenDriftVisualization extends BaseVisualization {
 
   private initParticles(): void {
     this.particles = [];
-    const { particleCount } = this.config;
+    // Cap particle count at 500 to prevent performance issues
+    const effectiveCount = Math.min(this.config.particleCount, 500);
 
     const types: Array<"pollen" | "seed" | "dandelion"> = ["pollen", "seed", "dandelion"];
 
-    for (let i = 0; i < particleCount; i++) {
+    for (let i = 0; i < effectiveCount; i++) {
       const type = types[Math.floor(Math.random() * types.length)];
       this.particles.push(this.createParticle(type, true));
     }
@@ -277,9 +278,9 @@ export class PollenDriftVisualization extends BaseVisualization {
         type: "number",
         label: "Particle Count",
         default: 300,
-        min: 100,
+        min: 50,
         max: 500,
-        step: 25,
+        step: 50,
       },
       windStrength: {
         type: "number",

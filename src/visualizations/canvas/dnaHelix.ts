@@ -80,8 +80,8 @@ export class DNAHelixVisualization extends BaseVisualization {
     const helixHeight = this.height * 0.8;
     const baseRadius = Math.min(this.width, this.height) * 0.15;
 
-    // Pulse radius with bass
-    const pulsedRadius = baseRadius * (1 + this.smoothedBass * pulseIntensity * 0.5);
+    // Pulse radius with bass (reduced by 3x)
+    const pulsedRadius = baseRadius * (1 + this.smoothedBass * pulseIntensity * 0.167);
 
     // Store points for both strands to draw connections
     const strand1Points: { x: number; y: number; z: number }[] = [];
@@ -117,8 +117,8 @@ export class DNAHelixVisualization extends BaseVisualization {
       const avgZ = (p1.z + p2.z) / 2;
       const alpha = 0.3 + avgZ * 0.3 + freqValue * 0.4;
 
-      // Connection thickness based on frequency
-      const thickness = 1 + freqValue * 4;
+      // Connection thickness based on frequency (reduced by 3x)
+      const thickness = 1 + freqValue * 1.33;
 
       // Create gradient for connection
       const gradient = this.ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
@@ -136,7 +136,7 @@ export class DNAHelixVisualization extends BaseVisualization {
 
       // Draw glowing dots at connection points
       if (freqValue > 0.3) {
-        this.ctx.shadowBlur = 10 * freqValue;
+        this.ctx.shadowBlur = 3.33 * freqValue;
         this.ctx.shadowColor = colors.glow;
 
         // Midpoint glow
@@ -144,7 +144,7 @@ export class DNAHelixVisualization extends BaseVisualization {
         const midY = (p1.y + p2.y) / 2;
         this.ctx.beginPath();
         this.ctx.fillStyle = colors.glow;
-        this.ctx.arc(midX, midY, 2 + freqValue * 4, 0, Math.PI * 2);
+        this.ctx.arc(midX, midY, 2 + freqValue * 1.33, 0, Math.PI * 2);
         this.ctx.fill();
 
         this.ctx.shadowBlur = 0;
@@ -165,9 +165,9 @@ export class DNAHelixVisualization extends BaseVisualization {
       const freqIndex = Math.floor((i / strandCount) * frequencyData.length * 0.5);
       const freqValue = (frequencyData[freqIndex] / 255) * sensitivity;
 
-      // Sphere size based on z-depth and frequency
-      const size1 = (4 + p1.z * 3) * (1 + freqValue * 0.5);
-      const size2 = (4 + p2.z * 3) * (1 + freqValue * 0.5);
+      // Sphere size based on z-depth and frequency (reduced by 3x)
+      const size1 = (4 + p1.z * 3) * (1 + freqValue * 0.167);
+      const size2 = (4 + p2.z * 3) * (1 + freqValue * 0.167);
 
       // Draw spheres with glow when active
       if (this.smoothedMid > 0.3 || freqValue > 0.4) {

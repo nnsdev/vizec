@@ -154,13 +154,13 @@ export class CubeFieldVisualization extends BaseVisualization {
 
     this.time += deltaTime;
 
-    // Reduced intensity by 50%
-    const bassBoost = Math.pow(bass, 0.7) * 1.0;
-    const midBoost = Math.pow(mid, 0.7) * 0.75;
+    // Reduced intensity by 8x
+    const bassBoost = Math.pow(bass, 0.7) * 0.125;
+    const midBoost = Math.pow(mid, 0.7) * 0.09375;
 
     // Rotate entire grid based on audio
     if (rotateWithAudio) {
-      this.cubeGroup.rotation.y += 0.18 * (1 + midBoost * sensitivity * 0.5) * deltaTime;
+      this.cubeGroup.rotation.y += 0.18 * (1 + midBoost * sensitivity * 0.0625) * deltaTime;
     } else {
       this.cubeGroup.rotation.y += 0.12 * deltaTime;
     }
@@ -174,8 +174,8 @@ export class CubeFieldVisualization extends BaseVisualization {
       const freqValue = frequencyData[freqIndex] / 255;
       const boostedValue = Math.pow(freqValue, 0.8) * sensitivity;
 
-      // Calculate target height - reduced by 50%
-      const targetHeight = 0.5 + boostedValue * maxHeight * 0.5;
+      // Calculate target height - reduced by 8x
+      const targetHeight = 0.5 + boostedValue * maxHeight * 0.0625;
 
       // Smooth height transition
       const currentScale = mesh.scale.y;
@@ -191,9 +191,9 @@ export class CubeFieldVisualization extends BaseVisualization {
         const gridZ = i % gridSize;
         const rotationFactor = (gridX + gridZ) * 0.1;
 
-        mesh.rotation.y += boostedValue * 0.1 * sensitivity;
-        mesh.rotation.x = Math.sin(this.time * 2 + rotationFactor) * boostedValue * 0.2;
-        mesh.rotation.z = Math.cos(this.time * 2 + rotationFactor) * boostedValue * 0.2;
+        mesh.rotation.y += boostedValue * 0.0125 * sensitivity;
+        mesh.rotation.x = Math.sin(this.time * 2 + rotationFactor) * boostedValue * 0.025;
+        mesh.rotation.z = Math.cos(this.time * 2 + rotationFactor) * boostedValue * 0.025;
       } else {
         // Smoothly return to neutral rotation
         mesh.rotation.x *= 0.95;
@@ -205,15 +205,15 @@ export class CubeFieldVisualization extends BaseVisualization {
       material.opacity = 0.5 + boostedValue * 0.5;
     }
 
-    // Camera movement based on audio
+    // Camera movement based on audio (reduced by 4x)
     const baseDistance = 45;
-    const targetDistance = baseDistance - bassBoost * sensitivity * 8;
+    const targetDistance = baseDistance - bassBoost * sensitivity * 0.5;
 
     // Orbit camera slightly
     const cameraAngle = this.time * 0.1;
     const targetX = Math.sin(cameraAngle) * targetDistance;
     const targetZ = Math.cos(cameraAngle) * targetDistance;
-    const targetY = 30 + midBoost * sensitivity * 5;
+    const targetY = 30 + midBoost * sensitivity * 0.3125;
 
     this.camera.position.x += (targetX - this.camera.position.x) * 0.02;
     this.camera.position.z += (targetZ - this.camera.position.z) * 0.02;

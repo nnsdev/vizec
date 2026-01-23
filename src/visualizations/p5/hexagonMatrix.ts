@@ -162,8 +162,8 @@ export class HexagonMatrixVisualization extends BaseVisualization {
       const waveProximity = 1 - Math.min(1, Math.abs(dist - waveRadius) / 150);
       const waveEffect = waveProximity * bassWaveIntensity;
 
-      // Color based on energy and wave
-      const energyLevel = Math.min(1, hex.energy * sensitivity * (1 + waveEffect * 1.5));
+      // Color based on energy and wave (reduced by 4x)
+      const energyLevel = Math.min(1, hex.energy * sensitivity * (1 + waveEffect * 0.375));
 
       if (energyLevel > 0.02) {
         // Color interpolation based on energy
@@ -255,9 +255,9 @@ export class HexagonMatrixVisualization extends BaseVisualization {
       const waveTime = this.time * 3;
       const waveRadius = (waveTime % 2) * maxDist; // Wave expands outward
       const waveProximity = 1 - Math.min(1, Math.abs(dist - waveRadius) / 150);
-      const bassWave = waveProximity * bass * bassWaveIntensity * sensitivity;
+       const bassWave = waveProximity * bass * bassWaveIntensity * sensitivity * 0.25;
 
-      hex.update(freqValue * (1 + bassWave * 2), bass, dt);
+      hex.update(freqValue * (1 + bassWave * 0.5), bass, dt);
     });
   }
 

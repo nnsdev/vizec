@@ -118,9 +118,9 @@ export class CircularWaveVisualization extends BaseVisualization {
         // Also incorporate time domain for subtle wave motion
         const timeValue = timeDomainData[i * freqStep] / 128 - 1;
 
-        // Much more aggressive scaling
-        const combinedValue = (freqValue * 0.8 + timeValue * 0.2) * sensitivity * 2;
-        const waveRadius = radius + combinedValue * 100 * (1 + ring * 0.3);
+        // Aggressive scaling
+        const combinedValue = (freqValue * 0.8 + timeValue * 0.2) * sensitivity;
+        const waveRadius = radius + combinedValue * 50 * (1 + ring * 0.3);
 
         const x = Math.cos(angle) * waveRadius;
         const y = Math.sin(angle) * waveRadius;
@@ -136,7 +136,7 @@ export class CircularWaveVisualization extends BaseVisualization {
 
     for (let i = 0; i < spikeCount; i++) {
       const angle = (i / spikeCount) * p.TWO_PI;
-      const freqValue = (frequencyData[i * spikeStep] / 255) * sensitivity * 2; // Double the sensitivity
+      const freqValue = (frequencyData[i * spikeStep] / 255) * sensitivity; // Double the sensitivity
 
       if (freqValue > 0.02) {
         // Much lower threshold
@@ -161,7 +161,7 @@ export class CircularWaveVisualization extends BaseVisualization {
 
     // Center circle pulse
     if (pulse) {
-      const centerRadius = 10 + bass * 80 * sensitivity; // Much bigger pulse
+      const centerRadius = 10 + bass * 40 * sensitivity; // Much bigger pulse
       const centerColor = p.color(colors.accent);
       centerColor.setAlpha(35 + bass * 35); // More transparent
       p.fill(centerColor);

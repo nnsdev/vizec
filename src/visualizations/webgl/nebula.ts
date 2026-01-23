@@ -422,7 +422,7 @@ export class NebulaVisualization extends BaseVisualization {
         layer,
         size: 1 + Math.random() * 3 * (1 - t),
         color,
-        life: Math.random(),
+        life: 0.5 + Math.random() * 0.5,
         phase: Math.random() * Math.PI * 2,
       });
     }

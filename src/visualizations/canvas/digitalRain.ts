@@ -104,13 +104,13 @@ export class DigitalRainVisualization extends BaseVisualization {
     this.ctx.textBaseline = "top";
 
     for (const stream of this.streams) {
-      // Calculate stream speed based on audio
-      const streamSpeed = dropSpeed * stream.speed * (1 + bassBoost * 0.5);
-      stream.y += streamSpeed * deltaTime * 60;
+      // Calculate stream speed based on audio (reduced by 4x)
+      const streamSpeed = dropSpeed * stream.speed * (1 + bassBoost * 0.125);
+      stream.y += streamSpeed * deltaTime * 15;
 
-      // Reset stream position when it goes off screen
-      if (stream.y > this.height) {
-        stream.y = -stream.length * 15;
+        // Reset stream position when it goes off screen
+        if (stream.y > this.height) {
+          stream.y = -stream.length * 4;
         stream.x = Math.random() * this.width;
         stream.length = 10 + Math.floor(Math.random() * 20);
         // Keep base activity level, boost with volume
@@ -121,7 +121,7 @@ export class DigitalRainVisualization extends BaseVisualization {
 
       // Draw the stream
       for (let i = 0; i < stream.length; i++) {
-        const charY = stream.y + i * 15;
+        const charY = stream.y + i * 4;
         if (charY < 0 || charY > this.height) continue;
 
         // Get frequency data for this character position
@@ -155,7 +155,7 @@ export class DigitalRainVisualization extends BaseVisualization {
 
         if (isHead) {
           // Head glow effect
-          this.ctx.shadowBlur = 5 + trebleBoost * 10;
+          this.ctx.shadowBlur = 1.25 + trebleBoost * 2.5;
           this.ctx.shadowColor = charColor;
         }
 
@@ -166,8 +166,8 @@ export class DigitalRainVisualization extends BaseVisualization {
         // Add glow trail for heads based on volume
         if (isHead && volume > 0.1) {
           this.ctx.save();
-          this.ctx.globalAlpha = volume * 0.3;
-          this.ctx.shadowBlur = 10 + bassBoost * 15;
+          this.ctx.globalAlpha = volume * 0.075;
+          this.ctx.shadowBlur = 2.5 + bassBoost * 3.75;
           this.ctx.shadowColor = colors.glow;
           this.ctx.fillStyle = colors.glow;
           this.ctx.fillText(char, stream.x, charY);

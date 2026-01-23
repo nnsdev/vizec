@@ -92,23 +92,26 @@ export class TrafficTrailsVisualization extends BaseVisualization {
     // Bass triggers "tail lights" (usually red/warm - moving away/right)
     // Treble/Mid triggers "head lights" (usually white/cool - moving close/left)
 
+    const frameScale = deltaTime / 16.67;
     this.spawnTimer += deltaTime;
 
     // Normalize spawn rate based on density
-    const spawnThreshold = 0.05 / density;
+    const spawnThreshold = 60 / density;
 
     if (this.spawnTimer > spawnThreshold) {
       this.spawnTimer = 0;
 
-      // Calculate spawn probability based on audio
-      // Bass is punchy, so it spawns bursts
-      if (Math.random() < bass * sensitivity) {
-        this.spawnLight(1, colors.end, bass); // Tail light (right)
-      }
+      // Baseline probability for "idle" traffic so the road isn't empty
+      const baseline = 0.1;
 
-      // Treble is continuous, spawns stream
-      if (Math.random() < (treble * 1.5 + mid * 0.5) * sensitivity) {
-        this.spawnLight(-1, colors.start, (treble + mid) / 2); // Head light (left)
+      // Calculate spawn probability based on audio + baseline
+      // Bass is punchy, so it spawns bursts (tail lights)
+      if (Math.random() < bass * sensitivity + baseline) {
+        this.spawnLight(1, colors.end, Math.max(bass, 0.2));
+      } else
+      // Treble is continuous, spawns stream (headlights)
+      if (Math.random() < (treble * 1.5 + mid * 0.5) * sensitivity + baseline) {
+        this.spawnLight(-1, colors.start, Math.max((treble + mid) / 2, 0.2));
       }
     }
 
@@ -128,9 +131,9 @@ export class TrafficTrailsVisualization extends BaseVisualization {
     // Filter out dead lights
     this.lights = this.lights.filter((light) => {
       // Update position
-      // Speed scales with audio volume slightly for "turbo boost" feel
-      const boost = 1 + volume * 0.5 * sensitivity;
-      light.x += light.speed * light.direction * speedMultiplier * boost * (deltaTime * 60);
+      // Speed scales with audio volume slightly for "turbo boost" feel (reduced by 4x)
+      const boost = 1 + volume * 0.125 * sensitivity;
+      light.x += light.speed * light.direction * speedMultiplier * boost * frameScale;
 
       // Draw
 
@@ -141,47 +144,20 @@ export class TrafficTrailsVisualization extends BaseVisualization {
       let renderL = light.length * trailLength * (1 + light.speed * 0.1);
 
       if (perspective) {
-        // Simple perspective:
-        // objects closer to horizon (y=0 relative to horizon) are smaller and slower visually?
-        // Actually we spawned them with Z.
-        // Let's treat 'y' as the Z-depth in a way, or just screen Y.
-        // If we want a road going into distance:
-        // Vanishing point is (width/2, height/2).
-        // Lights spawn at center and move out? Or move across?
-        // "Traffic Trails" usually means side view or angled side view.
-        // Let's stick to Side View / Isometric-ish for maximum "Trail" effect across screen.
-        // It's cleaner for an overlay.
-
-        // So:
-        // Top of road (horizon) = slower, smaller, dimmer (far away)
-        // Bottom of road = faster, bigger, brighter (close)
-
-        // We normalized Y to -1 to 1 range during spawn relative to center?
-        // Let's say light.z is 0(far) to 1(close).
-
-        // The renderY needs to be calculated from Z.
-        // If z=0 (horizon), y = horizonY.
-        // If z=1 (close), y = height.
-        // But we want to center it.
-
         const roadHeight = this.height * verticalSpread;
-        const yOffset = (light.z - 0.5) * roadHeight; // -0.5h to 0.5h
+        const yOffset = (light.z - 0.5) * roadHeight;
         renderY = centerY + yOffset;
 
-        // Scale size by Z (perspective)
-        // Far (low z) -> small. Close (high z) -> big.
-        // Actually let's just use light.z directly as simple depth scale
-        // z 0..1
-        const scale = 0.5 + light.z * 1.5; // 0.5x to 2.0x
+        const scale = 0.5 + light.z * 1.5;
         renderH *= scale;
         renderL *= scale;
-
-        // Parallax speed
-        // We already set speed based on Z in spawnLight, so x update is correct.
       }
 
+      // If off screen in Y, don't draw
+      if (renderY < -50 || renderY > this.height + 50) return true;
+
       this.ctx!.fillStyle = light.color;
-      this.ctx!.globalAlpha = light.alpha;
+      this.ctx!.globalAlpha = Math.max(0.3, light.alpha);
 
       // Draw a rounded rect or just a rect with gradient trail
       // Trail should fade out at the tail.
@@ -207,11 +183,10 @@ export class TrafficTrailsVisualization extends BaseVisualization {
         renderH,
       );
 
-      // Check bounds
-      // If moving right (1): remove if x > width + length
-      // If moving left (-1): remove if x < -length
-      if (light.direction === 1 && light.x - renderL > this.width) return false;
-      if (light.direction === -1 && light.x + renderL < 0) return false;
+      // Check bounds using ORIGINAL length (not scaled)
+      const checkL = light.length * trailLength * (1 + light.speed * 0.1);
+      if (light.direction === 1 && light.x - checkL > this.width) return false;
+      if (light.direction === -1 && light.x + checkL < 0) return false;
 
       return true;
     });

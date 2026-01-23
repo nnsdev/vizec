@@ -628,9 +628,9 @@ export class AudioTerrainVisualization extends BaseVisualization {
       sensitivity: {
         type: "number",
         min: 0.1,
-        max: 3,
+        max: 1,
         step: 0.1,
-        default: 1.0,
+        default: 0.5,
         label: "Sensitivity",
       },
       colorScheme: {

@@ -179,7 +179,7 @@ export class CausticsVisualization extends BaseVisualization {
           float rays = lightRays(centeredUv, time * 0.25);
 
           // Combine patterns
-          float intensity = caustics * (0.5 + rays * 0.5);
+          float intensity = caustics * (0.5 + rays * 0.25);
 
           // Animate the light sources - slowed down
           float lightActivity = 0.0;
@@ -193,24 +193,24 @@ export class CausticsVisualization extends BaseVisualization {
             lightActivity += 0.1 / (lightDist + 0.1);
           }
 
-          intensity *= (1.0 + lightActivity * 0.5);
+          intensity *= (1.0 + lightActivity * 0.25);
 
           // Color mixing
           vec3 color = mix(deepColor, surfaceColor, intensity);
-          color = mix(color, waterColor, 1.0 - intensity * 0.5);
+          color = mix(color, waterColor, 1.0 - intensity * 0.25);
 
           // Add light highlights
-          color = mix(color, lightColor, intensity * intensity * 0.3 * brightness);
+          color = mix(color, lightColor, intensity * intensity * 0.15 * brightness);
 
           // Audio-reactive brightness boost
-          color *= brightness * (0.8 + sensitivity * 0.4);
+          color *= brightness * (0.8 + sensitivity * 0.2);
 
           // Vignette for depth
           float vignette = 1.0 - smoothstep(0.3, 1.0, length(centeredUv / aspect) * 0.5);
           color = mix(color, deepColor, vignette * 0.3);
 
           // Alpha for transparency
-          float alpha = 0.7 + intensity * 0.3;
+          float alpha = 0.7 + intensity * 0.15;
 
           gl_FragColor = vec4(color, alpha);
         }

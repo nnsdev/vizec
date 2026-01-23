@@ -162,8 +162,8 @@ export class RibbonsVisualization extends BaseVisualization {
     const { bass, treble, volume } = audioData;
     const { sensitivity, waveIntensity, speed } = this.config;
 
-    const bassBoost = Math.pow(bass, 0.7) * 2;
-    const trebleBoost = Math.pow(treble, 0.7) * 1.5;
+    const bassBoost = Math.pow(bass, 0.7);
+    const trebleBoost = Math.pow(treble, 0.7) * 0.75;
 
     // Update curve points based on audio
     const newPoints: THREE.Vector3[] = [];
@@ -174,10 +174,10 @@ export class RibbonsVisualization extends BaseVisualization {
       const base = ribbon.basePoints[i];
 
       // Wave amplitude affected by bass
-      const waveAmplitude = (2 + bassBoost * sensitivity * 3) * waveIntensity;
+      const waveAmplitude = (1 + bassBoost * sensitivity * 1.5) * waveIntensity;
 
       // Wave frequency affected by treble
-      const waveFreq = (1 + trebleBoost * sensitivity * 0.5) * ribbon.frequency;
+      const waveFreq = (1 + trebleBoost * sensitivity * 0.25) * ribbon.frequency;
 
       // Calculate wave offset
       const waveOffset =
@@ -207,7 +207,7 @@ export class RibbonsVisualization extends BaseVisualization {
     ribbon.curve.points = newPoints;
 
     // Calculate tube radius based on bass
-    const tubeRadius = 0.3 + bassBoost * sensitivity * 0.4;
+    const tubeRadius = 0.3 + bassBoost * sensitivity * 0.2;
 
     // Dispose old geometry
     ribbon.geometry.dispose();
@@ -237,12 +237,12 @@ export class RibbonsVisualization extends BaseVisualization {
       this.updateRibbonGeometry(ribbon, audioData);
 
       // Rotate ribbon slightly based on audio
-      ribbon.mesh.rotation.y += 0.001 * speed * (1 + midBoost * sensitivity * 0.5);
+      ribbon.mesh.rotation.y += 0.001 * speed * (1 + midBoost * sensitivity * 0.25);
     }
 
     // Camera slowly rotates around the scene
-    this.cameraAngle += 0.002 * speed * (1 + bassBoost * sensitivity * 0.2);
-    const cameraRadius = 80 - bassBoost * sensitivity * 10;
+    this.cameraAngle += 0.002 * speed * (1 + bassBoost * sensitivity * 0.1);
+    const cameraRadius = 80 - bassBoost * sensitivity * 5;
     this.camera.position.x = Math.sin(this.cameraAngle) * cameraRadius;
     this.camera.position.z = Math.cos(this.cameraAngle) * cameraRadius;
     this.camera.position.y = Math.sin(this.cameraAngle * 0.3) * 20;

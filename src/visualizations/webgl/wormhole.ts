@@ -630,7 +630,8 @@ export class WormholeVisualization extends BaseVisualization {
     const { bass, mid, treble, volume } = audioData;
     const { sensitivity, speed, distortion, spiralTightness, tunnelLength } = this.config;
 
-    this.time += deltaTime;
+    const deltaSeconds = deltaTime / 1000;
+    this.time += deltaSeconds;
 
     // Smooth audio values
     const smoothing = 0.15;
@@ -644,22 +645,22 @@ export class WormholeVisualization extends BaseVisualization {
     const trebleBoost = Math.pow(this.trebleSmooth, 0.7) * sensitivity;
     const volumeBoost = Math.pow(this.volumeSmooth, 0.5) * sensitivity;
 
-    // Travel speed based on bass
-    const travelSpeed = speed * (1 + bassBoost * 2) * deltaTime * 30;
+    // Travel speed based on bass (reduced significantly for slower, smoother flight)
+    const travelSpeed = speed * (1 + Math.min(bassBoost, 1.0) * 0.1) * deltaSeconds * 6;
     this.travelDistance += travelSpeed;
 
     // Update tunnel material
     if (this.tunnelMesh) {
       const mat = this.tunnelMesh.material as THREE.ShaderMaterial;
       mat.uniforms.time.value = this.time;
-      mat.uniforms.distortion.value = distortion * (1 + bassBoost * 0.5);
+      mat.uniforms.distortion.value = distortion * (1 + bassBoost * 0.05);
     }
 
     // Update rings
-    this.updateRings(deltaTime, bassBoost, midBoost, trebleBoost);
+    this.updateRings(deltaSeconds, bassBoost, midBoost, trebleBoost);
 
     // Update energy particles
-    this.updateEnergyParticles(deltaTime, bassBoost, trebleBoost, volumeBoost);
+    this.updateEnergyParticles(deltaSeconds, bassBoost, trebleBoost, volumeBoost);
 
     // Update event horizon
     if (this.eventHorizon) {
@@ -667,7 +668,7 @@ export class WormholeVisualization extends BaseVisualization {
       mat.uniforms.time.value = this.time;
       mat.uniforms.intensity.value = 0.8 + volumeBoost * 0.5;
 
-      const pulseScale = 1 + bassBoost * 0.3;
+      const pulseScale = 1 + bassBoost * 0.15;
       this.eventHorizon.scale.setScalar(pulseScale);
     }
 
@@ -680,9 +681,9 @@ export class WormholeVisualization extends BaseVisualization {
     const spiralAngle = camT * Math.PI * 4 * spiralTightness;
 
     this.camera.position.x =
-      Math.sin(spiralAngle) * spiralIntensity + Math.sin(this.time) * 2 * (1 + bassBoost);
+      Math.sin(spiralAngle) * spiralIntensity + Math.sin(this.time) * 2 * (1 + Math.min(bassBoost, 1.0) * 0.1);
     this.camera.position.y =
-      Math.cos(spiralAngle) * spiralIntensity + Math.cos(this.time * 1.3) * 2 * (1 + bassBoost);
+      Math.cos(spiralAngle) * spiralIntensity + Math.cos(this.time * 1.3) * 2 * (1 + Math.min(bassBoost, 1.0) * 0.1);
     this.camera.position.z = camZ;
 
     // Look ahead in the tunnel
@@ -698,14 +699,14 @@ export class WormholeVisualization extends BaseVisualization {
     );
 
     // FOV distortion on bass
-    this.camera.fov = 90 + bassBoost * 20;
+    this.camera.fov = 90 + Math.min(bassBoost, 1.0) * 5;
     this.camera.updateProjectionMatrix();
 
     this.rendererThree.render(this.scene, this.camera);
   }
 
   private updateRings(
-    deltaTime: number,
+    deltaSeconds: number,
     bassBoost: number,
     midBoost: number,
     trebleBoost: number,
@@ -717,7 +718,7 @@ export class WormholeVisualization extends BaseVisualization {
       const mesh = this.ringMeshes[i];
 
       // Move rings toward camera (creates tunnel motion)
-      ring.z += deltaTime * 30 * (1 + bassBoost * 2) * this.config.speed;
+      ring.z += deltaSeconds * 6 * (1 + Math.min(bassBoost, 1.0) * 0.1) * this.config.speed;
 
       // Reset ring when it passes camera
       if (ring.z > 60) {
@@ -737,26 +738,26 @@ export class WormholeVisualization extends BaseVisualization {
       );
 
       // Scale decreases with depth
-      const baseScale = 1 - t * 0.6;
-      mesh.scale.setScalar(baseScale * (1 + trebleBoost * 0.2));
+      const baseScale = Math.max(0.05, 1 - t * 0.9);
+      mesh.scale.setScalar(baseScale * (1 + Math.min(trebleBoost, 1.0) * 0.1));
 
       // Rotation
       mesh.rotation.z = spiralAngle + this.time * 0.5;
 
       // Distortion on bass
-      const distortionAmount = 1 + Math.sin(this.time * 2 + ring.phase) * bassBoost * 0.2;
+      const distortionAmount = 1 + Math.sin(this.time * 2 + ring.phase) * Math.min(bassBoost, 1.0) * 0.15;
       mesh.scale.x = baseScale * distortionAmount;
       mesh.scale.y = baseScale * (2 - distortionAmount);
 
       // Update material
       const mat = mesh.material as THREE.ShaderMaterial;
       mat.uniforms.time.value = this.time;
-      mat.uniforms.intensity.value = 0.5 + midBoost * 0.5 + (1 - t) * 0.3;
+      mat.uniforms.intensity.value = 0.5 + Math.min(midBoost, 1.0) * 0.3 + (1 - t) * 0.3;
     }
   }
 
   private updateEnergyParticles(
-    deltaTime: number,
+    deltaSeconds: number,
     bassBoost: number,
     trebleBoost: number,
     volumeBoost: number,
@@ -764,14 +765,14 @@ export class WormholeVisualization extends BaseVisualization {
     if (!this.energyGeometry) return;
 
     const { tunnelLength, spiralTightness, speed } = this.config;
-    const travelSpeed = deltaTime * 30 * (1 + bassBoost * 2) * speed;
+    const travelSpeed = deltaSeconds * 6 * (1 + Math.min(bassBoost, 1.0) * 0.1) * speed;
 
     for (const p of this.energyParticles) {
       // Move toward camera
       p.position.z += travelSpeed;
 
       // Spiral motion
-      p.angle += deltaTime * p.speed * (1 + trebleBoost);
+      p.angle += deltaSeconds * p.speed * (1 + Math.min(trebleBoost, 1.0) * 0.2);
 
       // Calculate current depth
       const t = (60 - p.position.z) / tunnelLength;
@@ -781,7 +782,7 @@ export class WormholeVisualization extends BaseVisualization {
       const spiralAngle = t * Math.PI * 4 * spiralTightness;
 
       // Update position
-      const maxRadius = 25 * Math.max(0.4, 1 - t * 0.6);
+      const maxRadius = 25 * Math.max(0.05, 1 - t * 0.9);
       p.position.x =
         Math.cos(p.angle) * p.radius * (maxRadius / 25) + Math.sin(spiralAngle) * spiralIntensity;
       p.position.y =

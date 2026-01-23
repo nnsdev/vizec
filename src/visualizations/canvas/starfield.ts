@@ -109,8 +109,9 @@ export class StarfieldVisualization extends BaseVisualization {
     const centerX = this.width / 2;
     const centerY = this.height / 2;
 
+    const frameScale = deltaTime / 16.67;
     // Speed based on bass
-    const speed = baseSpeed + bass * sensitivity * 20 + volume * 5;
+    const speed = baseSpeed + bass * sensitivity * 4 + volume * 1.5;
 
     // Set transparency
     this.ctx.globalAlpha = 0.7;
@@ -123,7 +124,7 @@ export class StarfieldVisualization extends BaseVisualization {
       const prevScreenY = (star.y / star.z) * 500 + centerY;
 
       // Move star toward camera
-      star.z -= speed * deltaTime * 60;
+      star.z -= speed * frameScale * 4;
 
       // Reset star if it passes the camera
       if (star.z <= 1) {
