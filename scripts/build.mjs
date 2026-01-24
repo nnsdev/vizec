@@ -20,6 +20,13 @@ async function build() {
     format: "esm",
     platform: "browser",
     external: ["electron"],
+    define: {
+      __VUE_OPTIONS_API__: "true",
+      __VUE_PROD_DEVTOOLS__: "false",
+    },
+    alias: {
+      vue: "vue/dist/vue.esm-bundler.js",
+    },
     loader: { ".ts": "ts" },
     plugins: [importGlobPlugin.default()],
     logLevel: "info",

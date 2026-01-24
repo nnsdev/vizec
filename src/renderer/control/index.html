@@ -11,151 +11,244 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="control-panel">
+    <div id="app" class="control-panel">
       <header class="header">
         <h1>VIZEC</h1>
       </header>
 
       <div class="panel-columns">
-        <!-- Left Column: Main Controls -->
         <div class="column column-left">
-          <!-- Preset Section -->
           <section class="section">
             <h2>PRESET</h2>
             <div class="control-group">
-              <select id="preset-select" class="select">
+              <select v-model="selectedPresetId" class="select" @change="onPresetChange">
                 <option value="">Select preset...</option>
+                <option v-for="preset in presets" :key="preset.id" :value="preset.id">
+                  {{ preset.name }}{{ preset.builtin ? " (Built-in)" : "" }}
+                </option>
               </select>
             </div>
             <div class="button-row">
-              <button id="save-preset-btn" class="btn btn-secondary">Save As</button>
-              <button id="delete-preset-btn" class="btn btn-danger">Delete</button>
+              <button class="btn btn-secondary" @click="openSavePresetModal">Save As</button>
+              <button class="btn btn-danger" :disabled="!canDeletePreset" @click="deletePreset">
+                Delete
+              </button>
             </div>
           </section>
 
-          <!-- Audio Source Section -->
           <section class="section">
             <h2>AUDIO SOURCE</h2>
             <div class="control-group">
-              <select id="audio-source-select" class="select">
+              <select
+                v-model="selectedAudioSourceId"
+                class="select"
+                @change="onAudioSourceChange"
+                @focus="refreshAudioSources"
+              >
                 <option value="">Select to start capture...</option>
+                <option v-for="source in audioSources" :key="source.id" :value="source.id">
+                  {{ source.name }}
+                </option>
               </select>
             </div>
             <div class="audio-meter">
-              <div id="audio-meter-fill" class="audio-meter-fill"></div>
+              <div class="audio-meter-fill"></div>
             </div>
-            <div id="capture-status" class="capture-status"></div>
+            <div
+              class="capture-status"
+              :style="{ display: captureStatusVisible ? 'block' : 'none' }"
+            >
+              <span class="status-dot" :class="{ active: captureStatusVisible }"></span>
+              Capturing: {{ captureStatusLabel }}
+            </div>
           </section>
 
-          <!-- Visualization Section -->
           <section class="section">
             <h2>VISUALIZATION</h2>
             <div class="control-group">
-              <div class="searchable-select" id="viz-combobox">
+              <div
+                class="searchable-select"
+                id="viz-combobox"
+                ref="vizCombobox"
+                :class="{ open: isVizDropdownOpen }"
+              >
                 <input
+                  v-model="vizSearch"
                   type="text"
-                  id="viz-search"
                   class="searchable-select-input"
                   placeholder="Search visualizations..."
                   autocomplete="off"
+                  ref="vizSearchInput"
+                  @focus="onVizFocus"
+                  @input="onVizInput"
+                  @keydown="onVizKeydown"
                 />
-                <div class="searchable-select-dropdown" id="viz-dropdown">
-                  <!-- Options populated by JS -->
+                <div class="searchable-select-dropdown" ref="vizDropdown">
+                  <div v-if="visualizations.length === 0" class="searchable-select-option no-results">
+                    Loading...
+                  </div>
+                  <div
+                    v-else-if="visibleVisualizations.length === 0"
+                    class="searchable-select-option no-results"
+                  >
+                    No visualizations available
+                  </div>
+                  <div
+                    v-else-if="filteredVisualizations.length === 0"
+                    class="searchable-select-option no-results"
+                  >
+                    No matches found
+                  </div>
+                  <div
+                    v-for="(viz, index) in filteredVisualizations"
+                    :key="viz.id"
+                    class="searchable-select-option"
+                    :class="{
+                      selected: currentState?.currentVisualization === viz.id,
+                      highlighted: index === highlightedIndex,
+                    }"
+                    @click="selectVisualization(viz)"
+                    @mouseenter="highlightOption(index)"
+                  >
+                    {{ viz.name }}
+                  </div>
                 </div>
               </div>
             </div>
             <div class="button-row">
-              <button id="prev-viz-btn" class="btn btn-icon">&lt; Prev</button>
-              <button id="next-viz-btn" class="btn btn-icon">Next &gt;</button>
+              <button class="btn btn-icon" @click="prevVisualization">&lt; Prev</button>
+              <button class="btn btn-icon" @click="nextVisualization">Next &gt;</button>
             </div>
             <div class="control-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="hide-speech-visualizations" />
+                <input
+                  v-model="hideSpeechVisualizations"
+                  type="checkbox"
+                  @change="onHideSpeechChange"
+                />
                 <span>Hide speech visualizations</span>
               </label>
             </div>
             <div class="control-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="auto-rotate-check" />
+                <input
+                  v-model="rotationForm.enabled"
+                  type="checkbox"
+                  @change="onRotationEnabledChange"
+                />
                 <span>Auto-rotate</span>
               </label>
             </div>
-            <div class="control-group" id="rotation-settings" style="display: none">
-              <label>Interval: <span id="rotation-interval-value">30s</span></label>
+            <div class="control-group" v-show="rotationForm.enabled" id="rotation-settings">
+              <label>Interval: <span>{{ rotationForm.interval }}s</span></label>
               <input
+                v-model.number="rotationForm.interval"
                 type="range"
-                id="rotation-interval"
                 class="slider"
                 min="5"
                 max="120"
-                value="30"
+                @input="onRotationIntervalInput"
               />
               <div class="radio-group">
                 <label class="radio-label">
-                  <input type="radio" name="rotation-order" value="sequential" checked />
+                  <input
+                    v-model="rotationForm.order"
+                    type="radio"
+                    name="rotation-order"
+                    value="sequential"
+                    @change="onRotationOrderChange"
+                  />
                   <span>Sequential</span>
                 </label>
                 <label class="radio-label">
-                  <input type="radio" name="rotation-order" value="random" />
+                  <input
+                    v-model="rotationForm.order"
+                    type="radio"
+                    name="rotation-order"
+                    value="random"
+                    @change="onRotationOrderChange"
+                  />
                   <span>Random</span>
                 </label>
               </div>
               <label class="checkbox-label" style="margin-top: 8px">
-                <input type="checkbox" id="randomize-colors-check" />
+                <input
+                  v-model="rotationForm.randomizeColors"
+                  type="checkbox"
+                  @change="onRotationRandomizeColorsChange"
+                />
                 <span>Randomize colors</span>
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" id="randomize-all-check" />
+                <input
+                  v-model="rotationForm.randomizeAll"
+                  type="checkbox"
+                  @change="onRotationRandomizeAllChange"
+                />
                 <span>Randomize all</span>
               </label>
               <div class="button-row" style="margin-top: 10px">
-                <button id="reset-rotation-pool-btn" class="btn btn-secondary">
+                <button
+                  class="btn btn-secondary"
+                  :disabled="rotationForm.order !== 'random'"
+                  @click="resetRotationPool"
+                >
                   Reset random pool
                 </button>
               </div>
             </div>
           </section>
 
-          <!-- Audio Settings Section -->
           <section class="section">
             <h2>AUDIO</h2>
             <div class="control-group">
-              <label>Sensitivity: <span id="sensitivity-value">1.0</span></label>
+              <label>Sensitivity: <span>{{ audioForm.sensitivity.toFixed(1) }}</span></label>
               <input
+                v-model.number="audioForm.sensitivity"
                 type="range"
-                id="sensitivity"
                 class="slider"
                 min="0.1"
                 max="2"
                 step="0.1"
-                value="1"
+                @input="onSensitivityInput"
               />
             </div>
             <div class="control-group">
-              <label>Smoothing: <span id="smoothing-value">0.8</span></label>
+              <label>Smoothing: <span>{{ audioForm.smoothing.toFixed(2) }}</span></label>
               <input
+                v-model.number="audioForm.smoothing"
                 type="range"
-                id="smoothing"
                 class="slider"
                 min="0"
                 max="0.99"
                 step="0.01"
-                value="0.8"
+                @input="onSmoothingInput"
               />
             </div>
           </section>
 
-          <!-- Display Section -->
           <section class="section">
             <h2>DISPLAY</h2>
             <div class="control-group">
               <div class="radio-group">
                 <label class="radio-label">
-                  <input type="radio" name="background" value="transparent" checked />
+                  <input
+                    v-model="displayForm.background"
+                    type="radio"
+                    name="background"
+                    value="transparent"
+                    @change="onDisplayBackgroundChange"
+                  />
                   <span>Transparent</span>
                 </label>
                 <label class="radio-label">
-                  <input type="radio" name="background" value="solid" />
+                  <input
+                    v-model="displayForm.background"
+                    type="radio"
+                    name="background"
+                    value="solid"
+                    @change="onDisplayBackgroundChange"
+                  />
                   <span>Solid Black</span>
                 </label>
               </div>
@@ -163,31 +256,69 @@
           </section>
         </div>
 
-        <!-- Right Column: Visualization Settings -->
         <div class="column column-right">
           <section class="section section-fill" id="viz-settings-section">
             <h2>VISUALIZATION SETTINGS</h2>
             <div id="viz-settings-container">
-              <!-- Dynamic settings will be inserted here -->
+              <p v-if="vizSettingsEntries.length === 0" style="color: var(--text-dim)">
+                No settings available
+              </p>
+              <div v-for="[key, field] in vizSettingsEntries" :key="key" class="setting-item">
+                <template v-if="field.type === 'number'">
+                  <label>{{ field.label }}: <span>{{ vizConfigValues[key] }}</span></label>
+                  <input
+                    v-model.number="vizConfigValues[key]"
+                    type="range"
+                    class="slider"
+                    :min="field.min ?? 0"
+                    :max="field.max ?? 100"
+                    :step="field.step ?? 1"
+                    @input="onVizNumberInput(key)"
+                  />
+                </template>
+                <template v-else-if="field.type === 'boolean'">
+                  <label class="checkbox-label">
+                    <input
+                      v-model="vizConfigValues[key]"
+                      type="checkbox"
+                      @change="onVizBooleanChange(key)"
+                    />
+                    <span>{{ field.label }}</span>
+                  </label>
+                </template>
+                <template v-else-if="field.type === 'select' && field.options">
+                  <label>{{ field.label }}</label>
+                  <select
+                    v-model="vizConfigValues[key]"
+                    class="select"
+                    @change="onVizSelectChange(key)"
+                  >
+                    <option v-for="option in field.options" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </template>
+              </div>
             </div>
           </section>
         </div>
       </div>
-    </div>
 
-    <!-- Save Preset Modal -->
-    <div id="save-preset-modal" class="modal" style="display: none">
-      <div class="modal-content">
-        <h3>Save Preset</h3>
-        <input
-          type="text"
-          id="preset-name-input"
-          class="text-input"
-          placeholder="Enter preset name..."
-        />
-        <div class="button-row">
-          <button id="save-preset-confirm" class="btn btn-primary">Save</button>
-          <button id="save-preset-cancel" class="btn btn-secondary">Cancel</button>
+      <div v-show="isSavePresetModalOpen" class="modal" @click.self="closeSavePresetModal">
+        <div class="modal-content">
+          <h3>Save Preset</h3>
+          <input
+            v-model="presetNameInput"
+            type="text"
+            class="text-input"
+            placeholder="Enter preset name..."
+            ref="presetNameInput"
+            @keydown="onPresetNameKeydown"
+          />
+          <div class="button-row">
+            <button class="btn btn-primary" @click="confirmSavePreset">Save</button>
+            <button class="btn btn-secondary" @click="closeSavePresetModal">Cancel</button>
+          </div>
         </div>
       </div>
     </div>

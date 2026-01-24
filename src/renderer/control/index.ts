@@ -1,654 +1,640 @@
-import { AppState, Preset, AudioSource, VisualizationMeta } from "../../shared/types";
+import {
+  createApp,
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  toRaw,
+} from "vue";
+import {
+  AppState,
+  AudioSource,
+  ConfigField,
+  ConfigSchema,
+  DisplayConfig,
+  Preset,
+  RotationConfig,
+  VisualizationConfig,
+  VisualizationMeta,
+} from "../../shared/types";
 import { visualizationManager } from "../visualizer/visualization-manager";
-
-console.log("[Control] Script started");
-
-// State
-let currentState: AppState | null = null;
-let presets: Preset[] = [];
-let audioSources: AudioSource[] = [];
-let visualizations: VisualizationMeta[] = [];
-let isCapturing = false;
 
 const HIDE_SPEECH_VISUALIZATIONS_KEY = "hideSpeechVisualizations";
 
-// DOM Elements
-const presetSelect = document.getElementById("preset-select") as HTMLSelectElement;
-const savePresetBtn = document.getElementById("save-preset-btn") as HTMLButtonElement;
-const deletePresetBtn = document.getElementById("delete-preset-btn") as HTMLButtonElement;
+type RotationOrder = RotationConfig["order"];
+type DisplayBackground = DisplayConfig["background"];
+type VizSettingValue = number | boolean | string;
 
-const audioSourceSelect = document.getElementById("audio-source-select") as HTMLSelectElement;
-const captureStatus = document.getElementById("capture-status") as HTMLDivElement;
+createApp({
+  setup() {
+    const api = window.vizecAPI;
+    if (!api) {
+      console.error("vizecAPI not available! Preload script may not have loaded.");
+    }
 
-const vizCombobox = document.getElementById("viz-combobox") as HTMLDivElement;
-const vizSearch = document.getElementById("viz-search") as HTMLInputElement;
-const vizDropdown = document.getElementById("viz-dropdown") as HTMLDivElement;
-const prevVizBtn = document.getElementById("prev-viz-btn") as HTMLButtonElement;
-const nextVizBtn = document.getElementById("next-viz-btn") as HTMLButtonElement;
-const hideSpeechVisualizationsCheck = document.getElementById(
-  "hide-speech-visualizations",
-) as HTMLInputElement;
-const autoRotateCheck = document.getElementById("auto-rotate-check") as HTMLInputElement;
-const rotationSettings = document.getElementById("rotation-settings") as HTMLDivElement;
-const rotationInterval = document.getElementById("rotation-interval") as HTMLInputElement;
-const rotationIntervalValue = document.getElementById("rotation-interval-value") as HTMLSpanElement;
-const randomizeColorsCheck = document.getElementById("randomize-colors-check") as HTMLInputElement;
-const randomizeAllCheck = document.getElementById("randomize-all-check") as HTMLInputElement;
-const resetRotationPoolBtn = document.getElementById(
-  "reset-rotation-pool-btn",
-) as HTMLButtonElement;
+    const presets = ref<Preset[]>([]);
+    const audioSources = ref<AudioSource[]>([]);
+    const visualizations = ref<VisualizationMeta[]>([]);
+    const currentState = ref<AppState | null>(null);
+    const isCapturing = ref(false);
 
-const sensitivitySlider = document.getElementById("sensitivity") as HTMLInputElement;
-const sensitivityValue = document.getElementById("sensitivity-value") as HTMLSpanElement;
-const smoothingSlider = document.getElementById("smoothing") as HTMLInputElement;
-const smoothingValue = document.getElementById("smoothing-value") as HTMLSpanElement;
+    const selectedPresetId = ref("");
+    const selectedAudioSourceId = ref("");
+    const vizSearch = ref("");
+    const isVizDropdownOpen = ref(false);
+    const highlightedIndex = ref(-1);
+    const hideSpeechVisualizations = ref(false);
 
-const vizSettingsContainer = document.getElementById("viz-settings-container") as HTMLDivElement;
-
-const savePresetModal = document.getElementById("save-preset-modal") as HTMLDivElement;
-const presetNameInput = document.getElementById("preset-name-input") as HTMLInputElement;
-const savePresetConfirm = document.getElementById("save-preset-confirm") as HTMLButtonElement;
-const savePresetCancel = document.getElementById("save-preset-cancel") as HTMLButtonElement;
-
-// Initialize
-async function init() {
-  console.log("Initializing control panel...");
-
-  if (!window.vizecAPI) {
-    console.error("vizecAPI not available! Preload script may not have loaded.");
-    return;
-  }
-
-  const storedHideSpeech = localStorage.getItem(HIDE_SPEECH_VISUALIZATIONS_KEY);
-  if (storedHideSpeech !== null) {
-    hideSpeechVisualizationsCheck.checked = storedHideSpeech === "true";
-  }
-
-  // REGISTER LISTENER IMMEDIATELY
-  if (window.vizecAPI.onVisualizationsUpdated) {
-    window.vizecAPI.onVisualizationsUpdated((metas: VisualizationMeta[]) => {
-      console.log("Received updated visualizations event:", metas.length);
-      visualizations = metas;
-      populateVisualizations();
-      // Restore selection if needed
-      if (currentState && currentState.currentVisualization) {
-        const viz = visualizations.find((v) => v.id === currentState?.currentVisualization);
-        if (viz) {
-          vizSearch.value = viz.name;
-        }
-      }
+    const rotationForm = reactive({
+      enabled: false,
+      interval: 30,
+      order: "sequential" as RotationOrder,
+      randomizeColors: false,
+      randomizeAll: false,
     });
-  }
 
-  try {
-    // Load initial data with Promise.allSettled
-    console.log("Fetching initial data...");
-    const results = await Promise.allSettled([
-      window.vizecAPI.getPresets(),
-      window.vizecAPI.getAudioSources(),
-      window.vizecAPI.getAudioInputDevices(),
-      window.vizecAPI.getVisualizations(),
-      window.vizecAPI.getState(),
-    ]);
+    const audioForm = reactive({
+      sensitivity: 1,
+      smoothing: 0.8,
+    });
 
-    const getResult = <T>(result: PromiseSettledResult<T>, defaultVal: T): T => {
+    const displayForm = reactive({
+      background: "transparent" as DisplayBackground,
+    });
+
+    const vizSchema = ref<ConfigSchema>({});
+    const vizConfigValues = reactive<Record<string, VizSettingValue>>({});
+
+    const isSavePresetModalOpen = ref(false);
+    const presetNameInput = ref("");
+
+    const vizCombobox = ref<HTMLElement | null>(null);
+    const vizSearchInput = ref<HTMLInputElement | null>(null);
+    const vizDropdown = ref<HTMLDivElement | null>(null);
+    const presetNameInputRef = ref<HTMLInputElement | null>(null);
+
+    let lastVisualizationId: string | null = null;
+    let unsubscribeState: (() => void) | null = null;
+    let unsubscribeVisualizations: (() => void) | null = null;
+
+    const selectedPreset = computed(() =>
+      presets.value.find((preset: Preset) => preset.id === selectedPresetId.value) ?? null,
+    );
+
+    const canDeletePreset = computed(() => {
+      const preset = selectedPreset.value;
+      return !!preset && !preset.builtin;
+    });
+
+    const visibleVisualizations = computed(() =>
+      hideSpeechVisualizations.value
+        ? visualizations.value.filter((viz: VisualizationMeta) => !viz.usesSpeech)
+        : visualizations.value,
+    );
+
+    const filteredVisualizations = computed(() => {
+      const filterLower = vizSearch.value.toLowerCase().trim();
+      if (!filterLower) return visibleVisualizations.value;
+      return visibleVisualizations.value.filter((viz: VisualizationMeta) =>
+        viz.name.toLowerCase().includes(filterLower),
+      );
+    });
+
+    const vizSettingsEntries = computed(() => {
+      const entries = Object.entries(vizSchema.value) as Array<[string, ConfigField]>;
+      return entries.filter(([, field]) => {
+        if (field.type === "number" || field.type === "boolean") return true;
+        return field.type === "select" && !!field.options?.length;
+      });
+    });
+
+    const captureStatusVisible = computed(
+      () => isCapturing.value && !!currentState.value?.audioSource,
+    );
+    const captureStatusLabel = computed(
+      () => currentState.value?.audioSource?.name ?? "",
+    );
+
+    const getResult = <T>(result: PromiseSettledResult<T>, fallback: T): T => {
       if (result.status === "fulfilled") return result.value;
       console.error("Data fetch failed:", result.reason);
-      return defaultVal;
+      return fallback;
     };
 
-    presets = getResult(results[0], [] as Preset[]);
-    const screenSources = getResult(results[1], [] as AudioSource[]);
-    const inputDevices = getResult(results[2], [] as AudioSource[]);
-    const fetchedViz = getResult(results[3], [] as VisualizationMeta[]);
-    currentState = getResult(results[4], null as AppState | null);
+    const buildAudioSources = (screenSources: AudioSource[], inputDevices: AudioSource[]) => {
+      const systemAudio: AudioSource = {
+        id: "system",
+        name: "-- System Audio (select a window) --",
+        type: "audio",
+      };
+      return [systemAudio, ...inputDevices, ...screenSources];
+    };
 
-    if (storedHideSpeech !== null && currentState) {
-      const hideSpeechValue = storedHideSpeech === "true";
-      if (currentState.hideSpeechVisualizations !== hideSpeechValue) {
-        currentState.hideSpeechVisualizations = hideSpeechValue;
-        window.vizecAPI.updateState({ hideSpeechVisualizations: hideSpeechValue });
+    const clearVizConfigValues = () => {
+      Object.keys(vizConfigValues).forEach((key) => {
+        delete vizConfigValues[key];
+      });
+    };
+
+    const syncVizSearchToCurrent = () => {
+      if (!currentState.value) return;
+      const viz = visualizations.value.find(
+        (item: VisualizationMeta) => item.id === currentState.value?.currentVisualization,
+      );
+      if (viz) {
+        vizSearch.value = viz.name;
       }
-    }
+    };
 
-    // Only overwrite visualizations if we got some from the fetch,
-    // otherwise keep what might have come in via the event listener
-    if (fetchedViz.length > 0) {
-      visualizations = fetchedViz;
-    }
-
-    audioSources = [
-      { id: "system", name: "-- System Audio (select a window) --", type: "audio" as const },
-      ...inputDevices,
-      ...screenSources,
-    ];
-
-    console.log("Data loaded:", {
-      presets: presets.length,
-      audioSources: audioSources.length,
-      visualizations: visualizations.length,
-      state: !!currentState,
-    });
-  } catch (error) {
-    console.error("Critical error during initialization:", error);
-  }
-
-  // Populate UI
-  populatePresets();
-  populateAudioSources();
-  populateVisualizations();
-  updateUIFromState();
-
-  // Set up event listeners
-  setupEventListeners();
-
-  // Listen for state changes
-  window.vizecAPI.onStateChanged((state: AppState) => {
-    currentState = state;
-    updateUIFromState();
-  });
-
-  console.log("Control panel initialized");
-}
-
-function populatePresets() {
-  presetSelect.innerHTML = '<option value="">Select preset...</option>';
-  presets.forEach((preset) => {
-    const option = document.createElement("option");
-    option.value = preset.id;
-    option.textContent = preset.name + (preset.builtin ? " (Built-in)" : "");
-    presetSelect.appendChild(option);
-  });
-}
-
-function populateAudioSources() {
-  audioSourceSelect.innerHTML = '<option value="">Select audio source...</option>';
-  audioSources.forEach((source) => {
-    const option = document.createElement("option");
-    option.value = source.id;
-    option.textContent = source.name;
-    audioSourceSelect.appendChild(option);
-  });
-}
-
-let highlightedIndex = -1;
-
-function getVisibleVisualizations(): VisualizationMeta[] {
-  if (!hideSpeechVisualizationsCheck.checked) {
-    return visualizations;
-  }
-  return visualizations.filter((viz) => !viz.usesSpeech);
-}
-
-function populateVisualizations(filter: string = "") {
-  vizDropdown.innerHTML = "";
-  highlightedIndex = -1;
-
-  if (visualizations.length === 0) {
-    const option = document.createElement("div");
-    option.className = "searchable-select-option no-results";
-    option.textContent = "Loading...";
-    vizDropdown.appendChild(option);
-    return;
-  }
-
-  const available = getVisibleVisualizations();
-  if (available.length === 0) {
-    const option = document.createElement("div");
-    option.className = "searchable-select-option no-results";
-    option.textContent = "No visualizations available";
-    vizDropdown.appendChild(option);
-    return;
-  }
-
-  const filterLower = filter.toLowerCase().trim();
-  const filtered = filterLower
-    ? available.filter((viz) => viz.name.toLowerCase().includes(filterLower))
-    : available;
-
-  if (filtered.length === 0) {
-    const option = document.createElement("div");
-    option.className = "searchable-select-option no-results";
-    option.textContent = "No matches found";
-    vizDropdown.appendChild(option);
-    return;
-  }
-
-  filtered.forEach((viz, index) => {
-    const option = document.createElement("div");
-    option.className = "searchable-select-option";
-    option.dataset.value = viz.id;
-    option.dataset.index = String(index);
-    option.textContent = viz.name;
-
-    if (currentState && currentState.currentVisualization === viz.id) {
-      option.classList.add("selected");
-    }
-
-    option.addEventListener("click", () => {
-      selectVisualization(viz.id, viz.name);
-    });
-
-    option.addEventListener("mouseenter", () => {
-      highlightOption(index);
-    });
-
-    vizDropdown.appendChild(option);
-  });
-}
-
-function selectVisualization(id: string, name: string) {
-  window.vizecAPI.setVisualization(id);
-  vizSearch.value = name;
-  closeDropdown();
-}
-
-function openDropdown() {
-  vizCombobox.classList.add("open");
-  populateVisualizations(vizSearch.value);
-}
-
-function closeDropdown() {
-  vizCombobox.classList.remove("open");
-  highlightedIndex = -1;
-}
-
-function highlightOption(index: number) {
-  const options = vizDropdown.querySelectorAll(".searchable-select-option:not(.no-results)");
-  options.forEach((opt, i) => {
-    opt.classList.toggle("highlighted", i === index);
-  });
-  highlightedIndex = index;
-}
-
-function getFilteredVisualizations() {
-  const filterLower = vizSearch.value.toLowerCase().trim();
-  const available = getVisibleVisualizations();
-  return filterLower
-    ? available.filter((viz) => viz.name.toLowerCase().includes(filterLower))
-    : available;
-}
-
-function updateUIFromState() {
-  if (!currentState) return;
-
-  // Preset
-  if (currentState.currentPreset) {
-    presetSelect.value = currentState.currentPreset;
-  }
-
-  // Update delete button state
-  const selectedPreset = presets.find((p) => p.id === currentState?.currentPreset);
-  deletePresetBtn.disabled = !selectedPreset || selectedPreset.builtin;
-
-  // Audio source
-  if (currentState.audioSource) {
-    audioSourceSelect.value = currentState.audioSource.id;
-  }
-
-  // Capture state
-  isCapturing = currentState.isCapturing;
-  if (isCapturing && currentState.audioSource) {
-    captureStatus.innerHTML = `<span class="status-dot active"></span>Capturing: ${currentState.audioSource.name}`;
-    captureStatus.style.display = "block";
-  } else {
-    captureStatus.style.display = "none";
-  }
-
-  // Visualization
-  if (currentState.currentVisualization) {
-    const viz = visualizations.find((v) => v.id === currentState?.currentVisualization);
-    if (viz && vizSearch.value !== viz.name) {
-      vizSearch.value = viz.name;
-    }
-  }
-
-  // Rotation
-  autoRotateCheck.checked = currentState.rotation.enabled;
-  rotationSettings.style.display = currentState.rotation.enabled ? "block" : "none";
-  rotationInterval.value = String(currentState.rotation.interval);
-  rotationIntervalValue.textContent = `${currentState.rotation.interval}s`;
-  resetRotationPoolBtn.disabled = currentState.rotation.order !== "random";
-
-  const orderRadios = document.querySelectorAll(
-    'input[name="rotation-order"]',
-  ) as NodeListOf<HTMLInputElement>;
-  orderRadios.forEach((radio) => {
-    radio.checked = radio.value === currentState?.rotation.order;
-  });
-
-  randomizeColorsCheck.checked = currentState.rotation.randomizeColors ?? false;
-  randomizeAllCheck.checked = currentState.rotation.randomizeAll ?? false;
-
-  if (
-    hideSpeechVisualizationsCheck.checked !== currentState.hideSpeechVisualizations &&
-    typeof currentState.hideSpeechVisualizations === "boolean"
-  ) {
-    hideSpeechVisualizationsCheck.checked = currentState.hideSpeechVisualizations;
-    localStorage.setItem(
-      HIDE_SPEECH_VISUALIZATIONS_KEY,
-      String(currentState.hideSpeechVisualizations),
-    );
-    populateVisualizations(vizSearch.value);
-  }
-
-  // Audio settings
-  sensitivitySlider.value = String(currentState.audioConfig.sensitivity);
-  sensitivityValue.textContent = currentState.audioConfig.sensitivity.toFixed(1);
-  smoothingSlider.value = String(currentState.audioConfig.smoothing);
-  smoothingValue.textContent = currentState.audioConfig.smoothing.toFixed(2);
-
-  // Display settings
-  const bgRadios = document.querySelectorAll(
-    'input[name="background"]',
-  ) as NodeListOf<HTMLInputElement>;
-  bgRadios.forEach((radio) => {
-    radio.checked = radio.value === currentState?.displayConfig.background;
-  });
-
-  // Update visualization-specific settings
-  updateVisualizationSettings();
-}
-
-function updateVisualizationSettings() {
-  if (!currentState) return;
-
-  // Get config schema for current visualization
-  const viz = visualizationManager.createVisualization(currentState.currentVisualization);
-  if (!viz) {
-    vizSettingsContainer.innerHTML =
-      '<p style="color: var(--text-secondary);">No settings available</p>';
-    return;
-  }
-
-  const schema = viz.getConfigSchema();
-  viz.destroy();
-
-  vizSettingsContainer.innerHTML = "";
-
-  Object.entries(schema).forEach(([key, field]) => {
-    const settingItem = document.createElement("div");
-    settingItem.className = "setting-item";
-
-    const currentValue = currentState?.visualizationConfig[key] ?? field.default;
-
-    if (field.type === "number") {
-      settingItem.innerHTML = `
-        <label>${field.label}: <span id="viz-${key}-value">${currentValue}</span></label>
-        <input type="range" class="slider" id="viz-${key}" 
-          min="${field.min ?? 0}" max="${field.max ?? 100}" step="${field.step ?? 1}" 
-          value="${currentValue}">
-      `;
-
-      const slider = settingItem.querySelector(`#viz-${key}`) as HTMLInputElement;
-      const valueSpan = settingItem.querySelector(`#viz-${key}-value`) as HTMLSpanElement;
-
-      slider.addEventListener("input", () => {
-        const value = parseFloat(slider.value);
-        valueSpan.textContent = String(value);
-        window.vizecAPI.updateVisualizationConfig({ [key]: value });
-      });
-    } else if (field.type === "boolean") {
-      settingItem.innerHTML = `
-        <label class="checkbox-label">
-          <input type="checkbox" id="viz-${key}" ${currentValue ? "checked" : ""}>
-          <span>${field.label}</span>
-        </label>
-      `;
-
-      const checkbox = settingItem.querySelector(`#viz-${key}`) as HTMLInputElement;
-      checkbox.addEventListener("change", () => {
-        window.vizecAPI.updateVisualizationConfig({ [key]: checkbox.checked });
-      });
-    } else if (field.type === "select" && field.options) {
-      settingItem.innerHTML = `
-        <label>${field.label}</label>
-        <select class="select" id="viz-${key}">
-          ${field.options
-            .map(
-              (opt) => `
-            <option value="${opt.value}" ${opt.value === currentValue ? "selected" : ""}>
-              ${opt.label}
-            </option>
-          `,
-            )
-            .join("")}
-        </select>
-      `;
-
-      const select = settingItem.querySelector(`#viz-${key}`) as HTMLSelectElement;
-      select.addEventListener("change", () => {
-        window.vizecAPI.updateVisualizationConfig({ [key]: select.value });
-      });
-    }
-
-    vizSettingsContainer.appendChild(settingItem);
-  });
-}
-
-function setupEventListeners() {
-  // Preset selection
-  presetSelect.addEventListener("change", () => {
-    if (presetSelect.value) {
-      window.vizecAPI.loadPreset(presetSelect.value);
-    }
-  });
-
-  // Save preset
-  savePresetBtn.addEventListener("click", () => {
-    presetNameInput.value = "";
-    savePresetModal.style.display = "flex";
-    presetNameInput.focus();
-  });
-
-  savePresetConfirm.addEventListener("click", async () => {
-    const name = presetNameInput.value.trim();
-    if (name) {
-      const newPreset = await window.vizecAPI.savePreset(name);
-      presets.push(newPreset);
-      populatePresets();
-      presetSelect.value = newPreset.id;
-      savePresetModal.style.display = "none";
-    }
-  });
-
-  savePresetCancel.addEventListener("click", () => {
-    savePresetModal.style.display = "none";
-  });
-
-  // Delete preset
-  deletePresetBtn.addEventListener("click", async () => {
-    if (currentState?.currentPreset) {
-      const preset = presets.find((p) => p.id === currentState?.currentPreset);
-      if (preset && !preset.builtin) {
-        if (confirm(`Delete preset "${preset.name}"?`)) {
-          await window.vizecAPI.deletePreset(preset.id);
-          presets = presets.filter((p) => p.id !== preset.id);
-          populatePresets();
+    const syncVizConfigValues = (schema: ConfigSchema, config: VisualizationConfig) => {
+      Object.entries(schema).forEach(([key, field]) => {
+        if (field.type === "number") {
+          const value =
+            typeof config[key] === "number"
+              ? (config[key] as number)
+              : typeof field.default === "number"
+                ? field.default
+                : field.min ?? 0;
+          vizConfigValues[key] = value;
+        } else if (field.type === "boolean") {
+          const value =
+            typeof config[key] === "boolean"
+              ? (config[key] as boolean)
+              : Boolean(field.default);
+          vizConfigValues[key] = value;
+        } else if (field.type === "select") {
+          const value =
+            typeof config[key] === "string"
+              ? (config[key] as string)
+              : typeof field.default === "string"
+                ? field.default
+                : field.options?.[0]?.value ?? "";
+          vizConfigValues[key] = value;
         }
-      }
-    }
-  });
-
-  // Audio source selection
-  audioSourceSelect.addEventListener("change", () => {
-    const source = audioSources.find((s) => s.id === audioSourceSelect.value);
-    if (source) {
-      window.vizecAPI.selectAudioSource(source);
-      window.vizecAPI.startCapture();
-    } else {
-      window.vizecAPI.stopCapture();
-    }
-  });
-
-  // Visualization combobox events
-  vizSearch.addEventListener("focus", () => {
-    vizSearch.value = "";
-    openDropdown();
-    vizSearch.select();
-  });
-
-  vizSearch.addEventListener("input", () => {
-    openDropdown();
-    populateVisualizations(vizSearch.value);
-  });
-
-  vizSearch.addEventListener("keydown", (e) => {
-    const filtered = getFilteredVisualizations();
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (!vizCombobox.classList.contains("open")) {
-        openDropdown();
-      } else {
-        highlightOption(Math.min(highlightedIndex + 1, filtered.length - 1));
-      }
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      highlightOption(Math.max(highlightedIndex - 1, 0));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (highlightedIndex >= 0 && highlightedIndex < filtered.length) {
-        const viz = filtered[highlightedIndex];
-        selectVisualization(viz.id, viz.name);
-      }
-    } else if (e.key === "Escape") {
-      closeDropdown();
-      vizSearch.blur();
-    }
-  });
-
-  // Close dropdown when clicking outside
-  document.addEventListener("click", (e) => {
-    if (!vizCombobox.contains(e.target as Node)) {
-      closeDropdown();
-    }
-  });
-
-  prevVizBtn.addEventListener("click", () => {
-    window.vizecAPI.prevVisualization();
-  });
-
-  nextVizBtn.addEventListener("click", () => {
-    window.vizecAPI.nextVisualization();
-  });
-
-  hideSpeechVisualizationsCheck.addEventListener("change", () => {
-    localStorage.setItem(
-      HIDE_SPEECH_VISUALIZATIONS_KEY,
-      String(hideSpeechVisualizationsCheck.checked),
-    );
-    window.vizecAPI.updateState({
-      hideSpeechVisualizations: hideSpeechVisualizationsCheck.checked,
-    });
-    window.vizecAPI.resetRandomRotationPool();
-    populateVisualizations(vizSearch.value);
-  });
-
-  // Helper to get current rotation config
-  const getRotationConfig = () => ({
-    enabled: autoRotateCheck.checked,
-    interval: parseInt(rotationInterval.value),
-    order: (document.querySelector('input[name="rotation-order"]:checked') as HTMLInputElement)
-      ?.value as "sequential" | "random",
-    randomizeColors: randomizeColorsCheck.checked,
-    randomizeAll: randomizeAllCheck.checked,
-  });
-
-  // Auto-rotate
-  autoRotateCheck.addEventListener("change", () => {
-    window.vizecAPI.setRotation(getRotationConfig());
-  });
-
-  rotationInterval.addEventListener("input", () => {
-    rotationIntervalValue.textContent = `${rotationInterval.value}s`;
-    window.vizecAPI.setRotation(getRotationConfig());
-  });
-
-  document.querySelectorAll('input[name="rotation-order"]').forEach((radio) => {
-    radio.addEventListener("change", () => {
-      window.vizecAPI.setRotation(getRotationConfig());
-    });
-  });
-
-  randomizeColorsCheck.addEventListener("change", () => {
-    window.vizecAPI.setRotation(getRotationConfig());
-  });
-
-  randomizeAllCheck.addEventListener("change", () => {
-    if (randomizeAllCheck.checked) {
-      randomizeColorsCheck.checked = true;
-    }
-    window.vizecAPI.setRotation(getRotationConfig());
-  });
-
-  resetRotationPoolBtn.addEventListener("click", () => {
-    window.vizecAPI.resetRandomRotationPool();
-  });
-
-  // Audio settings
-  sensitivitySlider.addEventListener("input", () => {
-    const value = parseFloat(sensitivitySlider.value);
-    sensitivityValue.textContent = value.toFixed(1);
-    window.vizecAPI.setAudioConfig({
-      sensitivity: value,
-      smoothing: parseFloat(smoothingSlider.value),
-    });
-  });
-
-  smoothingSlider.addEventListener("input", () => {
-    const value = parseFloat(smoothingSlider.value);
-    smoothingValue.textContent = value.toFixed(2);
-    window.vizecAPI.setAudioConfig({
-      sensitivity: parseFloat(sensitivitySlider.value),
-      smoothing: value,
-    });
-  });
-
-  // Display settings
-  document.querySelectorAll('input[name="background"]').forEach((radio) => {
-    radio.addEventListener("change", (e) => {
-      window.vizecAPI.setDisplayConfig({
-        background: (e.target as HTMLInputElement).value as "transparent" | "solid",
       });
+    };
+
+    const updateVisualizationSchema = () => {
+      if (!currentState.value) {
+        vizSchema.value = {};
+        clearVizConfigValues();
+        return;
+      }
+
+      const vizId = currentState.value.currentVisualization;
+      const shouldRefresh = vizId !== lastVisualizationId;
+
+      if (shouldRefresh) {
+        lastVisualizationId = vizId;
+        const vizInstance = visualizationManager.createVisualization(vizId);
+        if (!vizInstance) {
+          vizSchema.value = {};
+          clearVizConfigValues();
+          return;
+        }
+
+        const schema = vizInstance.getConfigSchema();
+        vizInstance.destroy();
+        vizSchema.value = schema;
+        clearVizConfigValues();
+      }
+
+      syncVizConfigValues(vizSchema.value, currentState.value.visualizationConfig);
+    };
+
+    const syncFromState = (state: AppState) => {
+      currentState.value = state;
+      isCapturing.value = state.isCapturing;
+      selectedPresetId.value = state.currentPreset ?? "";
+      selectedAudioSourceId.value = state.audioSource?.id ?? "";
+
+      rotationForm.enabled = state.rotation.enabled;
+      rotationForm.interval = state.rotation.interval;
+      rotationForm.order = state.rotation.order;
+      rotationForm.randomizeColors = state.rotation.randomizeColors ?? false;
+      rotationForm.randomizeAll = state.rotation.randomizeAll ?? false;
+
+      audioForm.sensitivity = state.audioConfig.sensitivity;
+      audioForm.smoothing = state.audioConfig.smoothing;
+
+      displayForm.background = state.displayConfig.background;
+
+      if (hideSpeechVisualizations.value !== state.hideSpeechVisualizations) {
+        hideSpeechVisualizations.value = state.hideSpeechVisualizations;
+        localStorage.setItem(
+          HIDE_SPEECH_VISUALIZATIONS_KEY,
+          String(state.hideSpeechVisualizations),
+        );
+      }
+
+      if (!isVizDropdownOpen.value) {
+        syncVizSearchToCurrent();
+      }
+
+      updateVisualizationSchema();
+    };
+
+    const openDropdown = () => {
+      isVizDropdownOpen.value = true;
+    };
+
+    const closeDropdown = () => {
+      isVizDropdownOpen.value = false;
+      highlightedIndex.value = -1;
+      syncVizSearchToCurrent();
+    };
+
+    const scrollHighlightedOption = () => {
+      nextTick(() => {
+        const dropdown = vizDropdown.value;
+        if (!dropdown) return;
+        const options = dropdown.querySelectorAll<HTMLElement>(
+          ".searchable-select-option:not(.no-results)",
+        );
+        if (highlightedIndex.value >= 0 && highlightedIndex.value < options.length) {
+          options[highlightedIndex.value].scrollIntoView({ block: "nearest" });
+        }
+      });
+    };
+
+    const highlightOption = (index: number) => {
+      highlightedIndex.value = index;
+      scrollHighlightedOption();
+    };
+
+    const selectVisualization = (viz: VisualizationMeta) => {
+      if (!api) return;
+      api.setVisualization(viz.id);
+      vizSearch.value = viz.name;
+      closeDropdown();
+    };
+
+    const onVizFocus = () => {
+      vizSearch.value = "";
+      openDropdown();
+      highlightedIndex.value = -1;
+      nextTick(() => vizSearchInput.value?.select());
+    };
+
+    const onVizInput = () => {
+      openDropdown();
+      highlightedIndex.value = -1;
+    };
+
+    const onVizKeydown = (event: KeyboardEvent) => {
+      const filtered = filteredVisualizations.value;
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        if (!isVizDropdownOpen.value) {
+          openDropdown();
+          highlightOption(filtered.length > 0 ? 0 : -1);
+          return;
+        }
+        if (filtered.length > 0) {
+          highlightOption(Math.min(highlightedIndex.value + 1, filtered.length - 1));
+        }
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        if (filtered.length > 0) {
+          highlightOption(Math.max(highlightedIndex.value - 1, 0));
+        }
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        if (highlightedIndex.value >= 0 && highlightedIndex.value < filtered.length) {
+          selectVisualization(filtered[highlightedIndex.value]);
+        }
+      } else if (event.key === "Escape") {
+        closeDropdown();
+        vizSearchInput.value?.blur();
+      }
+    };
+
+    const onPresetChange = () => {
+      if (!api) return;
+      if (!selectedPresetId.value) return;
+      api.loadPreset(selectedPresetId.value).catch((error) => {
+        console.error("Failed to load preset:", error);
+      });
+    };
+
+    const openSavePresetModal = () => {
+      presetNameInput.value = "";
+      isSavePresetModalOpen.value = true;
+      nextTick(() => presetNameInputRef.value?.focus());
+    };
+
+    const closeSavePresetModal = () => {
+      isSavePresetModalOpen.value = false;
+    };
+
+    const confirmSavePreset = async () => {
+      if (!api) return;
+      const name = presetNameInput.value.trim();
+      if (!name) return;
+      try {
+        const newPreset = await api.savePreset(name);
+        presets.value = [...presets.value, newPreset];
+        selectedPresetId.value = newPreset.id;
+        closeSavePresetModal();
+      } catch (error) {
+        console.error("Failed to save preset:", error);
+      }
+    };
+
+    const deletePreset = async () => {
+      if (!api || !selectedPreset.value || selectedPreset.value.builtin) return;
+      if (!confirm(`Delete preset "${selectedPreset.value.name}"?`)) return;
+      try {
+        const presetId = selectedPreset.value.id;
+        await api.deletePreset(presetId);
+        presets.value = presets.value.filter((preset: Preset) => preset.id !== presetId);
+        if (selectedPresetId.value === presetId) {
+          selectedPresetId.value = "";
+        }
+      } catch (error) {
+        console.error("Failed to delete preset:", error);
+      }
+    };
+
+    const onPresetNameKeydown = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        confirmSavePreset();
+      } else if (event.key === "Escape") {
+        closeSavePresetModal();
+      }
+    };
+
+    const onAudioSourceChange = () => {
+      if (!api) return;
+      const source = audioSources.value.find(
+        (item: AudioSource) => item.id === selectedAudioSourceId.value,
+      );
+      if (source) {
+        const payload = { ...toRaw(source) } as AudioSource;
+        api.selectAudioSource(payload);
+        api.startCapture();
+      } else {
+        api.stopCapture();
+      }
+    };
+
+    const refreshAudioSources = async () => {
+      if (!api) return;
+      try {
+        const [screenSources, inputDevices] = await Promise.all([
+          api.getAudioSources(),
+          api.getAudioInputDevices(),
+        ]);
+        audioSources.value = buildAudioSources(screenSources, inputDevices);
+        if (currentState.value?.audioSource) {
+          selectedAudioSourceId.value = currentState.value.audioSource.id;
+        }
+      } catch (error) {
+        console.error("Failed to refresh audio sources:", error);
+      }
+    };
+
+    const nextVisualization = () => {
+      api?.nextVisualization();
+    };
+
+    const prevVisualization = () => {
+      api?.prevVisualization();
+    };
+
+    const onHideSpeechChange = () => {
+      if (!api) return;
+      localStorage.setItem(
+        HIDE_SPEECH_VISUALIZATIONS_KEY,
+        String(hideSpeechVisualizations.value),
+      );
+      api.updateState({ hideSpeechVisualizations: hideSpeechVisualizations.value });
+      api.resetRandomRotationPool();
+      highlightedIndex.value = -1;
+    };
+
+    const applyRotation = () => {
+      if (!api) return;
+      const rotation: RotationConfig = {
+        enabled: rotationForm.enabled,
+        interval: rotationForm.interval,
+        order: rotationForm.order,
+        randomizeColors: rotationForm.randomizeColors,
+        randomizeAll: rotationForm.randomizeAll,
+      };
+      api.setRotation(rotation);
+    };
+
+    const onRotationEnabledChange = () => {
+      applyRotation();
+    };
+
+    const onRotationIntervalInput = () => {
+      applyRotation();
+    };
+
+    const onRotationOrderChange = () => {
+      applyRotation();
+    };
+
+    const onRotationRandomizeColorsChange = () => {
+      applyRotation();
+    };
+
+    const onRotationRandomizeAllChange = () => {
+      if (rotationForm.randomizeAll) {
+        rotationForm.randomizeColors = true;
+      }
+      applyRotation();
+    };
+
+    const resetRotationPool = () => {
+      api?.resetRandomRotationPool();
+    };
+
+    const onSensitivityInput = () => {
+      api?.setAudioConfig({
+        sensitivity: audioForm.sensitivity,
+        smoothing: audioForm.smoothing,
+      });
+    };
+
+    const onSmoothingInput = () => {
+      api?.setAudioConfig({
+        sensitivity: audioForm.sensitivity,
+        smoothing: audioForm.smoothing,
+      });
+    };
+
+    const onDisplayBackgroundChange = () => {
+      api?.setDisplayConfig({ background: displayForm.background });
+    };
+
+    const updateVisualizationConfig = (key: string, value: VizSettingValue) => {
+      if (!api) return;
+      vizConfigValues[key] = value;
+      const update = { [key]: value } as Partial<VisualizationConfig>;
+      api.updateVisualizationConfig(update);
+      if (currentState.value) {
+        currentState.value.visualizationConfig = {
+          ...currentState.value.visualizationConfig,
+          [key]: value,
+        };
+      }
+    };
+
+    const onVizNumberInput = (key: string) => {
+      const value = vizConfigValues[key];
+      if (typeof value === "number") {
+        updateVisualizationConfig(key, value);
+      }
+    };
+
+    const onVizBooleanChange = (key: string) => {
+      const value = vizConfigValues[key];
+      if (typeof value === "boolean") {
+        updateVisualizationConfig(key, value);
+      }
+    };
+
+    const onVizSelectChange = (key: string) => {
+      const value = vizConfigValues[key];
+      if (typeof value === "string") {
+        updateVisualizationConfig(key, value);
+      }
+    };
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (vizCombobox.value && !vizCombobox.value.contains(target)) {
+        closeDropdown();
+      }
+    };
+
+    const initialize = async () => {
+      if (!api) return;
+
+      const storedHideSpeech = localStorage.getItem(HIDE_SPEECH_VISUALIZATIONS_KEY);
+      if (storedHideSpeech !== null) {
+        hideSpeechVisualizations.value = storedHideSpeech === "true";
+      }
+
+      unsubscribeVisualizations = api.onVisualizationsUpdated((metas) => {
+        visualizations.value = metas;
+        syncVizSearchToCurrent();
+      });
+
+      unsubscribeState = api.onStateChanged((state) => {
+        syncFromState(state);
+      });
+
+      try {
+        const results = await Promise.allSettled([
+          api.getPresets(),
+          api.getAudioSources(),
+          api.getAudioInputDevices(),
+          api.getVisualizations(),
+          api.getState(),
+        ]);
+
+        presets.value = getResult(results[0], [] as Preset[]);
+        const screenSources = getResult(results[1], [] as AudioSource[]);
+        const inputDevices = getResult(results[2], [] as AudioSource[]);
+        const fetchedViz = getResult(results[3], [] as VisualizationMeta[]);
+        const state = getResult(results[4], null as AppState | null);
+
+        if (state) {
+          if (storedHideSpeech !== null) {
+            const hideSpeechValue = storedHideSpeech === "true";
+            if (state.hideSpeechVisualizations !== hideSpeechValue) {
+              api.updateState({ hideSpeechVisualizations: hideSpeechValue });
+            }
+          }
+          syncFromState(state);
+        }
+
+        if (fetchedViz.length > 0) {
+          visualizations.value = fetchedViz;
+          syncVizSearchToCurrent();
+        }
+
+        audioSources.value = buildAudioSources(screenSources, inputDevices);
+      } catch (error) {
+        console.error("Critical error during initialization:", error);
+      }
+    };
+
+    onMounted(() => {
+      document.addEventListener("click", handleDocumentClick);
+      initialize();
     });
-  });
 
-  // Refresh audio sources button
-  audioSourceSelect.addEventListener("focus", async () => {
-    const [screenSources, inputDevices] = await Promise.all([
-      window.vizecAPI.getAudioSources(),
-      window.vizecAPI.getAudioInputDevices(),
-    ]);
-    audioSources = [
-      { id: "system", name: "-- System Audio (select a window) --", type: "audio" as const },
-      ...inputDevices,
-      ...screenSources,
-    ];
-    populateAudioSources();
-    if (currentState?.audioSource) {
-      audioSourceSelect.value = currentState.audioSource.id;
-    }
-  });
+    onUnmounted(() => {
+      document.removeEventListener("click", handleDocumentClick);
+      unsubscribeState?.();
+      unsubscribeVisualizations?.();
+    });
 
-  // Modal interactions
-  savePresetModal.addEventListener("click", (e) => {
-    if (e.target === savePresetModal) {
-      savePresetModal.style.display = "none";
-    }
-  });
-
-  presetNameInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      savePresetConfirm.click();
-    } else if (e.key === "Escape") {
-      savePresetModal.style.display = "none";
-    }
-  });
-}
-
-// Start initialization
-console.log("Control script loaded");
-init().catch((err) => {
-  console.error("Init failed:", err);
-});
+    return {
+      presets,
+      audioSources,
+      visualizations,
+      currentState,
+      selectedPresetId,
+      selectedAudioSourceId,
+      vizSearch,
+      isVizDropdownOpen,
+      highlightedIndex,
+      hideSpeechVisualizations,
+      rotationForm,
+      audioForm,
+      displayForm,
+      vizConfigValues,
+      vizSettingsEntries,
+      visibleVisualizations,
+      filteredVisualizations,
+      canDeletePreset,
+      isSavePresetModalOpen,
+      presetNameInput,
+      captureStatusVisible,
+      captureStatusLabel,
+      vizCombobox,
+      vizSearchInput,
+      vizDropdown,
+      presetNameInputRef,
+      onPresetChange,
+      openSavePresetModal,
+      closeSavePresetModal,
+      confirmSavePreset,
+      deletePreset,
+      onPresetNameKeydown,
+      onAudioSourceChange,
+      refreshAudioSources,
+      nextVisualization,
+      prevVisualization,
+      onHideSpeechChange,
+      onRotationEnabledChange,
+      onRotationIntervalInput,
+      onRotationOrderChange,
+      onRotationRandomizeColorsChange,
+      onRotationRandomizeAllChange,
+      resetRotationPool,
+      onSensitivityInput,
+      onSmoothingInput,
+      onDisplayBackgroundChange,
+      onVizNumberInput,
+      onVizBooleanChange,
+      onVizSelectChange,
+      onVizFocus,
+      onVizInput,
+      onVizKeydown,
+      selectVisualization,
+      highlightOption,
+    };
+  },
+}).mount("#app");
