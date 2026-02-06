@@ -119,6 +119,7 @@ Renderer Process (src/renderer/)
 - Never fill the background with solid color - use `clearRect()` for Canvas2D or transparent clear color for WebGL
 - All visuals should "float" on transparency so the user's desktop/game shows through
 - Test with actual content behind the overlay, not just a black screen
+- **deltaTime is in MILLISECONDS** (from `performance.now()` diff) — multiply by `0.001` to get seconds
 
 **Rendering best practices:**
 
