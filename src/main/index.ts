@@ -6,12 +6,10 @@ import { initSpeechSidecar } from "./speech/sidecar";
 import { PresetManager } from "./presets/presetManager";
 import { AppState } from "../shared/types";
 
-// Keep references to windows
 let visualizerWindow: BrowserWindow | null = null;
 let controlWindow: BrowserWindow | null = null;
 let presetManager: PresetManager;
 
-// App state
 const appState: AppState = {
   audioSource: null,
   isCapturing: false,
@@ -38,22 +36,19 @@ const appState: AppState = {
   },
 };
 
-// Function to broadcast state changes to all windows
-function broadcastState() {
-  const windows = [visualizerWindow, controlWindow].filter(Boolean);
-  windows.forEach((win) => {
+function broadcastState(): void {
+  for (const win of [visualizerWindow, controlWindow]) {
     try {
       if (win && !win.isDestroyed() && win.webContents && !win.webContents.isDestroyed()) {
         win.webContents.send("state-changed", appState);
       }
-    } catch (err) {
-      // Window may be in process of being destroyed, ignore
+    } catch {
+      // Window may be in process of being destroyed
     }
-  });
+  }
 }
 
-// Update state and broadcast
-export function updateAppState(partial: Partial<AppState>) {
+export function updateAppState(partial: Partial<AppState>): void {
   Object.assign(appState, partial);
   broadcastState();
 }
@@ -74,32 +69,26 @@ export function getControlWindow(): BrowserWindow | null {
   return controlWindow;
 }
 
-async function createWindows() {
-  // Initialize preset manager FIRST
+async function createWindows(): Promise<void> {
   presetManager = new PresetManager();
   await presetManager.init();
-
-  // Set up IPC handlers BEFORE creating windows
   setupIpcHandlers();
 
-  // Set up audio loopback handler
   session.defaultSession.setDisplayMediaRequestHandler((request, callback) => {
     desktopCapturer.getSources({ types: ["screen"] }).then((sources) => {
       callback({ video: sources[0], audio: "loopback" });
     });
   });
 
-  // Create windows
   visualizerWindow = createVisualizerWindow();
   controlWindow = createControlWindow();
 
   const sidecar = initSpeechSidecar((channel, payload) => {
-    const windows = [visualizerWindow, controlWindow].filter(Boolean);
-    windows.forEach((win) => {
+    for (const win of [visualizerWindow, controlWindow]) {
       if (win && !win.isDestroyed()) {
         win.webContents.send(channel, payload);
       }
-    });
+    }
   });
   sidecar.start();
   sidecar.init({
@@ -109,7 +98,6 @@ async function createWindows() {
     stepSeconds: 0.5,
   });
 
-  // Handle window closed
   visualizerWindow.on("closed", () => {
     visualizerWindow = null;
     app.quit();
@@ -120,7 +108,6 @@ async function createWindows() {
     app.quit();
   });
 
-  // Load default preset
   const presets = presetManager.getAllPresets();
   if (presets.length > 0) {
     const defaultPreset = presets.find((p) => p.id === "dark-techno") || presets[0];
@@ -133,7 +120,6 @@ async function createWindows() {
   }
 }
 
-// App lifecycle
 app.whenReady().then(createWindows);
 
 app.on("window-all-closed", () => {

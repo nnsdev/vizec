@@ -98,14 +98,14 @@ export class WordParticlesVisualization extends BaseVisualization {
     const { bass, treble, volume } = audioData;
     const beat = (bass + treble) * 0.5 * this.config.sensitivity;
 
-    this.particles.forEach((particle) => {
+    for (const particle of this.particles) {
       const material = particle.sprite.material as THREE.SpriteMaterial;
       particle.age += dt;
       particle.sprite.position.addScaledVector(particle.velocity, dt);
       particle.sprite.position.y += Math.sin(this.time * 1.5 + particle.sprite.position.x) * 0.2;
       material.opacity = this.fade(particle.age / particle.maxAge, volume);
       particle.sprite.scale.setScalar(this.config.size * (1 + beat * 0.4));
-    });
+    }
 
     this.particles = this.particles.filter((particle) => particle.age < particle.maxAge);
 
@@ -130,13 +130,11 @@ export class WordParticlesVisualization extends BaseVisualization {
   }
 
   destroy(): void {
-    if (this.rendererThree && this.rendererThree.domElement.parentElement) {
-      this.rendererThree.domElement.parentElement.removeChild(this.rendererThree.domElement);
-    }
-    this.particles.forEach((particle) => {
+    this.rendererThree?.domElement.parentElement?.removeChild(this.rendererThree.domElement);
+    for (const particle of this.particles) {
       particle.sprite.material.map?.dispose();
       particle.sprite.material.dispose();
-    });
+    }
     this.particles = [];
     this.scene?.clear();
     this.scene = null;
@@ -191,38 +189,20 @@ export class WordParticlesVisualization extends BaseVisualization {
 
   private spawnDemoWords(audioData: AudioData, dt: number): void {
     const { bass, volume } = audioData;
-
-    // dt is already normalized by render()
     this.lastDemoSpawn += dt;
 
-    // Spawn on bass hits with cooldown (very low threshold)
     const threshold = 0.05 / this.config.sensitivity;
-    const cooldown = 0.08;
+    const shouldSpawn =
+      (bass > threshold && this.lastDemoSpawn > 0.08) ||
+      (volume > 0.05 && this.lastDemoSpawn > 0.15) ||
+      this.lastDemoSpawn > 0.25;
 
-    if (bass > threshold && this.lastDemoSpawn > cooldown) {
-      const word = SIGN_WORDS[this.demoWordIndex];
-      this.demoWordIndex = (this.demoWordIndex + 1) % SIGN_WORDS.length;
-      this.spawnWord(word);
-      this.lastDemoSpawn = 0;
-      return;
-    }
+    if (!shouldSpawn) return;
 
-    // Also spawn periodically on any audio activity
-    if (volume > 0.05 && this.lastDemoSpawn > 0.15) {
-      const word = SIGN_WORDS[this.demoWordIndex];
-      this.demoWordIndex = (this.demoWordIndex + 1) % SIGN_WORDS.length;
-      this.spawnWord(word);
-      this.lastDemoSpawn = 0;
-      return;
-    }
-
-    // Fallback: spawn periodically even with no audio (attract mode)
-    if (this.lastDemoSpawn > 0.25) {
-      const word = SIGN_WORDS[this.demoWordIndex];
-      this.demoWordIndex = (this.demoWordIndex + 1) % SIGN_WORDS.length;
-      this.spawnWord(word);
-      this.lastDemoSpawn = 0;
-    }
+    const word = SIGN_WORDS[this.demoWordIndex];
+    this.demoWordIndex = (this.demoWordIndex + 1) % SIGN_WORDS.length;
+    this.spawnWord(word);
+    this.lastDemoSpawn = 0;
   }
 
   private ingestWords(words: WordEvent[]): void {

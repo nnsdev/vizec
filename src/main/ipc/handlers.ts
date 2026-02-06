@@ -57,11 +57,13 @@ export function setupIpcHandlers() {
     const eligibleIds = getEligibleVisualizationIds(state, allViz);
     if (eligibleIds.length === 0) return null;
 
-    randomRotationPool = randomRotationPool.filter((id) => eligibleIds.includes(id));
-    randomRotationPool = randomRotationPool.filter((id) => id !== state.currentVisualization);
+    const currentId = state.currentVisualization;
+    randomRotationPool = randomRotationPool.filter(
+      (id) => id !== currentId && eligibleIds.includes(id),
+    );
 
     if (randomRotationPool.length === 0) {
-      randomRotationPool = eligibleIds.filter((id) => id !== state.currentVisualization);
+      randomRotationPool = eligibleIds.filter((id) => id !== currentId);
     }
 
     const pool = randomRotationPool.length > 0 ? randomRotationPool : eligibleIds;
@@ -242,25 +244,22 @@ export function setupIpcHandlers() {
     }
   });
 
-  // Navigation
   ipcMain.on(IPC_CHANNELS.NEXT_VISUALIZATION, () => {
     const state = getAppState();
     const allViz = visualizationRegistry.getAllMeta();
     if (allViz.length === 0) return;
-    const currentIndex = allViz.findIndex(
-      (v: VisualizationMeta) => v.id === state.currentVisualization,
-    );
-    let nextIndex: number;
 
     if (state.rotation.order === "random") {
       const nextId = pickNextRandomVisualizationId(state, allViz);
       if (!nextId) return;
       updateAppState({ currentVisualization: nextId });
       return;
-    } else {
-      nextIndex = (currentIndex + 1) % allViz.length;
     }
 
+    const currentIndex = allViz.findIndex(
+      (v: VisualizationMeta) => v.id === state.currentVisualization,
+    );
+    const nextIndex = (currentIndex + 1) % allViz.length;
     updateAppState({ currentVisualization: allViz[nextIndex].id });
   });
 

@@ -8,6 +8,7 @@ import {
 } from "../types";
 import { BaseVisualization } from "../base";
 import { COLOR_SCHEMES_ACCENT, COLOR_SCHEME_OPTIONS, getColorScheme } from "../shared/colorSchemes";
+import { clamp } from "../shared/canvas";
 
 interface LyricRingsConfig extends VisualizationConfig {
   sensitivity: number;
@@ -235,12 +236,12 @@ export class LyricRingsVisualization extends BaseVisualization {
   private getWordAlpha(word: WordEvent): number {
     const age = Date.now() - word.timestamp;
     const maxAge = 9000;
-    return this.clamp(1 - age / maxAge, 0.15, 1);
+    return clamp(1 - age / maxAge, 0.15, 1);
   }
 
   private withAlpha(p: p5, color: string, alpha: number): p5.Color {
     const c = p.color(color);
-    c.setAlpha(this.clamp(alpha, 0, 1) * 255);
+    c.setAlpha(clamp(alpha, 0, 1) * 255);
     return c;
   }
 
@@ -253,7 +254,4 @@ export class LyricRingsVisualization extends BaseVisualization {
     p.pop();
   }
 
-  private clamp(value: number, min: number, max: number): number {
-    return Math.min(max, Math.max(min, value));
-  }
 }

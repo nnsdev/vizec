@@ -18,18 +18,12 @@ export function createControlWindow(): BrowserWindow {
     },
   });
 
-  // Load the control HTML
   window.loadFile(path.join(app.getAppPath(), "dist/renderer/control/index.html"));
-
-  // Open DevTools for debugging (uncomment when needed)
-  // window.webContents.openDevTools({ mode: 'detach' });
-
-  // Remove menu bar
   window.setMenuBarVisibility(false);
 
-  // Forward console logs to terminal
   window.webContents.on("console-message", (_event, level, message, _line, _sourceId) => {
-    const type = level === 0 ? "INFO" : level === 1 ? "WARN" : "ERROR";
+    const LOG_LEVELS = ["INFO", "WARN", "ERROR"] as const;
+    const type = LOG_LEVELS[level] ?? "ERROR";
     console.log(`[ControlRenderer][${type}] ${message}`);
   });
 

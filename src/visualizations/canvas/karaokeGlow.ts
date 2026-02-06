@@ -7,6 +7,7 @@ import type {
   WordEvent,
 } from "../types";
 import { COLOR_SCHEME_OPTIONS, COLOR_SCHEMES_STRING, getColorScheme } from "../shared/colorSchemes";
+import { clamp, hexToRgba } from "../shared/canvas";
 
 interface KaraokeGlowConfig extends VisualizationConfig {
   sensitivity: number;
@@ -95,9 +96,7 @@ export class KaraokeGlowVisualization extends BaseVisualization {
   }
 
   destroy(): void {
-    if (this.canvas && this.canvas.parentElement) {
-      this.canvas.parentElement.removeChild(this.canvas);
-    }
+    this.canvas?.parentElement?.removeChild(this.canvas);
     this.canvas = null;
     this.ctx = null;
   }
@@ -204,7 +203,7 @@ export class KaraokeGlowVisualization extends BaseVisualization {
 
     const measures: WordMeasure[] = trailWords.map((word) => {
       const age = now - word.timestamp;
-      const alpha = this.clamp(1 - age / maxAge, 0, 1);
+      const alpha = clamp(1 - age / maxAge, 0, 1);
       return { word, width: ctx.measureText(word.word).width, alpha };
     });
 
@@ -242,15 +241,6 @@ export class KaraokeGlowVisualization extends BaseVisualization {
   }
 
   private applyAlpha(color: string, alpha: number): string {
-    const normalized = color.replace("#", "");
-    const value = parseInt(normalized, 16);
-    const r = (value >> 16) & 255;
-    const g = (value >> 8) & 255;
-    const b = value & 255;
-    return `rgba(${r}, ${g}, ${b}, ${this.clamp(alpha, 0, 1)})`;
-  }
-
-  private clamp(value: number, min: number, max: number): number {
-    return Math.min(max, Math.max(min, value));
+    return hexToRgba(color, alpha);
   }
 }

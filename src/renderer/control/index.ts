@@ -133,9 +133,9 @@ createApp({
     };
 
     const clearVizConfigValues = () => {
-      Object.keys(vizConfigValues).forEach((key) => {
+      for (const key of Object.keys(vizConfigValues)) {
         delete vizConfigValues[key];
-      });
+      }
     };
 
     const syncVizSearchToCurrent = () => {
@@ -148,32 +148,35 @@ createApp({
       }
     };
 
+    const resolveConfigValue = (
+      config: VisualizationConfig,
+      key: string,
+      field: ConfigField,
+    ): VizSettingValue | undefined => {
+      if (field.type === "number") {
+        if (typeof config[key] === "number") return config[key] as number;
+        if (typeof field.default === "number") return field.default;
+        return field.min ?? 0;
+      }
+      if (field.type === "boolean") {
+        if (typeof config[key] === "boolean") return config[key] as boolean;
+        return Boolean(field.default);
+      }
+      if (field.type === "select") {
+        if (typeof config[key] === "string") return config[key] as string;
+        if (typeof field.default === "string") return field.default;
+        return field.options?.[0]?.value ?? "";
+      }
+      return undefined;
+    };
+
     const syncVizConfigValues = (schema: ConfigSchema, config: VisualizationConfig) => {
-      Object.entries(schema).forEach(([key, field]) => {
-        if (field.type === "number") {
-          const value =
-            typeof config[key] === "number"
-              ? (config[key] as number)
-              : typeof field.default === "number"
-                ? field.default
-                : field.min ?? 0;
-          vizConfigValues[key] = value;
-        } else if (field.type === "boolean") {
-          const value =
-            typeof config[key] === "boolean"
-              ? (config[key] as boolean)
-              : Boolean(field.default);
-          vizConfigValues[key] = value;
-        } else if (field.type === "select") {
-          const value =
-            typeof config[key] === "string"
-              ? (config[key] as string)
-              : typeof field.default === "string"
-                ? field.default
-                : field.options?.[0]?.value ?? "";
+      for (const [key, field] of Object.entries(schema)) {
+        const value = resolveConfigValue(config, key, field);
+        if (value !== undefined) {
           vizConfigValues[key] = value;
         }
-      });
+      }
     };
 
     const updateVisualizationSchema = () => {
@@ -429,22 +432,6 @@ createApp({
       api.setRotation(rotation);
     };
 
-    const onRotationEnabledChange = () => {
-      applyRotation();
-    };
-
-    const onRotationIntervalInput = () => {
-      applyRotation();
-    };
-
-    const onRotationOrderChange = () => {
-      applyRotation();
-    };
-
-    const onRotationRandomizeColorsChange = () => {
-      applyRotation();
-    };
-
     const onRotationRandomizeAllChange = () => {
       if (rotationForm.randomizeAll) {
         rotationForm.randomizeColors = true;
@@ -456,14 +443,7 @@ createApp({
       api?.resetRandomRotationPool();
     };
 
-    const onSensitivityInput = () => {
-      api?.setAudioConfig({
-        sensitivity: audioForm.sensitivity,
-        smoothing: audioForm.smoothing,
-      });
-    };
-
-    const onSmoothingInput = () => {
+    const applyAudioConfig = () => {
       api?.setAudioConfig({
         sensitivity: audioForm.sensitivity,
         smoothing: audioForm.smoothing,
@@ -618,14 +598,10 @@ createApp({
       nextVisualization,
       prevVisualization,
       onHideSpeechChange,
-      onRotationEnabledChange,
-      onRotationIntervalInput,
-      onRotationOrderChange,
-      onRotationRandomizeColorsChange,
+      applyRotation,
       onRotationRandomizeAllChange,
       resetRotationPool,
-      onSensitivityInput,
-      onSmoothingInput,
+      applyAudioConfig,
       onDisplayBackgroundChange,
       onVizNumberInput,
       onVizBooleanChange,

@@ -5,7 +5,6 @@ import type {
   AudioConfig,
   AudioSource,
   DisplayConfig,
-  Preset,
   RotationConfig,
   SpeechAudioChunk,
   SpeechInitOptions,
